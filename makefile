@@ -6,8 +6,8 @@
 
 OBJ = main.o init.o
 
-wild: $(OBJ) includes.gst
-	sc LINK CODE=F DATA=F OBJ $(OBJ) TO wild.new
+thanks-andy: $(OBJ) includes.gst
+	sc LINK CODE=F DATA=F OBJ $(OBJ) TO thanks-andy
 
 includes.gst: includes.prl
 main.o: main.c common.h protos.h includes.gst

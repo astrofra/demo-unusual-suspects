@@ -95,7 +95,8 @@ UWORD gradientPaletteRGB4[] =
 
 /***** Global functions *****/
 
-  struct Task *myTask;
+extern struct Library *SysBase;
+struct Task *myTask;
 BYTE oldPri;
 PLANEPTR pic;
 UBYTE *mod;
@@ -142,17 +143,16 @@ void  ForceDemoClose(void)
 
 /*  Test is mouse button was pressed */
 //  TODO : make the test os friendly!
-int sys_check_abort(void)
+void sys_check_abort(void)
 {
-  // KeyIO->io_Command=KBD_READMATRIX;
-  // KeyIO->io_Data=(APTR)keyMatrix;
-  // KeyIO->io_Length= SysBase->lib_Version >= 36 ? KEY_MATRIX_SIZE : 13;
-  // DoIO((struct IORequest *)KeyIO);
+  KeyIO->io_Command=KBD_READMATRIX;
+  KeyIO->io_Data=(APTR)keyMatrix;
+  KeyIO->io_Length = SysBase->lib_Version >= 36 ? KEY_MATRIX_SIZE : 13;
+  DoIO((struct IORequest *)KeyIO);
 
-  // if ((*((char *)0x0bfe001) & 0x40) == 1)
-  //   return(1);
-  // else
-    return(0);
+//   printf("%i", (int)(keyMatrix[0x45/8] & (0x20)));
+  if (keyMatrix[0x45/8] & (0x20))
+    ForceDemoClose();
 }
 
 /*  Custom delay function */
@@ -163,9 +163,7 @@ int fVBLDelay(int _sec)
   for (_count = 0; _count < _sec; _count++)
   {
     WaitTOF();
-    if (sys_check_abort())
-      return(1);
-//      ForceDemoClose(); //return(1);
+    sys_check_abort();
   }
 
   return(0);
@@ -341,11 +339,14 @@ static void disp_fade_in(UWORD *fadeto)
       col[p][1] += incr[p][1];
       col[p][2] += incr[p][2];
     }
+
     WaitTOF();
     WaitTOF();
     WaitTOF();
     disp_fade_setpalette();
+    sys_check_abort();
   }
+
   WaitTOF();
   WaitTOF();
   WaitTOF();
@@ -379,6 +380,7 @@ static void disp_fade_out(UWORD *fadeFrom)
     WaitTOF();
     WaitTOF();
     disp_fade_setpalette();
+    sys_check_abort();
   }
   WaitTOF();
   WaitTOF();
@@ -505,6 +507,7 @@ void dots_doit(UWORD *pal)
       SetAPen(&theRP_3bpl, c);
       WritePixel(&theRP_3bpl, x[i], y[i]);
     }
+    sys_check_abort();
   }
 }
 
@@ -637,6 +640,8 @@ void scroll_doit(void)
     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
     WaitTOF();
     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
+
+    sys_check_abort();
   }
 
   disp_fade_out(gradientPaletteRGB4); //pal5);  
