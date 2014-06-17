@@ -101,6 +101,23 @@ BYTE oldPri;
 PLANEPTR pic;
 UBYTE *mod;
 
+
+/*
+  Dispatch system
+*/
+
+int (*dispatch_func_ptr)(int);
+
+int  DispatchFX(void)
+{
+  if (dispatch_func_ptr != dispatch_func_ptr)
+  {
+
+  }
+
+  return(0);
+}
+
 /*Switch on the low-pass filter */
 void filter_on(void)
 {
@@ -163,6 +180,7 @@ int fVBLDelay(int _sec)
   for (_count = 0; _count < _sec; _count++)
   {
     WaitTOF();
+    DispatchFX();
     sys_check_abort();
   }
 
@@ -191,6 +209,8 @@ int main(void)
 {
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
+
+  dispatch_func_ptr = NULL;
 
   InitKeyboard();
 
@@ -507,6 +527,7 @@ void dots_doit(UWORD *pal)
       SetAPen(&theRP_3bpl, c);
       WritePixel(&theRP_3bpl, x[i], y[i]);
     }
+    DispatchFX();
     sys_check_abort();
   }
 }
@@ -641,6 +662,7 @@ void scroll_doit(void)
     WaitTOF();
     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
 
+    DispatchFX();
     sys_check_abort();
   }
 
