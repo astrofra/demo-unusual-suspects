@@ -7,6 +7,8 @@
 #include <exec/libraries.h>
 #include <dos/dos.h>
 #include <devices/keyboard.h>
+#include <graphics/gfxmacros.h>
+#include <graphics/copper.h>
 
 #include "ptreplay.h"
 #include "ptreplay_protos.h"
@@ -204,6 +206,21 @@ int InitKeyboard(void)
         }
 }
 
+void CreateCopperList(void)
+{
+  // struct UCopList *cl;
+
+  // cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
+  // CWAIT(cl, 100, 0);
+  // CMOVE(cl, custom.color[0], 0xf0f);
+  // CEND(cl);
+
+  // mainVP->UCopIns = cl;
+
+  // MrgCop();
+  // RethinkDisplay();
+}
+
 /* Main program entry point */
 int main(void)
 {
@@ -222,6 +239,8 @@ int main(void)
     return (10);
   }
 
+  CreateCopperList();
+  fVBLDelay(350);
   filter_off();
 
   myTask = FindTask(NULL);
