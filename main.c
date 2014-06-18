@@ -17,6 +17,8 @@
 #include "common.h"
 #include "protos.h"
 
+#include "Assets/object_cube.c"
+
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
@@ -102,6 +104,36 @@ struct Task *myTask;
 BYTE oldPri;
 PLANEPTR pic;
 UBYTE *mod;
+
+/********* 3D Code *********/
+
+#define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
+#define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
+
+struct obj_3d
+{
+    int const* verts;
+    int nverts;
+    int const* faces;
+    int nfaces;
+};
+ 
+int Dump3DMesh(void)
+{
+    struct obj_3d o = { (int const *)&object_cube_verts, VERT_COUNT(object_cube_verts),
+                     (int const *)&object_cube_faces, FACE_COUNT(object_cube_faces) };
+    int i;
+ 
+    for (i = 0; i < o.nverts; ++i)
+        printf("vert %d/%d: %d %d %d\n", i, o.nverts,
+               o.verts[3 * i + 0], o.verts[3 * i + 1], o.verts[3 * i + 2]);
+ 
+    for (i = 0; i < o.nfaces; ++i)
+        printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
+               o.faces[4 * i + 0], o.faces[4 * i + 1], o.faces[4 * i + 2], o.faces[4 * i + 3]);
+ 
+    return 0;
+}
 
 
 /*
@@ -227,6 +259,8 @@ int main(void)
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
+  Dump3DMesh();
+
   dispatch_func_ptr = NULL;
 
   InitKeyboard();
@@ -239,8 +273,8 @@ int main(void)
     return (10);
   }
 
-  CreateCopperList();
-  fVBLDelay(350);
+  // CreateCopperList();
+
   filter_off();
 
   myTask = FindTask(NULL);

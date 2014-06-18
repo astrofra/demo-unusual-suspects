@@ -4,7 +4,7 @@ import codecs
 import ast
 from vector3 import Vector3
 
-filename_in = "amiga.obj"
+filename_in = "cube.obj"
 filename_out = ""
 scale_factor = 2500.0
 
@@ -46,7 +46,7 @@ def parse_obj_face(_string):
 
 	# _face = _face[::-1]
 	# _face.append(_face.pop(0))
-	_face.append(_face[0])
+	# _face.append(_face[0])
 
 	return _face
 
@@ -79,35 +79,45 @@ def main():
 	filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.c')
 	f = codecs.open(filename_out, 'w')
 
-	##  Iterate on vertices
-	f.write('/* List of vertices */' + '\n')
-	_str_out = '\tdc.w\t' + str(len(vertex_list) - 1)
-	f.write(_str_out + '\n')
+	obj_name = string.replace(filename_in, '.obj', '')
+	obj_name = string.replace(obj_name, ' ', '')
+	obj_name = string.replace(obj_name, '-', '_')
+	obj_name = obj_name.lower()
 
+	f.write('/* List of vertices */' + '\n')
+	f.write('int const object_' + obj_name + '_verts[] =\n')
+	f.write('{\n')
+
+	##  Iterate on vertices
 	for _vertex in vertex_list:
-		_str_out = '\tdc.w\t'
-		_str_out = _str_out + str(int(_vertex.x)) + ',' + str(int(_vertex.y)) + ',' + str(int(_vertex.z))
-		f.write(_str_out + '\n')
+		_str_out = str(int(_vertex.x)) + ',\t' + str(int(_vertex.y)) + ',\t' + str(int(_vertex.z)) + ','
+		f.write('\t' + _str_out + '\n')
+
+	_str_out = '};'
+	f.write(_str_out + '\n')
 
 	##  Creates the C file that lists the faces
 
 	##  Iterate on faces
+	f.write('\n')
 	f.write('/* List of faces */' + '\n')
-	_str_out = '\tdc.w\t' + str(len(face_list) - 1)
-	f.write(_str_out + '\n')
+
+	f.write('int const object_' + obj_name + '_faces[] =\n')
+	f.write('{\n')
 
 	for _face in face_list:
-		_str_out = '\tdc.w\t'
+		_str_out = '\t'
 
 		corner_idx = 0
 		for _corners in _face:
 			_str_out += str(_corners['vertex'])
 			corner_idx += 1
-			if corner_idx < 5:
-				_str_out += ','
-		# _str_out += str(_face[0]['vertex'])
+			_str_out += ','
 
 		f.write(_str_out + '\n')
+
+	_str_out = '};'
+	f.write(_str_out + '\n')
 
 	f.close()
 
