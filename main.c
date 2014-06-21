@@ -9,6 +9,7 @@
 #include <devices/keyboard.h>
 #include <graphics/gfxmacros.h>
 #include <graphics/copper.h>
+#include <mffp.h>
 
 #include "ptreplay.h"
 #include "ptreplay_protos.h"
@@ -110,6 +111,10 @@ UBYTE *mod;
 #define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
 
+#ifndef PI
+#define PI  3.14153238f
+#endif
+
 struct obj_3d
 {
     int const* verts;
@@ -117,20 +122,115 @@ struct obj_3d
     int const* faces;
     int nfaces;
 };
- 
-int Dump3DMesh(void)
+
+#define vX(I) (3 * I + 0)
+#define vY(I) (3 * I + 1)
+#define vZ(I) (3 * I + 2)
+
+#define Fc0(I) (4 * i + 0)
+#define Fc1(I) (4 * i + 1)
+#define Fc2(I) (4 * i + 2)
+#define Fc3(I) (4 * i + 3)
+
+float   tcos[360],
+        tsin[360];
+
+/*  Trigonometry PrecalcCosArray*/
+void  PrecalcCosArray(void)
+{
+  int i;
+
+  for(i = 0; i < 360; i++)
+  {
+    // tcos[i] = cos(i * PI);
+    // tsin[i] = sin(i * PI);
+  }
+}
+
+int Draw3DMesh(void)
 {
     struct obj_3d o = { (int const *)&object_cube_verts, VERT_COUNT(object_cube_verts),
                      (int const *)&object_cube_faces, FACE_COUNT(object_cube_faces) };
-    int i;
+    int i,tx,ty,tz,
+    x1,x2,x3,x4, 
+    y1,y2,y3,y4,
+    hidden;
+
+    int XC,YC;
+    int dist,alt;
+
+    int *verts_tr;
+
+    XC = 160;
+    YC = 160;
+    dist = 128;
+    alt = 128;
+
+    verts_tr = (int *)malloc(sizeof(int) * o.nverts * 2);
  
     for (i = 0; i < o.nverts; ++i)
-        printf("vert %d/%d: %d %d %d\n", i, o.nverts,
-               o.verts[3 * i + 0], o.verts[3 * i + 1], o.verts[3 * i + 2]);
+    {
+      printf("vert %d/%d: %d %d %d\n", i, o.nverts,
+             o.verts[3 * i + 0], o.verts[3 * i + 1], o.verts[3 * i + 2]);
+
+      verts_tr[vX(i)] = o.verts[vX(i)];
+      verts_tr[vY(i)] = o.verts[vY(i)];
+      verts_tr[vZ(i)] = o.verts[vZ(i)];
+
+      tz = dist / (verts_tr[vZ(i)] + alt);
+
+      tx = verts_tr[vX(i)] * tz;
+      ty = verts_tr[vY(i)] * tz;
+      verts_tr[vX(i)] = tx;
+      verts_tr[vY(i)] = ty;
+
+    }
  
     for (i = 0; i < o.nfaces; ++i)
-        printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
-               o.faces[4 * i + 0], o.faces[4 * i + 1], o.faces[4 * i + 2], o.faces[4 * i + 3]);
+      printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
+              o.faces[4 * i + 0], o.faces[4 * i + 1], o.faces[4 * i + 2], o.faces[4 * i + 3]);
+
+  // Face  *fa;
+
+  //  loop all faces
+
+  for (i = 0; i < o.nfaces; ++i)
+  {
+  //   fa = (f + i);
+    x1 = XC + o.verts[vX(o.faces[Fc0(i)])];
+    y1 = YC + o.verts[vY(o.faces[Fc0(i)])];
+
+  //   x1 = XC + ( v2d + (fa -> v1) ) -> x;
+  //   y1 = YC + ( v2d + (fa -> v1) ) -> y;
+    x2 = XC + o.verts[vX(o.faces[Fc1(i)])];
+    y2 = YC + o.verts[vY(o.faces[Fc1(i)])];
+
+  //   x2 = XC + ( v2d + (fa -> v2) ) -> x;
+  //   y2 = YC + ( v2d + (fa -> v2) ) -> y;
+    x3 = XC + o.verts[vX(o.faces[Fc2(i)])];
+    y3 = YC + o.verts[vY(o.faces[Fc2(i)])];
+
+  //   x3 = XC + ( v2d + (fa -> v3) ) -> x;
+  //   y3 = YC + ( v2d + (fa -> v3) ) -> y;
+    x4 = XC + o.verts[vX(o.faces[Fc3(i)])];
+    y4 = YC + o.verts[vY(o.faces[Fc3(i)])];
+
+    //  shpuld we draw the face ?
+    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+
+    printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
+
+    // if (hidden > 0)
+    {
+      SetAPen(&theRP_3bpl, 15);
+
+      Move(&theRP_3bpl, x1, y1);
+      Draw(&theRP_3bpl, x2, y2);
+      Draw(&theRP_3bpl, x3, y3);
+      Draw(&theRP_3bpl, x4, y4);
+      Draw(&theRP_3bpl, x1, y1);
+    }
+  }      
  
     return 0;
 }
@@ -259,8 +359,6 @@ int main(void)
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
-  Dump3DMesh();
-
   dispatch_func_ptr = NULL;
 
   InitKeyboard();
@@ -285,14 +383,17 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
-  writer_doit((UBYTE *) "Barking Mad"
-                        "Hedgehogs#"
-                        "PRESENTS#");
+  // writer_doit((UBYTE *) "Barking Mad"
+  //                       "Hedgehogs#"
+  //                       "PRESENTS#");
   disp_clear();
 
   pic = load_getmem((UBYTE *)"assets/logo.bin", 40 * 4 * 256);
   disp_whack(pic, 40, 256, 0, 0, 4);
   disp_fade_in(pal7);
+
+  Draw3DMesh();
+
   fVBLDelay(350);
   disp_fade_out(pal7);
   disp_clear();

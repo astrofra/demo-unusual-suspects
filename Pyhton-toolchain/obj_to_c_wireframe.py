@@ -6,7 +6,7 @@ from vector3 import Vector3
 
 filename_in = "cube.obj"
 filename_out = ""
-scale_factor = 2500.0
+scale_factor = 100.0
 
 face_list = []
 vertex_list = []
