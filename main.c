@@ -136,17 +136,17 @@ struct obj_3d
 #define Fc3(I) (4 * I + 3)
 
 #define fixed_pt_pre  512
-#define fake_float (int)(0.7 * fixed_pt_pre)
 
-int Draw3DMesh(void)
+struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
+                 (int const *)&object_amiga_faces, FACE_COUNT(object_amiga_faces) };
+
+int Draw3DMesh(int rx, int ry)
 {
-  struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
-                   (int const *)&object_amiga_faces, FACE_COUNT(object_amiga_faces) };
+
   int i,tx,ty,
   x1,x2,x3,x4, 
   y1,y2,y3,y4,
-  hidden,
-  rx,ry;
+  hidden;
 
   int XC,YC;
   int dist,alt;
@@ -163,10 +163,6 @@ int Draw3DMesh(void)
   verts_tr = (int *)malloc(sizeof(int) * o.nverts * 3);
 
   /*  Transform & project the vertices */
-
-  rx = 45;
-  ry = 45;
-
   //  pre-rotations
   cs = (tcos[rx] * tsin[ry]) / fixed_pt_pre,
   ss = (tsin[ry] * tsin[rx]) / fixed_pt_pre,
@@ -227,11 +223,11 @@ int Draw3DMesh(void)
     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
 
     //  should we draw the face ?
-    // hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
     // if (DEBUG_CONSOLE_ENABLED)
     //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
-    // if (hidden > 0)
+    if (hidden > 0)
     {
       SetAPen(&theRP_3bpl, 12);
 
@@ -369,6 +365,7 @@ void CreateCopperList(void)
 /* Main program entry point */
 int main(void)
 {
+  int frame_idx;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -406,7 +403,14 @@ int main(void)
   disp_fade_in(pal7);
 
   disp_clear();
-  Draw3DMesh();
+
+  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  {
+    WaitTOF();
+    disp_clear();
+    Draw3DMesh(frame_idx%360, (frame_idx / 2)%360);
+    sys_check_abort();
+  }
 
   fVBLDelay(350);
   disp_fade_out(pal7);
@@ -608,7 +612,7 @@ void disp_swap(void)
   if (swapFlag)
     temp = theRaster;
   else
-    temp = theRaster;
+    temp = theRaster2;
   swapFlag = !swapFlag;
 
   for(i = 0; i < 4; i ++)

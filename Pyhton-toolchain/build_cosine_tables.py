@@ -15,7 +15,7 @@ def dumpCosine(_cosine_func, display_name, f):
 
 	_str_out = '\t'
 	for angle in range(0,table_size):
-		_cos = int(_cosine_func(angle) * fixed_point_precision)
+		_cos = int(_cosine_func(angle * math.pi / 180.0) * fixed_point_precision)
 		_str_out += str(_cos) + ','
 		if angle%10 == 9:
 			f.write(_str_out + '\n')
