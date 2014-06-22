@@ -136,6 +136,36 @@ struct obj_3d
 #define Fc3(I) (4 * I + 3)
 
 #define fixed_pt_pre  512
+#define fixed_pt_shift 9
+
+void DrawAALine(int x1, int y1, int x2, int y2)
+{
+  int xo = 0, yo = 0;
+  if (2 * abs(x1 - x2) > abs(y1 - y2))
+  {
+    xo = 1;
+    yo = 0;
+  }
+
+  if (abs(x1 - x2) < 2 * abs(y1 - y2))
+  {
+    xo = 0;
+    yo = 1;
+  }
+
+  if (xo || yo)
+  {
+    SetAPen(&theRP_2bpl, 2);
+    Move(&theRP_2bpl, x1 + xo, y1 + yo);
+    Draw(&theRP_2bpl, x2 + xo, y2 + yo);
+    Move(&theRP_2bpl, x1 - xo, y1 - yo);
+    Draw(&theRP_2bpl, x2 - xo, y2 - yo);
+  }
+
+  // SetAPen(&theRP_2bpl, 1);
+  // Move(&theRP_2bpl, x1, y1);
+  // Draw(&theRP_2bpl, x2, y2);
+}
 
 struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
                  (int const *)&object_amiga_faces, FACE_COUNT(object_amiga_faces) };
@@ -164,10 +194,10 @@ int Draw3DMesh(int rx, int ry)
 
   /*  Transform & project the vertices */
   //  pre-rotations
-  cs = (tcos[rx] * tsin[ry]) / fixed_pt_pre,
-  ss = (tsin[ry] * tsin[rx]) / fixed_pt_pre,
-  cc = (tcos[rx] * tcos[ry]) / fixed_pt_pre,
-  sc = (tsin[rx] * tcos[ry]) / fixed_pt_pre; 
+  cs = (tcos[rx] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre,
+  ss = (tsin[ry] * tsin[rx]) >> fixed_pt_shift; // / fixed_pt_pre,
+  cc = (tcos[rx] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre,
+  sc = (tsin[rx] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre; 
 
   for (i = 0; i < o.nverts; ++i)
   {
@@ -182,9 +212,9 @@ int Draw3DMesh(int rx, int ry)
     // verts_tr[vY(i)] = o.verts[vY(i)];
     // verts_tr[vZ(i)] = o.verts[vZ(i)];
 
-    verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) / fixed_pt_pre;
-    verts_tr[vY(i)] = (o.verts[vX(i)] * cs - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) / fixed_pt_pre;
-    verts_tr[vZ(i)] = (o.verts[vX(i)] * cc - o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) / fixed_pt_pre;
+    verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) >> fixed_pt_shift; // / fixed_pt_pre;
+    verts_tr[vY(i)] = (o.verts[vX(i)] * cs - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
+    verts_tr[vZ(i)] = (o.verts[vX(i)] * cc - o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
 
     /*
       Classic 3D -> 2D projection
@@ -228,14 +258,53 @@ int Draw3DMesh(int rx, int ry)
     //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
     if (hidden > 0)
-    {
-      SetAPen(&theRP_3bpl, 12);
+    {           
+      // SetAPen(&theRP_2bpl, 1);
 
-      Move(&theRP_3bpl, x1, y1);
-      Draw(&theRP_3bpl, x2, y2);
-      Draw(&theRP_3bpl, x3, y3);
-      Draw(&theRP_3bpl, x4, y4);
-      Draw(&theRP_3bpl, x1, y1);
+      DrawAALine(x1, y1, x2, y2);
+      DrawAALine(x2, y2, x3, y3);
+      DrawAALine(x3, y3, x4, y4);
+      DrawAALine(x4, y4, x1, y1);
+      // Move(&theRP_2bpl, x1, y1);
+      // Draw(&theRP_2bpl, x2, y2);
+      // Draw(&theRP_2bpl, x3, y3);
+      // Draw(&theRP_2bpl, x4, y4);
+      // Draw(&theRP_2bpl, x1, y1);
+    }
+  } 
+
+  for (i = 0; i < o.nfaces; ++i)
+  {
+    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
+
+    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
+
+    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
+
+    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+
+    //  should we draw the face ?
+    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+    // if (DEBUG_CONSOLE_ENABLED)
+    //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
+
+    if (hidden > 0)
+    {           
+      SetAPen(&theRP_2bpl, 1);
+
+      // DrawAALine(x1, y1, x2, y2);
+      // DrawAALine(x2, y2, x3, y3);
+      // DrawAALine(x3, y3, x4, y4);
+      // DrawAALine(x4, y4, x1, y1);
+      Move(&theRP_2bpl, x1, y1);
+      Draw(&theRP_2bpl, x2, y2);
+      Draw(&theRP_2bpl, x3, y3);
+      Draw(&theRP_2bpl, x4, y4);
+      Draw(&theRP_2bpl, x1, y1);
     }
   }      
  
@@ -243,7 +312,6 @@ int Draw3DMesh(int rx, int ry)
 
   return 0;
 }
-
 
 /*
   Dispatch system
@@ -400,15 +468,16 @@ int main(void)
 
   pic = load_getmem((UBYTE *)"assets/logo.bin", 40 * 4 * 256);
   disp_whack(pic, 40, 256, 0, 0, 4);
-  disp_fade_in(pal7);
+  disp_fade_in(pal1);
 
   disp_clear();
 
-  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  for(frame_idx = 0; frame_idx < 1024; frame_idx++)
   {
-    WaitTOF();
+    WaitTOF();           
+    // disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%360, (frame_idx / 2)%360);
+    Draw3DMesh(frame_idx%COSINE_TABLE_LEN, frame_idx%COSINE_TABLE_LEN);
     sys_check_abort();
   }
 
@@ -624,6 +693,7 @@ void disp_swap(void)
     theBitMap_1bpl.Planes[i] = temp;
     temp += (48 * 256);
   }
+
   MakeVPort(GfxBase->ActiView, mainVP);
   MrgCop(GfxBase->ActiView);
   LoadView(GfxBase->ActiView);
@@ -822,7 +892,7 @@ void scroll_doit(void)
   while (*currChar)
   {
     BltBitMap(&fontMap, offs[(*currChar) << 1], offs[((*currChar) << 1) + 1],
-    &theBitMap_2bpl, 320, 208, 32, 48, 0xc0, 0xff, NULL);
+    &theBitMap_3bpl, 320, 208, 32, 48, 0xc0, 0xff, NULL);
     currChar ++;
 
     WaitTOF();

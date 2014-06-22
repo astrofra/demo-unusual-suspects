@@ -93,6 +93,21 @@ BOOL init_open_all(void)
     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
     return (FALSE);
   }
+  temp = theRaster2;
+  for (i = 0; i < 4; i ++)
+  {
+    theBitMap.Planes[i] = temp;
+    theBitMap_3bpl.Planes[i] = temp;
+    theBitMap_2bpl.Planes[i] = temp;
+    theBitMap_1bpl.Planes[i] = temp;
+    temp += (48 * 256);
+  }
+
+  InitRastPort(&theRP);
+  InitRastPort(&theRP_3bpl);
+  InitRastPort(&theRP_2bpl);
+  InitRastPort(&theRP_1bpl);
+
   temp = theRaster;
   for (i = 0; i < 4; i ++)
   {
