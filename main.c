@@ -2,6 +2,9 @@
 
 #include "includes.prl"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <exec/libraries.h>
@@ -9,7 +12,6 @@
 #include <devices/keyboard.h>
 #include <graphics/gfxmacros.h>
 #include <graphics/copper.h>
-#include <mffp.h>
 
 #include "ptreplay.h"
 #include "ptreplay_protos.h"
@@ -111,10 +113,6 @@ UBYTE *mod;
 #define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
 
-#ifndef PI
-#define PI  3.14153238f
-#endif
-
 struct obj_3d
 {
     int const* verts;
@@ -132,7 +130,10 @@ struct obj_3d
 #define Fc2(I) (4 * i + 2)
 #define Fc3(I) (4 * i + 3)
 
-float   tcos[360],
+#define fixed_pt_pre  512
+#define fake_float (int)(0.7 * fixed_pt_pre)
+
+int   tcos[360],
         tsin[360];
 
 /*  Trigonometry PrecalcCosArray*/
@@ -142,81 +143,106 @@ void  PrecalcCosArray(void)
 
   for(i = 0; i < 360; i++)
   {
-    // tcos[i] = cos(i * PI);
-    // tsin[i] = sin(i * PI);
+    tcos[i] = fake_float; //cos(i * 2 * PI);
+    tsin[i] = fake_float; //sin(i * 2 * PI);
   }
 }
 
 int Draw3DMesh(void)
 {
-    struct obj_3d o = { (int const *)&object_cube_verts, VERT_COUNT(object_cube_verts),
-                     (int const *)&object_cube_faces, FACE_COUNT(object_cube_faces) };
-    int i,tx,ty,tz,
-    x1,x2,x3,x4, 
-    y1,y2,y3,y4,
-    hidden;
+  struct obj_3d o = { (int const *)&object_cube_verts, VERT_COUNT(object_cube_verts),
+                   (int const *)&object_cube_faces, FACE_COUNT(object_cube_faces) };
+  int i,tx,ty,
+  x1,x2,x3,x4, 
+  y1,y2,y3,y4,
+  hidden,
+  rx,ry;
 
-    int XC,YC;
-    int dist,alt;
+  int XC,YC;
+  int dist,alt;
 
-    int *verts_tr;
+  int *verts_tr;
 
-    XC = 160;
-    YC = 160;
-    dist = 128;
-    alt = 128;
+  int cs, ss, cc, sc;
 
-    verts_tr = (int *)malloc(sizeof(int) * o.nverts * 2);
- 
-    for (i = 0; i < o.nverts; ++i)
-    {
-      printf("vert %d/%d: %d %d %d\n", i, o.nverts,
-             o.verts[3 * i + 0], o.verts[3 * i + 1], o.verts[3 * i + 2]);
+  XC = 160;
+  YC = 160;
+  dist = 128;
+  alt = 512;
 
-      verts_tr[vX(i)] = o.verts[vX(i)];
-      verts_tr[vY(i)] = o.verts[vY(i)];
-      verts_tr[vZ(i)] = o.verts[vZ(i)];
+  verts_tr = (int *)malloc(sizeof(int) * o.nverts * 2);
 
-      tz = dist / (verts_tr[vZ(i)] + alt);
+  /*  Transform & project the vertices */
 
-      tx = verts_tr[vX(i)] * tz;
-      ty = verts_tr[vY(i)] * tz;
-      verts_tr[vX(i)] = tx;
-      verts_tr[vY(i)] = ty;
+  rx = 45;
+  ry = 45;
 
-    }
- 
-    for (i = 0; i < o.nfaces; ++i)
-      printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
-              o.faces[4 * i + 0], o.faces[4 * i + 1], o.faces[4 * i + 2], o.faces[4 * i + 3]);
+  //  pre-rotations
+  cs = (tcos[rx] * tsin[ry]) / fixed_pt_pre,
+  ss = (tsin[ry] * tsin[rx]) / fixed_pt_pre,
+  cc = (tcos[rx] * tcos[ry]) / fixed_pt_pre,
+  sc = (tsin[rx] * tcos[ry]) / fixed_pt_pre; 
 
-  // Face  *fa;
+  for (i = 0; i < o.nverts; ++i)
+  {
+    printf("vert %d/%d: %d %d %d\n", i, o.nverts,
+           o.verts[vX(i)], o.verts[vY(i)], o.verts[vZ(i)]);
 
-  //  loop all faces
+    /* 
+        Rotation on 3 axis of each vertex
+    */
+    verts_tr[vX(i)] = o.verts[vX(i)];
+    verts_tr[vY(i)] = o.verts[vY(i)];
+    verts_tr[vZ(i)] = o.verts[vZ(i)];
 
+    // verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) / fixed_pt_pre;
+    // verts_tr[vY(i)] = (o.verts[vX(i)] * cs  - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) / fixed_pt_pre;
+    // verts_tr[vZ(i)] = (o.verts[vX(i)] * cc -  o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) / fixed_pt_pre;
+
+    /*
+      Classic 3D -> 2D projection
+    */
+
+    tx = (verts_tr[vX(i)] * dist) / (verts_tr[vZ(i)] + alt);
+    ty = (verts_tr[vY(i)] * dist) / (verts_tr[vZ(i)] + alt);
+    verts_tr[vX(i)] = tx;
+    verts_tr[vY(i)] = ty;
+
+    printf("tr vert %d/%d: %d %d\n", i, o.nverts,
+           verts_tr[vX(i)], verts_tr[vY(i)]);
+
+  }
+
+  for (i = 0; i < o.nfaces; ++i)
+    printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
+            o.faces[Fc0(i)], o.faces[Fc1(i)], o.faces[Fc2(i)], o.faces[Fc3(i)]);
+
+  /*
+    Draw each face (we assume it's a quad)
+  */
   for (i = 0; i < o.nfaces; ++i)
   {
   //   fa = (f + i);
-    x1 = XC + o.verts[vX(o.faces[Fc0(i)])];
-    y1 = YC + o.verts[vY(o.faces[Fc0(i)])];
-
+    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
   //   x1 = XC + ( v2d + (fa -> v1) ) -> x;
   //   y1 = YC + ( v2d + (fa -> v1) ) -> y;
-    x2 = XC + o.verts[vX(o.faces[Fc1(i)])];
-    y2 = YC + o.verts[vY(o.faces[Fc1(i)])];
 
+    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
   //   x2 = XC + ( v2d + (fa -> v2) ) -> x;
   //   y2 = YC + ( v2d + (fa -> v2) ) -> y;
-    x3 = XC + o.verts[vX(o.faces[Fc2(i)])];
-    y3 = YC + o.verts[vY(o.faces[Fc2(i)])];
 
+    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
   //   x3 = XC + ( v2d + (fa -> v3) ) -> x;
   //   y3 = YC + ( v2d + (fa -> v3) ) -> y;
-    x4 = XC + o.verts[vX(o.faces[Fc3(i)])];
-    y4 = YC + o.verts[vY(o.faces[Fc3(i)])];
 
-    //  shpuld we draw the face ?
-    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+
+    //  should we draw the face ?
+    // hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
 
     printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
@@ -232,7 +258,9 @@ int Draw3DMesh(void)
     }
   }      
  
-    return 0;
+  // free(verts_tr);
+
+  return 0;
 }
 
 
