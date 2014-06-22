@@ -125,10 +125,10 @@ struct obj_3d
 #define vY(I) (3 * I + 1)
 #define vZ(I) (3 * I + 2)
 
-#define Fc0(I) (4 * i + 0)
-#define Fc1(I) (4 * i + 1)
-#define Fc2(I) (4 * i + 2)
-#define Fc3(I) (4 * i + 3)
+#define Fc0(I) (4 * I + 0)
+#define Fc1(I) (4 * I + 1)
+#define Fc2(I) (4 * I + 2)
+#define Fc3(I) (4 * I + 3)
 
 #define fixed_pt_pre  512
 #define fake_float (int)(0.7 * fixed_pt_pre)
@@ -166,11 +166,11 @@ int Draw3DMesh(void)
   int cs, ss, cc, sc;
 
   XC = 160;
-  YC = 160;
+  YC = 128;
   dist = 128;
   alt = 512;
 
-  verts_tr = (int *)malloc(sizeof(int) * o.nverts * 2);
+  verts_tr = (int *)malloc(sizeof(int) * o.nverts * 3);
 
   /*  Transform & project the vertices */
 
@@ -202,7 +202,6 @@ int Draw3DMesh(void)
     /*
       Classic 3D -> 2D projection
     */
-
     tx = (verts_tr[vX(i)] * dist) / (verts_tr[vZ(i)] + alt);
     ty = (verts_tr[vY(i)] * dist) / (verts_tr[vZ(i)] + alt);
     verts_tr[vX(i)] = tx;
@@ -211,6 +210,14 @@ int Draw3DMesh(void)
     printf("tr vert %d/%d: %d %d\n", i, o.nverts,
            verts_tr[vX(i)], verts_tr[vY(i)]);
 
+  }
+
+  printf("---\n");
+
+  for (i = 0; i < o.nverts; ++i)
+  {
+    printf("tr vert %d/%d: %d %d\n", i, o.nverts,
+           verts_tr[vX(i)], verts_tr[vY(i)]);
   }
 
   for (i = 0; i < o.nfaces; ++i)
