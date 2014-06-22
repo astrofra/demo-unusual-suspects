@@ -4,7 +4,7 @@ import codecs
 import ast
 from vector3 import Vector3
 
-filename_in = "cube.obj"
+filename_in = "amiga.obj"
 filename_out = ""
 scale_factor = 100.0
 
