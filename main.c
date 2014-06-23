@@ -20,9 +20,9 @@
 #include "common.h"
 #include "protos.h"
 
-#include "Assets/cosine_table.c"
-#include "Assets/object_cube.c"
-#include "Assets/object_amiga.c"
+#include "Assets/cosine_table.h"
+#include "Assets/object_cube.h"
+#include "Assets/object_amiga.h"
 
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
@@ -161,10 +161,6 @@ void DrawAALine(int x1, int y1, int x2, int y2)
     Move(&theRP_2bpl, x1 - xo, y1 - yo);
     Draw(&theRP_2bpl, x2 - xo, y2 - yo);
   }
-
-  // SetAPen(&theRP_2bpl, 1);
-  // Move(&theRP_2bpl, x1, y1);
-  // Draw(&theRP_2bpl, x2, y2);
 }
 
 struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
@@ -194,24 +190,16 @@ int Draw3DMesh(int rx, int ry)
 
   /*  Transform & project the vertices */
   //  pre-rotations
-  cs = (tcos[rx] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre,
-  ss = (tsin[ry] * tsin[rx]) >> fixed_pt_shift; // / fixed_pt_pre,
-  cc = (tcos[rx] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre,
-  sc = (tsin[rx] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre; 
+  cs = (tcos[rx] * tsin[ry]) >> fixed_pt_shift;
+  ss = (tsin[ry] * tsin[rx]) >> fixed_pt_shift;
+  cc = (tcos[rx] * tcos[ry]) >> fixed_pt_shift;
+  sc = (tsin[rx] * tcos[ry]) >> fixed_pt_shift;
 
   for (i = 0; i < o.nverts; ++i)
   {
-    // if (DEBUG_CONSOLE_ENABLED)
-    //   printf("vert %d/%d: %d %d %d\n", i, o.nverts,
-    //          o.verts[vX(i)], o.verts[vY(i)], o.verts[vZ(i)]);
-
     /* 
         Rotation on 3 axis of each vertex
     */
-    // verts_tr[vX(i)] = o.verts[vX(i)];
-    // verts_tr[vY(i)] = o.verts[vY(i)];
-    // verts_tr[vZ(i)] = o.verts[vZ(i)];
-
     verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) >> fixed_pt_shift; // / fixed_pt_pre;
     verts_tr[vY(i)] = (o.verts[vX(i)] * cs - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
     verts_tr[vZ(i)] = (o.verts[vX(i)] * cc - o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
@@ -223,21 +211,46 @@ int Draw3DMesh(int rx, int ry)
     ty = (verts_tr[vY(i)] * dist) / (verts_tr[vZ(i)] + alt);
     verts_tr[vX(i)] = tx;
     verts_tr[vY(i)] = ty;
-
-    // if (DEBUG_CONSOLE_ENABLED)
-    //   printf("tr vert %d/%d: %d %d\n", i, o.nverts,
-    //          verts_tr[vX(i)], verts_tr[vY(i)]);
-
   }
-
-  // if (DEBUG_CONSOLE_ENABLED)
-  //   for (i = 0; i < o.nfaces; ++i)
-  //     printf("face %d/%d: %d %d %d %d\n", i, o.nfaces,
-  //             o.faces[Fc0(i)], o.faces[Fc1(i)], o.faces[Fc2(i)], o.faces[Fc3(i)]);
 
   /*
     Draw each face (we assume it's a quad)
   */
+  // for (i = 0; i < o.nfaces; ++i)
+  // {
+  //   x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+  //   y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
+
+  //   x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+  //   y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
+
+  //   x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+  //   y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
+
+  //   x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+  //   y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+
+  //   //  should we draw the face ?
+  //   hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+  //   // if (DEBUG_CONSOLE_ENABLED)
+  //   //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
+
+  //   if (hidden > 0)
+  //   {           
+  //     // SetAPen(&theRP_2bpl, 1);
+
+  //     DrawAALine(x1, y1, x2, y2);
+  //     DrawAALine(x2, y2, x3, y3);
+  //     DrawAALine(x3, y3, x4, y4);
+  //     DrawAALine(x4, y4, x1, y1);
+  //     // Move(&theRP_2bpl, x1, y1);
+  //     // Draw(&theRP_2bpl, x2, y2);
+  //     // Draw(&theRP_2bpl, x3, y3);
+  //     // Draw(&theRP_2bpl, x4, y4);
+  //     // Draw(&theRP_2bpl, x1, y1);
+  //   }
+  // } 
+
   for (i = 0; i < o.nfaces; ++i)
   {
     x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
@@ -254,52 +267,11 @@ int Draw3DMesh(int rx, int ry)
 
     //  should we draw the face ?
     hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-    // if (DEBUG_CONSOLE_ENABLED)
-    //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
-
-    if (hidden > 0)
-    {           
-      // SetAPen(&theRP_2bpl, 1);
-
-      DrawAALine(x1, y1, x2, y2);
-      DrawAALine(x2, y2, x3, y3);
-      DrawAALine(x3, y3, x4, y4);
-      DrawAALine(x4, y4, x1, y1);
-      // Move(&theRP_2bpl, x1, y1);
-      // Draw(&theRP_2bpl, x2, y2);
-      // Draw(&theRP_2bpl, x3, y3);
-      // Draw(&theRP_2bpl, x4, y4);
-      // Draw(&theRP_2bpl, x1, y1);
-    }
-  } 
-
-  for (i = 0; i < o.nfaces; ++i)
-  {
-    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
-    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
-
-    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
-    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-
-    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
-    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-
-    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
-    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-
-    //  should we draw the face ?
-    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-    // if (DEBUG_CONSOLE_ENABLED)
-    //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
     if (hidden > 0)
     {           
       SetAPen(&theRP_2bpl, 1);
 
-      // DrawAALine(x1, y1, x2, y2);
-      // DrawAALine(x2, y2, x3, y3);
-      // DrawAALine(x3, y3, x4, y4);
-      // DrawAALine(x4, y4, x1, y1);
       Move(&theRP_2bpl, x1, y1);
       Draw(&theRP_2bpl, x2, y2);
       Draw(&theRP_2bpl, x3, y3);
@@ -477,7 +449,7 @@ int main(void)
     WaitTOF();           
     // disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%COSINE_TABLE_LEN, frame_idx%COSINE_TABLE_LEN);
+    Draw3DMesh(frame_idx%COSINE_TABLE_LEN, (frame_idx >> 2)%COSINE_TABLE_LEN);
     sys_check_abort();
   }
 

@@ -4,7 +4,7 @@ import codecs
 import ast
 from vector3 import Vector3
 
-filename_in = "amiga.obj"
+filename_list = ["amiga.obj", "cube.obj"]
 filename_out = ""
 scale_factor = 100.0
 
@@ -51,74 +51,83 @@ def parse_obj_face(_string):
 	return _face
 
 def main():
-	f = codecs.open(filename_in, 'r')
-	for line in f:
-		# print(repr(line))
-		if len(line) > 0:
-			line = string.replace(line, '\t', ' ')
-			line = string.replace(line, '  ', ' ')
-			line = string.replace(line, '  ', ' ')
-			line = string.strip(line)
-			if line.startswith('v '):
-				# print('found a vertex')
-				vertex_list.append(parse_obj_vector(line))
+	for filename_in in filename_list:
+		f = codecs.open(filename_in, 'r')
+		for line in f:
+			# print(repr(line))
+			if len(line) > 0:
+				line = string.replace(line, '\t', ' ')
+				line = string.replace(line, '  ', ' ')
+				line = string.replace(line, '  ', ' ')
+				line = string.strip(line)
+				if line.startswith('v '):
+					# print('found a vertex')
+					vertex_list.append(parse_obj_vector(line))
 
-			if line.startswith('vn '):
-				# print('found a vertex normal')
-				normal_list.append(parse_obj_vector(line))
+				if line.startswith('vn '):
+					# print('found a vertex normal')
+					normal_list.append(parse_obj_vector(line))
 
-			if line.startswith('f '):
-				# print('found a face')
-				face_list.append(parse_obj_face(line))
+				if line.startswith('f '):
+					# print('found a face')
+					face_list.append(parse_obj_face(line))
 
-	f.close()
+		f.close()
 
-	print('Parser stats : ' + str(len(vertex_list)) + ' vertices, ' + str(len(normal_list)) + ' normals, ' + str(len(face_list)) + ' faces, ')
+		print('OBJ Parser : "' + filename_in + '", ' + str(len(vertex_list)) + ' vertices, ' + str(len(normal_list)) + ' normals, ' + str(len(face_list)) + ' faces, ')
 
-	##  Creates the C file that lists the vertices
-	filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.c')
-	f = codecs.open(filename_out, 'w')
+		obj_name = string.replace(filename_in, '.obj', '')
+		obj_name = string.replace(obj_name, ' ', '')
+		obj_name = string.replace(obj_name, '-', '_')
+		obj_name = obj_name.lower()
 
-	obj_name = string.replace(filename_in, '.obj', '')
-	obj_name = string.replace(obj_name, ' ', '')
-	obj_name = string.replace(obj_name, '-', '_')
-	obj_name = obj_name.lower()
+		##  Creates the C file that lists the vertices
+		filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.h')
+		f = codecs.open(filename_out, 'w')
+		f.write('extern const int object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
+		f.write('extern const int object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
 
-	f.write('/* List of vertices */' + '\n')
-	f.write('int const object_' + obj_name + '_verts[] =\n')
-	f.write('{\n')
+		f.close()
 
-	##  Iterate on vertices
-	for _vertex in vertex_list:
-		_str_out = str(int(_vertex.x)) + ',\t' + str(int(_vertex.y)) + ',\t' + str(int(_vertex.z)) + ','
-		f.write('\t' + _str_out + '\n')
+		##  Creates the C file that lists the vertices
+		filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.c')
+		f = codecs.open(filename_out, 'w')
 
-	_str_out = '};'
-	f.write(_str_out + '\n')
+		f.write('/* List of vertices */' + '\n')
+		f.write('int const object_' + obj_name + '_verts[] =\n')
+		f.write('{\n')
 
-	##  Creates the C file that lists the faces
+		##  Iterate on vertices
+		for _vertex in vertex_list:
+			_str_out = str(int(_vertex.x)) + ',\t' + str(int(_vertex.z)) + ',\t' + str(int(_vertex.y * -1.0)) + ','
+			f.write('\t' + _str_out + '\n')
 
-	##  Iterate on faces
-	f.write('\n')
-	f.write('/* List of faces */' + '\n')
-
-	f.write('int const object_' + obj_name + '_faces[] =\n')
-	f.write('{\n')
-
-	for _face in face_list:
-		_str_out = '\t'
-
-		corner_idx = 0
-		for _corners in _face:
-			_str_out += str(_corners['vertex'])
-			corner_idx += 1
-			_str_out += ','
-
+		_str_out = '};'
 		f.write(_str_out + '\n')
 
-	_str_out = '};'
-	f.write(_str_out + '\n')
+		##  Creates the C file that lists the faces
 
-	f.close()
+		##  Iterate on faces
+		f.write('\n')
+		f.write('/* List of faces */' + '\n')
+
+		f.write('int const object_' + obj_name + '_faces[] =\n')
+		f.write('{\n')
+
+		for _face in face_list:
+			_str_out = '\t'
+
+			corner_idx = 0
+			for _corners in _face:
+				_str_out += str(_corners['vertex'])
+				corner_idx += 1
+				_str_out += ','
+
+			f.write(_str_out + '\n')
+
+		_str_out = '};'
+		f.write(_str_out + '\n')
+
+		f.close()
 
 main()

@@ -5,12 +5,12 @@ import ast
 import math
 from vector3 import Vector3
 
-filename_out			=	"../Assets/cosine_table.c"
+filename_out			=	"../Assets/cosine_table"
 table_size				=	512
 fixed_point_precision 	=	512
 
 def dumpCosine(_cosine_func, display_name, f):
-	f.write('int ' + display_name + '[] =' + '\n')
+	f.write('const int ' + display_name + '[] =' + '\n')
 	f.write('{' + '\n')
 
 	_str_out = '\t'
@@ -24,10 +24,19 @@ def dumpCosine(_cosine_func, display_name, f):
 	f.write('};' + '\n')
 
 def  main():
-	f = codecs.open(filename_out, 'w')
+	##	Creates the header
+	f = codecs.open(filename_out + '.h', 'w')
 
 	f.write('#define COSINE_TABLE_LEN ' + str(table_size) + '\n')
 	f.write('\n')
+
+	f.write('extern const int tcos[' + str(table_size) + '];' + '\n')
+	f.write('extern const int tsin[' + str(table_size) + '];' + '\n')
+
+	f.close()
+
+	##	Creates the C file
+	f = codecs.open(filename_out + '.c', 'w')
 
 	dumpCosine(_cosine_func = math.cos, display_name = 'tcos', f = f)
 	f.write('\n')
