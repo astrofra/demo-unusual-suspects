@@ -5,6 +5,8 @@
 #include "common.h"
 #include "protos.h"
 
+#define SCR_HEIGHT  (256 << 1)
+
 /***** Static function declarations *****/
 
 static void init_conerr(UBYTE *str);
@@ -19,7 +21,7 @@ struct IntuitionBase *IntuitionBase;
 struct Library *DiskfontBase;
 struct Library *PTReplayBase;
 
-PLANEPTR theRaster, theRaster2;
+PLANEPTR theRaster;
 struct RastPort theRP;
 struct RastPort theRP_3bpl;
 struct RastPort theRP_2bpl;
@@ -30,7 +32,7 @@ struct BitMap theBitMap_2bpl;
 struct BitMap theBitMap_1bpl;
 struct NewScreen theScreen =
 {
-  0, 0, 320, 256, 4, 0, 1, 0,
+  0, 0, 320, SCR_HEIGHT, 4, 0, 1, 0,
   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
 };
 struct Screen *mainScreen;
@@ -78,35 +80,16 @@ BOOL init_open_all(void)
     return (FALSE);
   }
 
-  InitBitMap(&theBitMap, 4, 384, 256);
-  InitBitMap(&theBitMap_3bpl, 3, 384, 256);
-  InitBitMap(&theBitMap_2bpl, 2, 384, 256);
-  InitBitMap(&theBitMap_1bpl, 1, 384, 256);
+  InitBitMap(&theBitMap, 4, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
 
-  if (!(theRaster = AllocRaster(384 * 4, 256)))
+  if (!(theRaster = AllocRaster(384 * 4, SCR_HEIGHT)))
   {
     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
     return (FALSE);
   }
-  if (!(theRaster2 = AllocRaster(384 * 4, 256)))
-  {
-    init_conerr((UBYTE *)"Unable to allocate screen memory\n");
-    return (FALSE);
-  }
-  temp = theRaster2;
-  for (i = 0; i < 4; i ++)
-  {
-    theBitMap.Planes[i] = temp;
-    theBitMap_3bpl.Planes[i] = temp;
-    theBitMap_2bpl.Planes[i] = temp;
-    theBitMap_1bpl.Planes[i] = temp;
-    temp += (48 * 256);
-  }
-
-  InitRastPort(&theRP);
-  InitRastPort(&theRP_3bpl);
-  InitRastPort(&theRP_2bpl);
-  InitRastPort(&theRP_1bpl);
 
   temp = theRaster;
   for (i = 0; i < 4; i ++)
@@ -115,7 +98,7 @@ BOOL init_open_all(void)
     theBitMap_3bpl.Planes[i] = temp;
     theBitMap_2bpl.Planes[i] = temp;
     theBitMap_1bpl.Planes[i] = temp;
-    temp += (48 * 256);
+    temp += (48 * SCR_HEIGHT);
   }
 
   InitRastPort(&theRP);
@@ -158,8 +141,7 @@ void init_close_all(void)
   if (writerFont) CloseFont(writerFont);
 
   if (mainScreen) CloseScreen(mainScreen);
-  if (theRaster2) FreeRaster(theRaster2, 4 * 384, 256);
-  if (theRaster) FreeRaster(theRaster, 4 * 384, 256);
+  if (theRaster) FreeRaster(theRaster, 4 * 384, SCR_HEIGHT);
 
   /* Close opened libraries */
   if (PTReplayBase) CloseLibrary(PTReplayBase);

@@ -28,6 +28,7 @@ static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
 void disp_clear(void);
+void reset_disp_swap(void);
 void disp_swap(void);
 void disp_whack(PLANEPTR data, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
 void dots_doit(UWORD *pal);
@@ -48,7 +49,7 @@ extern struct RastPort theRP_1bpl;
 
 extern struct Custom custom;
 extern struct CIA ciaa, ciab;
-extern PLANEPTR theRaster, theRaster2;
+extern PLANEPTR theRaster;
 extern struct Screen *mainScreen;
 extern struct DosLibrary *DOSBase;
 extern struct GfxBase *GfxBase;
@@ -66,7 +67,11 @@ UBYTE    *keyMatrix;
 /* Music */
 struct Module *theMod;
 
-BOOL swapFlag = FALSE;
+/* Double Buffer */
+BOOL  swapFlag = FALSE;
+
+long  frame = 0,
+      frameOffset = 0;
 
 /* Palettes */
 UWORD incr[16][3];
@@ -166,7 +171,7 @@ void DrawAALine(int x1, int y1, int x2, int y2)
 struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
                  (int const *)&object_amiga_faces, FACE_COUNT(object_amiga_faces) };
 
-int Draw3DMesh(int rx, int ry)
+int Draw3DMesh(int rx, int ry, int y_offset)
 {
 
   int i,tx,ty,
@@ -182,7 +187,7 @@ int Draw3DMesh(int rx, int ry)
   int cs, ss, cc, sc;
 
   XC = 160;
-  YC = 128;
+  YC = 128 + y_offset;
   dist = 400;
   alt = 256;
 
@@ -447,14 +452,15 @@ int main(void)
   for(frame_idx = 0; frame_idx < 1024; frame_idx++)
   {
     WaitTOF();           
-    // disp_swap();
+    disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%COSINE_TABLE_LEN, (frame_idx >> 2)%COSINE_TABLE_LEN);
+    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 2)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
   fVBLDelay(350);
   disp_fade_out(pal7);
+  reset_disp_swap();
   disp_clear();
   FreeMem(pic, 40 * 4 * 256);
 
@@ -642,33 +648,26 @@ static void disp_fade_setpalette(void)
 
 void disp_clear(void)
 {
-  SetRast(&theRP, 0);
+  // SetRast(&theRP, 0);
+  SetAPen(&theRP, 0);
+  RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
+}
+
+void reset_disp_swap(void)
+{
+  frame = 0;
+  frameOffset = 0;
+  mainVP->RasInfo->RyOffset = frameOffset;
+  ScrollVPort(mainVP);
 }
 
 void disp_swap(void)
 {
-  UWORD i;
-  PLANEPTR temp;
+      mainVP->RasInfo->RyOffset = frameOffset;
+      ScrollVPort(mainVP);
 
-  if (swapFlag)
-    temp = theRaster;
-  else
-    temp = theRaster2;
-  swapFlag = !swapFlag;
-
-  for(i = 0; i < 4; i ++)
-  {
-    mainVP->RasInfo->BitMap->Planes[i] = temp;
-    theBitMap.Planes[i] = temp;
-    theBitMap_3bpl.Planes[i] = temp;
-    theBitMap_2bpl.Planes[i] = temp;
-    theBitMap_1bpl.Planes[i] = temp;
-    temp += (48 * 256);
-  }
-
-  MakeVPort(GfxBase->ActiView, mainVP);
-  MrgCop(GfxBase->ActiView);
-  LoadView(GfxBase->ActiView);
+      frame ^= 1;
+      frameOffset = frame * 256;
 }
 
 void disp_whack(PLANEPTR data, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth)
