@@ -23,6 +23,7 @@
 #include "Assets/cosine_table.h"
 #include "Assets/object_cube.h"
 #include "Assets/object_amiga.h"
+#include "Assets/object_face_00.h"
 
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
@@ -168,8 +169,8 @@ void DrawAALine(int x1, int y1, int x2, int y2)
   }
 }
 
-struct obj_3d o = { (int const *)&object_amiga_verts, VERT_COUNT(object_amiga_verts),
-                 (int const *)&object_amiga_faces, FACE_COUNT(object_amiga_faces) };
+struct obj_3d o = { (int const *)&object_face_00_verts, VERT_COUNT(object_face_00_verts),
+                 (int const *)&object_face_00_faces, FACE_COUNT(object_face_00_faces) };
 
 int Draw3DMesh(int rx, int ry, int y_offset)
 {
@@ -188,7 +189,7 @@ int Draw3DMesh(int rx, int ry, int y_offset)
 
   XC = 160;
   YC = 128 + y_offset;
-  dist = 400;
+  dist = 800;
   alt = 256;
 
   verts_tr = (int *)malloc(sizeof(int) * o.nverts * 3);
@@ -221,40 +222,40 @@ int Draw3DMesh(int rx, int ry, int y_offset)
   /*
     Draw each face (we assume it's a quad)
   */
-  // for (i = 0; i < o.nfaces; ++i)
-  // {
-  //   x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
-  //   y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
+  for (i = 0; i < o.nfaces; ++i)
+  {
+    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
 
-  //   x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
-  //   y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
+    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
 
-  //   x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
-  //   y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
+    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
 
-  //   x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
-  //   y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
 
-  //   //  should we draw the face ?
-  //   hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-  //   // if (DEBUG_CONSOLE_ENABLED)
-  //   //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
+    //  should we draw the face ?
+    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+    // if (DEBUG_CONSOLE_ENABLED)
+    //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
-  //   if (hidden > 0)
-  //   {           
-  //     // SetAPen(&theRP_2bpl, 1);
+    if (hidden > 0)
+    {           
+      // SetAPen(&theRP_2bpl, 1);
 
-  //     DrawAALine(x1, y1, x2, y2);
-  //     DrawAALine(x2, y2, x3, y3);
-  //     DrawAALine(x3, y3, x4, y4);
-  //     DrawAALine(x4, y4, x1, y1);
-  //     // Move(&theRP_2bpl, x1, y1);
-  //     // Draw(&theRP_2bpl, x2, y2);
-  //     // Draw(&theRP_2bpl, x3, y3);
-  //     // Draw(&theRP_2bpl, x4, y4);
-  //     // Draw(&theRP_2bpl, x1, y1);
-  //   }
-  // } 
+      DrawAALine(x1, y1, x2, y2);
+      DrawAALine(x2, y2, x3, y3);
+      DrawAALine(x3, y3, x4, y4);
+      DrawAALine(x4, y4, x1, y1);
+      // Move(&theRP_2bpl, x1, y1);
+      // Draw(&theRP_2bpl, x2, y2);
+      // Draw(&theRP_2bpl, x3, y3);
+      // Draw(&theRP_2bpl, x4, y4);
+      // Draw(&theRP_2bpl, x1, y1);
+    }
+  } 
 
   for (i = 0; i < o.nfaces; ++i)
   {
@@ -443,18 +444,18 @@ int main(void)
   //                       "PRESENTS#");
   disp_clear();
 
-  pic = load_getmem((UBYTE *)"assets/logo.bin", 40 * 4 * 256);
-  disp_whack(pic, 40, 256, 0, 0, 4);
+  // pic = load_getmem((UBYTE *)"assets/logo.bin", 40 * 4 * 256);
+  // disp_whack(pic, 40, 256, 0, 0, 4);
   disp_fade_in(pal1);
 
   disp_clear();
 
-  for(frame_idx = 0; frame_idx < 1024; frame_idx++)
+  for(frame_idx = 0; frame_idx < 2048; frame_idx++)
   {
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 2)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
