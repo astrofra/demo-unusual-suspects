@@ -156,6 +156,9 @@ int InitTimerDevice(void)
   return 1;
 }
 
+/*
+  Returns a dt time factor.
+*/
 int GetDeltaTime(void)
 {
   if (TimerBase != 0)
@@ -164,7 +167,7 @@ int GetDeltaTime(void)
 
     dt_time = (int)(gClock.ev_lo - prev_g_clock);
     dt_time = ((dt_time << 10) / CLK_P_SEC);
-    dt_time = dt_time >> 4;
+    // dt_time = dt_time >> 4;
     if (dt_time < 1)
       dt_time = 1;
 
@@ -179,7 +182,6 @@ int GetDeltaTime(void)
 /*
   Dispatch system
 */
-
 int (*dispatch_func_ptr)(int);
 
 int  DispatchFX(void)
@@ -352,7 +354,7 @@ int main(void)
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)%(COSINE_TABLE_LEN-1), (abs_frame_idx >> 3)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
@@ -365,7 +367,7 @@ int main(void)
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)%(COSINE_TABLE_LEN-1), (abs_frame_idx >> 3)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
@@ -378,7 +380,7 @@ int main(void)
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)%(COSINE_TABLE_LEN-1), (abs_frame_idx >> 5)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
