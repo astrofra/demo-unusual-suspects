@@ -25,10 +25,13 @@
 #include "Assets/object_amiga.h"
 #include "Assets/object_face_00.h"
 
+#include "3d_routines.h"
+
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
 void disp_clear(void);
+void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 void disp_whack(PLANEPTR data, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
@@ -56,6 +59,9 @@ extern struct DosLibrary *DOSBase;
 extern struct GfxBase *GfxBase;
 extern struct Library *PTReplayBase;
 extern struct ViewPort *mainVP;
+
+extern struct obj_3d o;
+extern int *verts_tr;
 
 #define DEBUG_CONSOLE_ENABLED 0
 
@@ -118,189 +124,12 @@ UWORD demo_title_PaletteRGB4[16] =
   0x0AAA,0x0BAB,0x0CB9,0x0CCC,0x0DCC,0x0DCD,0x0DDD,0x0FFF
 };
 
-/***** Global functions *****/
+/***** Global functions & data *****/
 extern struct Library *SysBase;
 struct Task *myTask;
 BYTE oldPri;
 PLANEPTR pic;
 UBYTE *mod;
-
-/********* 3D Code *********/
-
-#define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
-#define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
-#define MAX_VERTICE_COUNT 512
-
-#define PREPARE_3D_MESH(OBJECT_HANDLER, OBJECT_VERT_LIST, OBJECT_FACE_LIST, ZOOM_LEVEL, Z_DISTANCE, FLAG_CULL) \
-                  OBJECT_HANDLER.verts = (int const *)&OBJECT_VERT_LIST; \
-                  OBJECT_HANDLER.nverts = VERT_COUNT(OBJECT_VERT_LIST); \
-                  OBJECT_HANDLER.faces = (int const *)&OBJECT_FACE_LIST; \
-                  OBJECT_HANDLER.nfaces = FACE_COUNT(OBJECT_FACE_LIST); \
-                  OBJECT_HANDLER.zoom = ZOOM_LEVEL; \
-                  OBJECT_HANDLER.distance = Z_DISTANCE; \
-                  OBJECT_HANDLER.flag_cull_backfaces = FLAG_CULL;
-
-struct obj_3d
-{
-    int const* verts;
-    int nverts;
-    int const* faces;
-    int nfaces;
-    int zoom;
-    int distance;
-    int flag_cull_backfaces;
-};
-
-struct obj_3d o;
-
-int *verts_tr;
-
-#define vX(I) (3 * I + 0)
-#define vY(I) (3 * I + 1)
-#define vZ(I) (3 * I + 2)
-
-#define Fc0(I) (4 * I + 0)
-#define Fc1(I) (4 * I + 1)
-#define Fc2(I) (4 * I + 2)
-#define Fc3(I) (4 * I + 3)
-
-#define fixed_pt_pre  512
-#define fixed_pt_shift 9
-
-void DrawAALine(int x1, int y1, int x2, int y2)
-{
-  int xo = 0, yo = 0;
-  if (2 * abs(x1 - x2) > abs(y1 - y2))
-  {
-    xo = 1;
-    yo = 0;
-  }
-
-  if (abs(x1 - x2) < 2 * abs(y1 - y2))
-  {
-    xo = 0;
-    yo = 1;
-  }
-
-  if (xo || yo)
-  {
-    SetAPen(&theRP_2bpl, 1);
-    Move(&theRP_2bpl, x1 + xo, y1 + yo);
-    Draw(&theRP_2bpl, x2 + xo, y2 + yo);
-    Move(&theRP_2bpl, x1 - xo, y1 - yo);
-    Draw(&theRP_2bpl, x2 - xo, y2 - yo);
-  }
-}
-
-void Prepare2DVertexList(void)
-{  verts_tr = (int *)malloc(sizeof(int) * MAX_VERTICE_COUNT * 3); }
-
-void Delete3DVertexList(void)
-{  free(verts_tr);  }
-
-int Draw3DMesh(int rx, int ry, int y_offset)
-{
-
-  int i,tx,ty,
-  x1,x2,x3,x4, 
-  y1,y2,y3,y4,
-  hidden = 0;
-
-  int XC,YC;
-
-  int cs, ss, cc, sc;
-
-  XC = 160;
-  YC = 128 + y_offset;
-
-  /*  Transform & project the vertices */
-  //  pre-rotations
-  cs = (tcos[rx] * tsin[ry]) >> fixed_pt_shift;
-  ss = (tsin[ry] * tsin[rx]) >> fixed_pt_shift;
-  cc = (tcos[rx] * tcos[ry]) >> fixed_pt_shift;
-  sc = (tsin[rx] * tcos[ry]) >> fixed_pt_shift;
-
-  for (i = 0; i < o.nverts; ++i)
-  {
-    /* 
-        Rotation on 3 axis of each vertex
-    */
-    verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) >> fixed_pt_shift; // / fixed_pt_pre;
-    verts_tr[vY(i)] = (o.verts[vX(i)] * cs - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
-    verts_tr[vZ(i)] = (o.verts[vX(i)] * cc - o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
-
-    /*
-      Classic 3D -> 2D projection
-    */
-    tx = (verts_tr[vX(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
-    ty = (verts_tr[vY(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
-    verts_tr[vX(i)] = tx;
-    verts_tr[vY(i)] = ty;
-  }
-
-  /*
-    Draw each face (we assume it's a quad)
-  */
-  for (i = 0; i < o.nfaces; ++i)
-  {
-    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
-    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
-
-    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
-    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-
-    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
-    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-
-    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
-    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-
-    //  should we draw the face ?
-    if (o.flag_cull_backfaces)
-      hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-
-    if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden > 0))
-    {           
-      // SetAPen(&theRP_2bpl, 1);
-
-      DrawAALine(x1, y1, x2, y2);
-      DrawAALine(x2, y2, x3, y3);
-      DrawAALine(x3, y3, x4, y4);
-      DrawAALine(x4, y4, x1, y1);
-    }
-  } 
-
-  for (i = 0; i < o.nfaces; ++i)
-  {
-    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
-    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
-
-    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
-    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-
-    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
-    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-
-    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
-    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-
-    //  should we draw the face ?
-    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-
-    if (hidden > 0)
-    {           
-      SetAPen(&theRP_2bpl, 3);
-
-      Move(&theRP_2bpl, x1, y1);
-      Draw(&theRP_2bpl, x2, y2);
-      Draw(&theRP_2bpl, x3, y3);
-      Draw(&theRP_2bpl, x4, y4);
-      Draw(&theRP_2bpl, x1, y1);
-    }
-  }
-
-  return 0;
-}
 
 /*
   Dispatch system
@@ -464,7 +293,7 @@ int main(void)
 
   fVBLDelay(350);
 
-  disp_clear();
+  full_clear();
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
 
@@ -685,6 +514,13 @@ void disp_clear(void)
   // SetRast(&theRP, 0);
   SetAPen(&theRP, 0);
   RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
+}
+
+void full_clear(void)
+{
+  // SetRast(&theRP, 0);
+  SetAPen(&theRP, 0);
+  RectFill(&theRP, 0, 0, 320, 256 * 2);
 }
 
 void reset_disp_swap(void)
