@@ -131,13 +131,14 @@ UBYTE *mod;
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
 #define MAX_VERTICE_COUNT 512
 
-#define PREPARE_3D_MESH(OBJECT_HANDLER, OBJECT_VERT_LIST, OBJECT_FACE_LIST, ZOOM_LEVEL, Z_DISTANCE) \
+#define PREPARE_3D_MESH(OBJECT_HANDLER, OBJECT_VERT_LIST, OBJECT_FACE_LIST, ZOOM_LEVEL, Z_DISTANCE, FLAG_CULL) \
                   OBJECT_HANDLER.verts = (int const *)&OBJECT_VERT_LIST; \
                   OBJECT_HANDLER.nverts = VERT_COUNT(OBJECT_VERT_LIST); \
                   OBJECT_HANDLER.faces = (int const *)&OBJECT_FACE_LIST; \
                   OBJECT_HANDLER.nfaces = FACE_COUNT(OBJECT_FACE_LIST); \
                   OBJECT_HANDLER.zoom = ZOOM_LEVEL; \
                   OBJECT_HANDLER.distance = Z_DISTANCE; \
+                  OBJECT_HANDLER.flag_cull_backfaces = FLAG_CULL;
 
 struct obj_3d
 {
@@ -147,6 +148,7 @@ struct obj_3d
     int nfaces;
     int zoom;
     int distance;
+    int flag_cull_backfaces;
 };
 
 struct obj_3d o;
@@ -202,7 +204,7 @@ int Draw3DMesh(int rx, int ry, int y_offset)
   int i,tx,ty,
   x1,x2,x3,x4, 
   y1,y2,y3,y4,
-  hidden;
+  hidden = 0;
 
   int XC,YC;
 
@@ -254,9 +256,10 @@ int Draw3DMesh(int rx, int ry, int y_offset)
     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
 
     //  should we draw the face ?
-    hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
+    if (o.flag_cull_backfaces)
+      hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
 
-    if (hidden > 0)
+    if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden > 0))
     {           
       // SetAPen(&theRP_2bpl, 1);
 
@@ -463,7 +466,29 @@ int main(void)
 
   disp_clear();
 
-  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256);
+  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+
+  for(frame_idx = 0; frame_idx < 256; frame_idx++)
+  {
+    WaitTOF();           
+    disp_swap();
+    disp_clear();
+    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    sys_check_abort();
+  }
+
+  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+
+  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  {
+    WaitTOF();           
+    disp_swap();
+    disp_clear();
+    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    sys_check_abort();
+  }
+
+  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
 
   for(frame_idx = 0; frame_idx < 512; frame_idx++)
   {
@@ -474,18 +499,7 @@ int main(void)
     sys_check_abort();
   }
 
-  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512);
-
-  for(frame_idx = 0; frame_idx < 512; frame_idx++)
-  {
-    WaitTOF();           
-    disp_swap();
-    disp_clear();
-    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
-    sys_check_abort();
-  }
-
-  fVBLDelay(350);
+  // fVBLDelay(350);
   disp_fade_out(pal7);
   reset_disp_swap();
   disp_clear();

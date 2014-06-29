@@ -1,2 +1,2 @@
-extern const int object_cube_verts[204];
-extern const int object_cube_faces[180];
+extern const int object_cube_verts[24];
+extern const int object_cube_faces[24];
