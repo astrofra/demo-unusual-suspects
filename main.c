@@ -12,6 +12,7 @@
 #include <devices/keyboard.h>
 #include <graphics/gfxmacros.h>
 #include <graphics/copper.h>
+#include <clib/timer_protos.h>
 
 #include "ptreplay.h"
 #include "ptreplay_protos.h"
@@ -132,6 +133,50 @@ PLANEPTR pic;
 UBYTE *mod;
 
 /*
+  Delta time
+*/
+struct IORequest TimerIoR;
+struct Device *TimerBase=NULL;
+ULONG CLK_P_SEC;
+struct EClockVal gClock;
+int dt_time = 0;
+ULONG prev_g_clock = 0;
+
+int InitTimerDevice(void)
+{
+  if (OpenDevice(TIMERNAME, UNIT_ECLOCK, &TimerIoR , TR_GETSYSTIME) != 0)
+  {
+    printf("Unable to open Timer.device");
+    TimerBase = 0;
+    return 0;
+  }
+
+  TimerBase = TimerIoR.io_Device;
+
+  return 1;
+}
+
+int GetDeltaTime(void)
+{
+  if (TimerBase != 0)
+  {
+    CLK_P_SEC = ReadEClock(&gClock);
+
+    dt_time = (int)(gClock.ev_lo - prev_g_clock);
+    dt_time = ((dt_time << 10) / CLK_P_SEC);
+    dt_time = dt_time >> 4;
+    if (dt_time < 1)
+      dt_time = 1;
+
+    prev_g_clock = gClock.ev_lo;
+
+    // printf("CLK_P_SEC = %i, dt_time = %i\n", CLK_P_SEC, dt_time);
+  }
+
+  return dt_time;
+}
+
+/*
   Dispatch system
 */
 
@@ -209,6 +254,7 @@ int fVBLDelay(int _sec)
 
   for (_count = 0; _count < _sec; _count++)
   {
+    GetDeltaTime();
     WaitTOF();
     DispatchFX();
     sys_check_abort();
@@ -252,13 +298,15 @@ void CreateCopperList(void)
 /* Main program entry point */
 int main(void)
 {
-  int frame_idx;
+  int frame_idx,
+      abs_frame_idx = 0;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
   dispatch_func_ptr = NULL;
 
   InitKeyboard();
+  InitTimerDevice();
 
   srand((ciaa.ciatodmid << 8) | ciaa.ciatodlow);
   /* Open all needed resources */
@@ -299,10 +347,12 @@ int main(void)
 
   for(frame_idx = 0; frame_idx < 256; frame_idx++)
   {
+    abs_frame_idx += dt_time;
+    GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
@@ -310,10 +360,12 @@ int main(void)
 
   for(frame_idx = 0; frame_idx < 512; frame_idx++)
   {
+    abs_frame_idx += dt_time;
+    GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx << 1)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
@@ -321,10 +373,12 @@ int main(void)
 
   for(frame_idx = 0; frame_idx < 512; frame_idx++)
   {
+    abs_frame_idx += dt_time;
+    GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    Draw3DMesh(abs_frame_idx%(COSINE_TABLE_LEN-1), (abs_frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
     sys_check_abort();
   }
 
