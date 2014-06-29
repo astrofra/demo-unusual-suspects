@@ -4,13 +4,9 @@ import codecs
 import ast
 from vector3 import Vector3
 
-filename_list = ["face_00.obj"] ## "amiga.obj", "cube.obj", 
+filename_list = ["face_00.obj", "amiga.obj", "cube.obj"]
 filename_out = ""
 scale_factor = 100.0
-
-face_list = []
-vertex_list = []
-normal_list = []
 
 def parse_obj_vector(_string):
 	_args = _string.split(' ')
@@ -52,6 +48,10 @@ def parse_obj_face(_string):
 
 def main():
 	for filename_in in filename_list:
+		face_list = []
+		vertex_list = []
+		normal_list = []
+
 		f = codecs.open(filename_in, 'r')
 		for line in f:
 			# print(repr(line))

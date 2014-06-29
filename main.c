@@ -112,6 +112,12 @@ UWORD gradientPaletteRGB4[] =
   0x07A0,0x0490,0x0080,0x0190,0x0290,0x04A0,0x05A0,0x06B0
 };
 
+UWORD demo_title_PaletteRGB4[16] =
+{
+  0x0423,0x0534,0x0656,0x0877,0x0877,0x0989,0x0A98,0x0A99,
+  0x0AAA,0x0BAB,0x0CB9,0x0CCC,0x0DCC,0x0DCD,0x0DDD,0x0FFF
+};
+
 /***** Global functions *****/
 extern struct Library *SysBase;
 struct Task *myTask;
@@ -123,6 +129,15 @@ UBYTE *mod;
 
 #define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
+#define MAX_VERTICE_COUNT 512
+
+#define PREPARE_3D_MESH(OBJECT_HANDLER, OBJECT_VERT_LIST, OBJECT_FACE_LIST, ZOOM_LEVEL, Z_DISTANCE) \
+                  OBJECT_HANDLER.verts = (int const *)&OBJECT_VERT_LIST; \
+                  OBJECT_HANDLER.nverts = VERT_COUNT(OBJECT_VERT_LIST); \
+                  OBJECT_HANDLER.faces = (int const *)&OBJECT_FACE_LIST; \
+                  OBJECT_HANDLER.nfaces = FACE_COUNT(OBJECT_FACE_LIST); \
+                  OBJECT_HANDLER.zoom = ZOOM_LEVEL; \
+                  OBJECT_HANDLER.distance = Z_DISTANCE; \
 
 struct obj_3d
 {
@@ -130,7 +145,13 @@ struct obj_3d
     int nverts;
     int const* faces;
     int nfaces;
+    int zoom;
+    int distance;
 };
+
+struct obj_3d o;
+
+int *verts_tr;
 
 #define vX(I) (3 * I + 0)
 #define vY(I) (3 * I + 1)
@@ -161,7 +182,7 @@ void DrawAALine(int x1, int y1, int x2, int y2)
 
   if (xo || yo)
   {
-    SetAPen(&theRP_2bpl, 2);
+    SetAPen(&theRP_2bpl, 1);
     Move(&theRP_2bpl, x1 + xo, y1 + yo);
     Draw(&theRP_2bpl, x2 + xo, y2 + yo);
     Move(&theRP_2bpl, x1 - xo, y1 - yo);
@@ -169,8 +190,11 @@ void DrawAALine(int x1, int y1, int x2, int y2)
   }
 }
 
-struct obj_3d o = { (int const *)&object_face_00_verts, VERT_COUNT(object_face_00_verts),
-                 (int const *)&object_face_00_faces, FACE_COUNT(object_face_00_faces) };
+void Prepare2DVertexList(void)
+{  verts_tr = (int *)malloc(sizeof(int) * MAX_VERTICE_COUNT * 3); }
+
+void Delete3DVertexList(void)
+{  free(verts_tr);  }
 
 int Draw3DMesh(int rx, int ry, int y_offset)
 {
@@ -181,18 +205,11 @@ int Draw3DMesh(int rx, int ry, int y_offset)
   hidden;
 
   int XC,YC;
-  int dist,alt;
-
-  int *verts_tr;
 
   int cs, ss, cc, sc;
 
   XC = 160;
   YC = 128 + y_offset;
-  dist = 800;
-  alt = 256;
-
-  verts_tr = (int *)malloc(sizeof(int) * o.nverts * 3);
 
   /*  Transform & project the vertices */
   //  pre-rotations
@@ -213,8 +230,8 @@ int Draw3DMesh(int rx, int ry, int y_offset)
     /*
       Classic 3D -> 2D projection
     */
-    tx = (verts_tr[vX(i)] * dist) / (verts_tr[vZ(i)] + alt);
-    ty = (verts_tr[vY(i)] * dist) / (verts_tr[vZ(i)] + alt);
+    tx = (verts_tr[vX(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
+    ty = (verts_tr[vY(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
     verts_tr[vX(i)] = tx;
     verts_tr[vY(i)] = ty;
   }
@@ -238,8 +255,6 @@ int Draw3DMesh(int rx, int ry, int y_offset)
 
     //  should we draw the face ?
     hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-    // if (DEBUG_CONSOLE_ENABLED)
-    //   printf("2D face (%d,%d) (%d,%d) (%d,%d) (%d,%d)\n", x1, y1, x2, y2, x3, y3, x4, y4);
 
     if (hidden > 0)
     {           
@@ -249,11 +264,6 @@ int Draw3DMesh(int rx, int ry, int y_offset)
       DrawAALine(x2, y2, x3, y3);
       DrawAALine(x3, y3, x4, y4);
       DrawAALine(x4, y4, x1, y1);
-      // Move(&theRP_2bpl, x1, y1);
-      // Draw(&theRP_2bpl, x2, y2);
-      // Draw(&theRP_2bpl, x3, y3);
-      // Draw(&theRP_2bpl, x4, y4);
-      // Draw(&theRP_2bpl, x1, y1);
     }
   } 
 
@@ -276,7 +286,7 @@ int Draw3DMesh(int rx, int ry, int y_offset)
 
     if (hidden > 0)
     {           
-      SetAPen(&theRP_2bpl, 1);
+      SetAPen(&theRP_2bpl, 3);
 
       Move(&theRP_2bpl, x1, y1);
       Draw(&theRP_2bpl, x2, y2);
@@ -284,9 +294,7 @@ int Draw3DMesh(int rx, int ry, int y_offset)
       Draw(&theRP_2bpl, x4, y4);
       Draw(&theRP_2bpl, x1, y1);
     }
-  }      
- 
-  free(verts_tr);
+  }
 
   return 0;
 }
@@ -330,7 +338,8 @@ void  ForceDemoClose(void)
 {
   PTStop(theMod);
   PTFreeMod(theMod);
-  FreeMem(mod, 95430);
+  FreeMem(mod, 83488);
+  Prepare2DVertexList();
 
   Permit();
   SetTaskPri(myTask, oldPri);
@@ -427,6 +436,8 @@ int main(void)
     return (10);
   }
 
+  Prepare2DVertexList();
+
   // CreateCopperList();
 
   filter_off();
@@ -444,13 +455,28 @@ int main(void)
   //                       "PRESENTS#");
   disp_clear();
 
-  // pic = load_getmem((UBYTE *)"assets/logo.bin", 40 * 4 * 256);
-  // disp_whack(pic, 40, 256, 0, 0, 4);
-  disp_fade_in(pal1);
+  pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);
+  disp_whack(pic, 40, 256, 0, 0, 4);
+  disp_fade_in(demo_title_PaletteRGB4);
+
+  fVBLDelay(350);
 
   disp_clear();
 
-  for(frame_idx = 0; frame_idx < 2048; frame_idx++)
+  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256);
+
+  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  {
+    WaitTOF();           
+    disp_swap();
+    disp_clear();
+    Draw3DMesh(frame_idx%(COSINE_TABLE_LEN-1), (frame_idx >> 1)%(COSINE_TABLE_LEN-1), frameOffset);
+    sys_check_abort();
+  }
+
+  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512);
+
+  for(frame_idx = 0; frame_idx < 512; frame_idx++)
   {
     WaitTOF();           
     disp_swap();
@@ -537,13 +563,6 @@ int main(void)
   disp_fade_out(pal6);
   disp_clear();
   FreeMem(pic, 34 * 120 * 4);
-
-  // PTStop(theMod);
-  // PTFreeMod(theMod);
-  // FreeMem(mod, 95430);
-
-  // Permit();
-  // SetTaskPri(myTask, oldPri);
   
   // /* Close opened resources */
   // init_close_all();
