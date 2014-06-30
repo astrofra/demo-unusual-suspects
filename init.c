@@ -5,7 +5,7 @@
 #include "common.h"
 #include "protos.h"
 
-#define SCR_HEIGHT  (256 << 1)
+#define SCR_HEIGHT  ((256 << 1) + 32)
 
 /***** Static function declarations *****/
 
