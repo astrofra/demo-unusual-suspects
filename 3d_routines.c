@@ -109,14 +109,15 @@ int Draw3DMesh(int rx, int ry, int y_offset)
     if (o.flag_cull_backfaces)
       hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
 
-    if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden > 0))
+    if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden < 0))
     {           
-      // SetAPen(&theRP_2bpl, 1);
+      SetAPen(&theRP_2bpl, 1);
 
-      DrawAALine(x1, y1, x2, y2);
-      DrawAALine(x2, y2, x3, y3);
-      DrawAALine(x3, y3, x4, y4);
-      DrawAALine(x4, y4, x1, y1);
+      Move(&theRP_2bpl, x1, y1);
+      Draw(&theRP_2bpl, x2, y2);
+      Draw(&theRP_2bpl, x3, y3);
+      Draw(&theRP_2bpl, x4, y4);
+      Draw(&theRP_2bpl, x1, y1);
     }
   } 
 
