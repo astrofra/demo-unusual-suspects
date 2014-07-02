@@ -25,6 +25,7 @@
 #include "Assets/object_cube.h"
 #include "Assets/object_amiga.h"
 #include "Assets/object_face_00.h"
+#include "Assets/object_spiroid.h"
 
 #include "3d_routines.h"
 
@@ -301,7 +302,8 @@ void CreateCopperList(void)
 int main(void)
 {
   int frame_idx,
-      abs_frame_idx = 0;
+      abs_frame_idx = 0,
+      m_scale_x = 0;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -347,40 +349,81 @@ int main(void)
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
 
+  m_scale_x = 24;
   for(frame_idx = 0; frame_idx < 256; frame_idx++)
   {
+    if (frame_idx < 24)
+      m_scale_x--;
+    else
+    if (frame_idx > 256 - 24)
+      m_scale_x++;
+
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
+    sys_check_abort();
+  }
+
+  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 128, 0);
+
+  m_scale_x = 24;
+  for(frame_idx = 0; frame_idx < 256; frame_idx++)
+  {
+    if (frame_idx < 24)
+      m_scale_x--;
+    else
+    if (frame_idx > 256 - 24)
+      m_scale_x++;
+
+    abs_frame_idx += dt_time;
+    GetDeltaTime();
+    WaitTOF();           
+    disp_swap();
+    disp_clear();
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
 
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
 
-  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  m_scale_x = 24;
+  for(frame_idx = 0; frame_idx < 256; frame_idx++)
   {
+    if (frame_idx < 24)
+      m_scale_x--;
+    else
+    if (frame_idx > 256 - 24)
+      m_scale_x++;
+
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
 
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
 
-  for(frame_idx = 0; frame_idx < 512; frame_idx++)
+  m_scale_x = 24;
+  for(frame_idx = 0; frame_idx < 256; frame_idx++)
   {
+    if (frame_idx < 24)
+      m_scale_x--;
+    else
+    if (frame_idx > 256 - 24)
+      m_scale_x++;
+
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 5)&(COSINE_TABLE_LEN - 1), frameOffset);
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 5)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
 

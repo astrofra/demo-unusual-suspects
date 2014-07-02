@@ -45,4 +45,4 @@ void Prepare2DVertexList(void);
 
 void Delete3DVertexList(void);
 
-int Draw3DMesh(int rx, int ry, int y_offset);
+int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x);

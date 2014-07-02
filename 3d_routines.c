@@ -48,7 +48,7 @@ void Prepare2DVertexList(void)
 void Delete3DVertexList(void)
 {  free(verts_tr);  }
 
-int Draw3DMesh(int rx, int ry, int y_offset)
+int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x, int m_scale_y)
 {
 
   int i,tx,ty,
@@ -93,17 +93,30 @@ int Draw3DMesh(int rx, int ry, int y_offset)
   */
   for (i = 0; i < o.nfaces; ++i)
   {
-    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+    x1 = verts_tr[vX(o.faces[Fc0(i)])];
     y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
 
-    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+    x2 = verts_tr[vX(o.faces[Fc1(i)])];
     y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
 
-    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+    x3 = verts_tr[vX(o.faces[Fc2(i)])];
     y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
 
-    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+    x4 = verts_tr[vX(o.faces[Fc3(i)])];
     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+
+    if (m_scale_x > 0)
+    {
+      x1 = x1 >> m_scale_x;
+      x2 = x1 >> m_scale_x;
+      x3 = x1 >> m_scale_x;
+      x4 = x1 >> m_scale_x;
+    }
+
+    x1 += XC;
+    x2 += XC;
+    x3 += XC;
+    x4 += XC;
 
     //  should we draw the face ?
     if (o.flag_cull_backfaces)
@@ -123,17 +136,30 @@ int Draw3DMesh(int rx, int ry, int y_offset)
 
   for (i = 0; i < o.nfaces; ++i)
   {
-    x1 = XC + verts_tr[vX(o.faces[Fc0(i)])];
+    x1 = verts_tr[vX(o.faces[Fc0(i)])];
     y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
 
-    x2 = XC + verts_tr[vX(o.faces[Fc1(i)])];
+    x2 = verts_tr[vX(o.faces[Fc1(i)])];
     y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
 
-    x3 = XC + verts_tr[vX(o.faces[Fc2(i)])];
+    x3 = verts_tr[vX(o.faces[Fc2(i)])];
     y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
 
-    x4 = XC + verts_tr[vX(o.faces[Fc3(i)])];
+    x4 = verts_tr[vX(o.faces[Fc3(i)])];
     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
+
+    if (m_scale_x > 0)
+    {
+      x1 = x1 >> m_scale_x;
+      x2 = x1 >> m_scale_x;
+      x3 = x1 >> m_scale_x;
+      x4 = x1 >> m_scale_x;
+    }
+
+    x1 += XC;
+    x2 += XC;
+    x3 += XC;
+    x4 += XC;
 
     //  should we draw the face ?
     hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
