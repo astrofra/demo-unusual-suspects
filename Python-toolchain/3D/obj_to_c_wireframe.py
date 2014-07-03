@@ -82,7 +82,7 @@ def main():
 		obj_name = obj_name.lower()
 
 		##  Creates the C file that lists the vertices
-		filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.h')
+		filename_out = '../../Assets/object_' + string.replace(filename_in, '.obj', '.h')
 		f = codecs.open(filename_out, 'w')
 		f.write('extern const int object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
 		f.write('extern const int object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
@@ -90,7 +90,7 @@ def main():
 		f.close()
 
 		##  Creates the C file that lists the vertices
-		filename_out = '../Assets/object_' + string.replace(filename_in, '.obj', '.c')
+		filename_out = '../../Assets/object_' + string.replace(filename_in, '.obj', '.c')
 		f = codecs.open(filename_out, 'w')
 
 		f.write('/* List of vertices */' + '\n')

@@ -5,7 +5,7 @@ import ast
 import math
 from vector3 import Vector3
 
-filename_out			=	"../Assets/cosine_table"
+filename_out			=	"../../Assets/cosine_table"
 table_size				=	512
 fixed_point_precision 	=	512
 
