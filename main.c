@@ -367,7 +367,7 @@ int main(void)
     sys_check_abort();
   }
 
-  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 128, 0);
+  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
 
   m_scale_x = 24;
   for(frame_idx = 0; frame_idx < 256; frame_idx++)
