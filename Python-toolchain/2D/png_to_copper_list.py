@@ -1,10 +1,18 @@
 ## png_to_copper_list.py
 
 import png
+import math
+
+def color_distance(color1, color2):
+    return math.sqrt(sum([(e1-e2)**2 for e1, e2 in zip(color1, color2)]))
+
+def color_best_match(sample, colors):
+    by_distance = sorted(colors, key=lambda c: color_distance(c, sample))
+    return by_distance[0]
 
 filename_in = ['face_all.png']
 
-def compute_EHB_value(_color):
+def color_compute_EHB_value(_color):
 	_new_color = [0,0,0]
 	_new_color[0] = int(_color[0] / 2)
 	_new_color[1] = int(_color[1] / 2)
@@ -87,9 +95,10 @@ def main():
 
 				_tmp_palette = list(optimized_line_palette)
 				for _color in _tmp_palette:
-					optimized_line_palette.append(compute_EHB_value(_color))
+					optimized_line_palette.append(color_compute_EHB_value(_color))
 
 				print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+				# print(optimized_line_palette)
 
 				# original_line_palette[0:31]
 
@@ -99,13 +108,15 @@ def main():
 			for p in buffer_in[j]:
 				current_pixel_color = original_palette[p]
 				if current_pixel_color in optimized_line_palette:
+					##	We found the exact color we were looking for
 					line_out_buffer.append(current_pixel_color[0])
 					line_out_buffer.append(current_pixel_color[1])
 					line_out_buffer.append(current_pixel_color[2])
 				else:
-					line_out_buffer.append(255)
-					line_out_buffer.append(0)
-					line_out_buffer.append(255)
+					_color_match = color_best_match(current_pixel_color, optimized_line_palette)
+					line_out_buffer.append(_color_match[0])
+					line_out_buffer.append(_color_match[1])
+					line_out_buffer.append(_color_match[2])
 
 			png_out_buffer.append(line_out_buffer)
 
