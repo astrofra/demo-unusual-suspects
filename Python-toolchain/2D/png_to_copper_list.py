@@ -4,6 +4,13 @@ import png
 
 filename_in = ['face_all.png']
 
+def compute_EHB_value(_color):
+	_new_color = [0,0,0]
+	_new_color[0] = int(_color[0] / 2)
+	_new_color[1] = int(_color[1] / 2)
+	_new_color[2] = int(_color[2] / 2)
+	return _new_color
+
 def main():
 	print('png_to_copper_list')
 
@@ -60,7 +67,31 @@ def main():
 			##	If there's more than 32 colors on the same row
 			##	the hardware cannot handle it, so the palette
 			##	must be reduced.
-				optimized_line_palette = original_line_palette[0:31]
+				optimized_line_palette = []
+				found_a_color = True
+				while len(optimized_line_palette) < 32 and len(original_line_palette) > 0 and found_a_color is True:
+					found_a_color = False
+					for _color in original_line_palette:
+						if _color[0] > 127 and _color[1] > 127 and _color[2] > 127:
+							optimized_line_palette.append(_color)
+							original_line_palette.remove(_color)
+							found_a_color = True
+
+				while len(optimized_line_palette) < 32 and len(original_line_palette) > 0:
+					for _color in original_line_palette:
+						optimized_line_palette.append(_color)
+						original_line_palette.remove(_color)
+						break
+
+				print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+
+				_tmp_palette = list(optimized_line_palette)
+				for _color in _tmp_palette:
+					optimized_line_palette.append(compute_EHB_value(_color))
+
+				print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+
+				# original_line_palette[0:31]
 
 			##	Remap the current line
 			##	Using the optimized palette
