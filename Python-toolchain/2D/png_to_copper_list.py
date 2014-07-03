@@ -22,9 +22,17 @@ def main():
 			print('!!!Error, cannot process greyscale image :(')
 			return 0
 
-		l=list(b[2])
+		buffer_in = list(b[2])
 		for j in range(0, h):
-			print(l[j])
+			line_stat = {}
+			for p in buffer_in[j]:
+				if str(p) in line_stat:
+					line_stat[str(p)] += 1
+				else:
+					line_stat[str(p)] = 1
+
+			print('Found ' + str(len(line_stat)) + ' colors in line ' + str(j) + '.')
+			print(line_stat)
 
 		return 1
 
