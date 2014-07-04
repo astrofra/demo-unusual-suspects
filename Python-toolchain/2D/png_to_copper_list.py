@@ -2,13 +2,14 @@
 
 import png
 import math
+import colorsys
 
 def color_distance(color1, color2):
-    return math.sqrt(sum([(e1-e2)**2 for e1, e2 in zip(color1, color2)]))
+	return math.sqrt(sum([(e1-e2)**2 for e1, e2 in zip(color1, color2)]))
 
 def color_best_match(sample, colors):
-    by_distance = sorted(colors, key=lambda c: color_distance(c, sample))
-    return by_distance[0]
+	by_distance = sorted(colors, key=lambda c: color_distance(c, sample))
+	return by_distance[0]
 
 filename_in = ['face_all.png']
 
@@ -18,6 +19,9 @@ def color_compute_EHB_value(_color):
 	_new_color[1] = int(_color[1] / 2)
 	_new_color[2] = int(_color[2] / 2)
 	return _new_color
+
+global g_max_color_per_line 
+g_max_color_per_line = 32
 
 def main():
 	print('png_to_copper_list')
@@ -46,6 +50,7 @@ def main():
 		original_palette  =	b[3]['palette']
 
 		png_out_buffer = []
+		prev_optimized_line_palette = []
 
 		buffer_in = list(b[2])
 		##	For each line of the image
@@ -53,13 +58,23 @@ def main():
 			line_stat = {}
 			optimized_line_palette = []
 
+			# for line_iteration in range(0,1):
+			line_iteration = 0
 			##	Calculate the occurence of each color index
 			##	used in the current pixel row
-			for p in buffer_in[j]:
-				if str(p) in line_stat:
-					line_stat[str(p)] += 1
-				else:
-					line_stat[str(p)] = 1
+			if j + line_iteration < h:
+				for p in buffer_in[j + line_iteration]:
+					if str(p) in line_stat:
+						line_stat[str(p)] += 1
+					else:
+						line_stat[str(p)] = 1
+
+			##	Occurence weighted by the saturation of the color
+			for color_index_by_occurence in line_stat:
+				_rgb_color = original_palette[int(color_index_by_occurence)]
+				w_factor = (colorsys.rgb_to_hls(_rgb_color[0], _rgb_color[1], _rgb_color[2])[2] * 2.0) + 1.0
+				line_stat[color_index_by_occurence] = int(w_factor * line_stat[color_index_by_occurence])
+
 
 			print('Found ' + str(len(line_stat)) + ' colors in line ' + str(j) + '.')
 			original_line_palette = []
@@ -69,7 +84,7 @@ def main():
 			##	If there's less than 32 colors on the same row
 			##	the hardware can handle it natively, there's no need
 			##	to reduce the palette.
-			if len(original_line_palette) <= 32:
+			if len(original_line_palette) <= g_max_color_per_line:
 				optimized_line_palette = original_line_palette
 			else:
 			##	If there's more than 32 colors on the same row
@@ -77,7 +92,7 @@ def main():
 			##	must be reduced.
 				optimized_line_palette = []
 				found_a_color = True
-				while len(optimized_line_palette) < 32 and len(original_line_palette) > 0 and found_a_color is True:
+				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0 and found_a_color is True:
 					found_a_color = False
 					for _color in original_line_palette:
 						if _color[0] > 127 and _color[1] > 127 and _color[2] > 127:
@@ -85,7 +100,7 @@ def main():
 							original_line_palette.remove(_color)
 							found_a_color = True
 
-				while len(optimized_line_palette) < 32 and len(original_line_palette) > 0:
+				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0:
 					for _color in original_line_palette:
 						optimized_line_palette.append(_color)
 						original_line_palette.remove(_color)
@@ -101,6 +116,18 @@ def main():
 				# print(optimized_line_palette)
 
 				# original_line_palette[0:31]
+
+			##	Mix the line palette with the previous line palette
+			##	So that the copper will only have to change 16 colors per line
+			# _col_start = 0
+			# if j % 2 == 0:
+			# 	_col_start = 1
+			# if len(prev_optimized_line_palette) > 0:
+			# 	for _idx in range(0, len(prev_optimized_line_palette), 2):
+			# 		if _idx < len(optimized_line_palette):
+			# 			optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
+			
+			# prev_optimized_line_palette = list(optimized_line_palette)
 
 			##	Remap the current line
 			##	Using the optimized palette
