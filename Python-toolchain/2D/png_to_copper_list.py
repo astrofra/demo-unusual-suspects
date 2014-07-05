@@ -83,8 +83,8 @@ def main():
 			##	to reduce the palette.
 			if len(original_line_palette) <= g_max_color_per_line:
 				optimized_line_palette = original_line_palette
-				for i in range(0, g_max_color_per_line - len(original_line_palette)):
-					original_line_palette.append(original_palette[0])
+				# for i in range(0, g_max_color_per_line - len(original_line_palette)):
+				# 	original_line_palette.append(original_palette[0])
 			else:
 			##	If there's more than 32 colors on the same row
 			##	the hardware cannot handle it, so the palette
@@ -107,11 +107,6 @@ def main():
 
 				print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
-				_tmp_palette = list(optimized_line_palette)
-				for _color in _tmp_palette:
-					optimized_line_palette.append(color_compute_EHB_value(_color))
-
-				print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 				# print(optimized_line_palette)
 
 				# original_line_palette[0:31]
@@ -125,24 +120,56 @@ def main():
 			# 	for _idx in range(0, len(prev_optimized_line_palette), 2):
 			# 		if _idx < len(optimized_line_palette):
 			# 			optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
+			if len(prev_optimized_line_palette) > 0:
+				tmp_prev_optimized_line_palette = list(prev_optimized_line_palette)
+				tmp_optimized_line_palette = list(optimized_line_palette)
+
+				##	Remove the first 16 colors that are
+				##	the more similar to the previous palette
+				_count = 0
+				for _source_color in optimized_line_palette:
+					best_target_color = color_best_match(_source_color, tmp_prev_optimized_line_palette)
+					tmp_optimized_line_palette.remove(_source_color)
+					tmp_prev_optimized_line_palette.remove(best_target_color)
+					_count += 1
+					if _count > 16 or len(tmp_prev_optimized_line_palette) < 1 or len(optimized_line_palette) < 1:
+						break
+
+				tmp_optimized_line_palette.extend(tmp_prev_optimized_line_palette)
+				optimized_line_palette = list(tmp_optimized_line_palette)
 			
 			prev_optimized_line_palette = list(optimized_line_palette)
+
+			_tmp_palette = list(optimized_line_palette)
+			for _color in _tmp_palette:
+				optimized_line_palette.append(color_compute_EHB_value(_color))
+
+			print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
 			##	Remap the current line
 			##	Using the optimized palette
 			line_out_buffer = []
+			_dump_pal_count = 0
 			for p in buffer_in[j]:
-				current_pixel_color = original_palette[p]
-				if current_pixel_color in optimized_line_palette:
-					##	We found the exact color we were looking for
-					line_out_buffer.append(current_pixel_color[0])
-					line_out_buffer.append(current_pixel_color[1])
-					line_out_buffer.append(current_pixel_color[2])
+				if _dump_pal_count < len(optimized_line_palette):
+					line_out_buffer.append(optimized_line_palette[_dump_pal_count][0])
+					line_out_buffer.append(optimized_line_palette[_dump_pal_count][1])
+					line_out_buffer.append(optimized_line_palette[_dump_pal_count][2])
 				else:
-					_color_match = color_best_match(current_pixel_color, optimized_line_palette)
-					line_out_buffer.append(_color_match[0])
-					line_out_buffer.append(_color_match[1])
-					line_out_buffer.append(_color_match[2])
+					current_pixel_color = original_palette[p]
+					if current_pixel_color in optimized_line_palette or len(optimized_line_palette) < 1:
+						##	We found the exact color we were looking for
+						line_out_buffer.append(current_pixel_color[0])
+						line_out_buffer.append(current_pixel_color[1])
+						line_out_buffer.append(current_pixel_color[2])
+					else:
+						_color_match = color_best_match(current_pixel_color, optimized_line_palette)
+						line_out_buffer.append(_color_match[0])
+						line_out_buffer.append(_color_match[1])
+						line_out_buffer.append(_color_match[2])
+
+				_dump_pal_count += 1
+
 
 			png_out_buffer.append(line_out_buffer)
 
