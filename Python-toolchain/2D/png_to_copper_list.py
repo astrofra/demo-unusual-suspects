@@ -58,16 +58,13 @@ def main():
 			line_stat = {}
 			optimized_line_palette = []
 
-			# for line_iteration in range(0,1):
-			line_iteration = 0
 			##	Calculate the occurence of each color index
 			##	used in the current pixel row
-			if j + line_iteration < h:
-				for p in buffer_in[j + line_iteration]:
-					if str(p) in line_stat:
-						line_stat[str(p)] += 1
-					else:
-						line_stat[str(p)] = 1
+			for p in buffer_in[j]:
+				if str(p) in line_stat:
+					line_stat[str(p)] += 1
+				else:
+					line_stat[str(p)] = 1
 
 			##	Occurence weighted by the saturation of the color
 			for color_index_by_occurence in line_stat:
@@ -86,6 +83,8 @@ def main():
 			##	to reduce the palette.
 			if len(original_line_palette) <= g_max_color_per_line:
 				optimized_line_palette = original_line_palette
+				for i in range(0, g_max_color_per_line - len(original_line_palette)):
+					original_line_palette.append(original_palette[0])
 			else:
 			##	If there's more than 32 colors on the same row
 			##	the hardware cannot handle it, so the palette
@@ -127,7 +126,7 @@ def main():
 			# 		if _idx < len(optimized_line_palette):
 			# 			optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
 			
-			# prev_optimized_line_palette = list(optimized_line_palette)
+			prev_optimized_line_palette = list(optimized_line_palette)
 
 			##	Remap the current line
 			##	Using the optimized palette
