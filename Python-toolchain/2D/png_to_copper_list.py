@@ -20,6 +20,9 @@ def color_compute_EHB_value(_color):
 	_new_color[2] = int(_color[2] / 2)
 	return _new_color
 
+def sort_palette_by_luminance(colors):
+	return (sorted(colors, key=lambda c: colorsys.rgb_to_hls(c[0] / 255.0, c[1] / 255.0, c[2] / 255.0)[1])) ##[::-1]
+
 global g_max_color_per_line 
 g_max_color_per_line = 32
 
@@ -69,9 +72,8 @@ def main():
 			##	Occurence weighted by the saturation of the color
 			for color_index_by_occurence in line_stat:
 				_rgb_color = original_palette[int(color_index_by_occurence)]
-				w_factor = (colorsys.rgb_to_hls(_rgb_color[0], _rgb_color[1], _rgb_color[2])[2] * 2.0) + 1.0
+				w_factor = (colorsys.rgb_to_hls(_rgb_color[0] / 255.0, _rgb_color[1] / 255.0, _rgb_color[2] / 255.0)[2] * 2.0) + 1.0
 				line_stat[color_index_by_occurence] = int(w_factor * line_stat[color_index_by_occurence])
-
 
 			print('Found ' + str(len(line_stat)) + ' colors in line ' + str(j) + '.')
 			original_line_palette = []
@@ -83,8 +85,6 @@ def main():
 			##	to reduce the palette.
 			if len(original_line_palette) <= g_max_color_per_line:
 				optimized_line_palette = original_line_palette
-				# for i in range(0, g_max_color_per_line - len(original_line_palette)):
-				# 	original_line_palette.append(original_palette[0])
 			else:
 			##	If there's more than 32 colors on the same row
 			##	the hardware cannot handle it, so the palette
@@ -94,32 +94,21 @@ def main():
 				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0 and found_a_color is True:
 					found_a_color = False
 					for _color in original_line_palette:
-						if _color[0] > 127 and _color[1] > 127 and _color[2] > 127:
+						if colorsys.rgb_to_hls(_color[0] / 255.0, _color[1] / 255.0, _color[2] / 255.0)[1] > 0.35: ##_color[0] > 127 and _color[1] > 127 and _color[2] > 127:
 							optimized_line_palette.append(_color)
 							original_line_palette.remove(_color)
 							found_a_color = True
 
-				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0:
-					for _color in original_line_palette:
-						optimized_line_palette.append(_color)
-						original_line_palette.remove(_color)
-						break
+				# while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0:
+				# 	for _color in original_line_palette:
+				# 		optimized_line_palette.append(_color)
+				# 		original_line_palette.remove(_color)
+				# 		break
 
 				print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
-				# print(optimized_line_palette)
-
-				# original_line_palette[0:31]
-
 			##	Mix the line palette with the previous line palette
 			##	So that the copper will only have to change 16 colors per line
-			# _col_start = 0
-			# if j % 2 == 0:
-			# 	_col_start = 1
-			# if len(prev_optimized_line_palette) > 0:
-			# 	for _idx in range(0, len(prev_optimized_line_palette), 2):
-			# 		if _idx < len(optimized_line_palette):
-			# 			optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
 			if len(prev_optimized_line_palette) > 0:
 				tmp_prev_optimized_line_palette = list(prev_optimized_line_palette)
 				tmp_optimized_line_palette = list(optimized_line_palette)
@@ -137,6 +126,8 @@ def main():
 
 				tmp_optimized_line_palette.extend(tmp_prev_optimized_line_palette)
 				optimized_line_palette = list(tmp_optimized_line_palette)
+
+			optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
 			
 			prev_optimized_line_palette = list(optimized_line_palette)
 
@@ -149,9 +140,10 @@ def main():
 			##	Remap the current line
 			##	Using the optimized palette
 			line_out_buffer = []
+			OPT_DUMP_PAL = True
 			_dump_pal_count = 0
 			for p in buffer_in[j]:
-				if _dump_pal_count < len(optimized_line_palette):
+				if OPT_DUMP_PAL and _dump_pal_count < len(optimized_line_palette):
 					line_out_buffer.append(optimized_line_palette[_dump_pal_count][0])
 					line_out_buffer.append(optimized_line_palette[_dump_pal_count][1])
 					line_out_buffer.append(optimized_line_palette[_dump_pal_count][2])
