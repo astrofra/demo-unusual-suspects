@@ -11,7 +11,7 @@ def color_best_match(sample, colors):
 	by_distance = sorted(colors, key=lambda c: color_distance(c, sample))
 	return by_distance[0]
 
-filename_in = ['face_all.png']
+filename_in = ['face_all_bottom.png', 'face_all_top.png']
 
 def color_compute_EHB_value(_color):
 	_new_color = [0,0,0]
@@ -122,15 +122,13 @@ def main():
 							optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
 							# prev_optimized_line_palette = list(optimized_line_palette)
 
-			# optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
-
 				_updated_color_count = 0
 				for _idx in range(0, len(prev_optimized_line_palette)):
 					if _idx < len(optimized_line_palette) and _idx < len(prev_optimized_line_palette):
 						if optimized_line_palette[_idx] == prev_optimized_line_palette[_idx]:
 							_updated_color_count += 1
 
-				print(str(_updated_color_count) + ' colors updated from previous line.')
+				# print(str(_updated_color_count) + ' colors updated from previous line.')
 
 			##  Make sure the colors belong to an OCS palette.
 			_tmp_palette = []
@@ -145,7 +143,7 @@ def main():
 			for _color in _tmp_palette:
 				optimized_line_palette.append(color_compute_EHB_value(_color))
 
-			print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+			# print('Final line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
 			##	Remap the current line
 			##	Using the optimized palette
@@ -182,9 +180,9 @@ def main():
 			w.write(f, png_out_buffer)
 			f.close()
 
-			print(original_line_palette)
+			# print(original_line_palette)
 
-		return 1
+	return 1
 
 
 main()
