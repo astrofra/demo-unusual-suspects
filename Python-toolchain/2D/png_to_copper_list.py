@@ -20,6 +20,13 @@ def color_compute_EHB_value(_color):
 	_new_color[2] = int(_color[2] / 2)
 	return _new_color
 
+def quantize_color_as_OCS(_color):
+	_new_color = [0,0,0]
+	_new_color[0] = 2 * int(_color[0] / 2)
+	_new_color[1] = 2 * int(_color[1] / 2)
+	_new_color[2] = 2 * int(_color[2] / 2)
+	return _new_color
+
 def sort_palette_by_luminance(colors):
 	return sorted(colors, key=lambda c: colorsys.rgb_to_hls(1.0 - c[0] / 255.0,1.0 - c[1] / 255.0,1.0 - c[2] / 255.0)[1]) ##[::-1]
 
@@ -85,6 +92,7 @@ def main():
 			##	to reduce the palette.
 			if len(original_line_palette) <= g_max_color_per_line:
 				optimized_line_palette = original_line_palette
+				optimized_line_palette.extend([(0,0,0)] * (g_max_color_per_line - len(original_line_palette)))
 			else:
 				##	If there's more than 32 colors on the same row
 				##	the hardware cannot handle it, so the palette
@@ -99,30 +107,40 @@ def main():
 
 				# print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
+			optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
+
 			##	Mix the line palette with the previous line palette
 			##	So that the copper will only have to change 16 colors per line
-			# if len(prev_optimized_line_palette) > 0:
-			# 	tmp_prev_optimized_line_palette = list(prev_optimized_line_palette)
-			# 	tmp_optimized_line_palette = list(optimized_line_palette)
+			if len(optimized_line_palette) > 0:
+				_col_start = 0
+				if j % 2 == 0:
+					_col_start = 1
+				if len(prev_optimized_line_palette) > 0:
+					for _idx in range(_col_start, 32, 2):
+						if _idx < len(optimized_line_palette) and _idx < len(prev_optimized_line_palette):
+							# print('copy ' + str(prev_optimized_line_palette[_idx]) + ' to ' + str(optimized_line_palette[_idx]))
+							optimized_line_palette[_idx] = prev_optimized_line_palette[_idx]
+							# prev_optimized_line_palette = list(optimized_line_palette)
 
-			# 	##	Remove the first 16 colors that are
-			# 	##	the more similar to the previous palette
-			# 	_count = 0
-			# 	for _source_color in optimized_line_palette:
-			# 		best_target_color = color_best_match(_source_color, tmp_prev_optimized_line_palette)
-			# 		tmp_optimized_line_palette.remove(_source_color)
-			# 		tmp_prev_optimized_line_palette.remove(best_target_color)
-			# 		_count += 1
-			# 		if _count > 16 or len(tmp_prev_optimized_line_palette) < 1 or len(optimized_line_palette) < 1:
-			# 			break
+			# optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
 
-			# 	tmp_optimized_line_palette.extend(tmp_prev_optimized_line_palette)
-			# 	optimized_line_palette = list(tmp_optimized_line_palette)
+				_updated_color_count = 0
+				for _idx in range(0, len(prev_optimized_line_palette)):
+					if _idx < len(optimized_line_palette) and _idx < len(prev_optimized_line_palette):
+						if optimized_line_palette[_idx] == prev_optimized_line_palette[_idx]:
+							_updated_color_count += 1
 
-			optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
-			
+				print(str(_updated_color_count) + ' colors updated from previous line.')
+
+			##  Make sure the colors belong to an OCS palette.
+			_tmp_palette = []
+			for _color in optimized_line_palette:
+				_tmp_palette.append(quantize_color_as_OCS(_color))
+			optimized_line_palette = _tmp_palette
+
 			prev_optimized_line_palette = list(optimized_line_palette)
 
+			##  Creates the EHB 32 complimentary colors.
 			_tmp_palette = list(optimized_line_palette)
 			for _color in _tmp_palette:
 				optimized_line_palette.append(color_compute_EHB_value(_color))
