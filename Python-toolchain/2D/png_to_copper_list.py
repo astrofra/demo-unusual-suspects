@@ -70,16 +70,18 @@ def main():
 
 			##	Calculate the occurence of each color index
 			##	used in the current pixel row
-			for p in buffer_in[j]:
-				if str(p) in line_stat:
-					line_stat[str(p)] += 1
-				else:
-					line_stat[str(p)] = 1
+			for line_offset in range(-1,1):
+				if j + line_offset >= 0 and j + line_offset < len(buffer_in):
+					for p in buffer_in[j + line_offset]:
+						if str(p) in line_stat:
+							line_stat[str(p)] += 1
+						else:
+							line_stat[str(p)] = 1
 
 			##	Occurence weighted by the saturation of the color
 			for color_index_by_occurence in line_stat:
 				_rgb_color = original_palette[int(color_index_by_occurence)]
-				w_factor = (colorsys.rgb_to_hls(_rgb_color[0] / 255.0, _rgb_color[1] / 255.0, _rgb_color[2] / 255.0)[2] * 2.0) + 1.0
+				w_factor = (colorsys.rgb_to_hls(_rgb_color[0], _rgb_color[1], _rgb_color[2])[2] * 2.0) + 1.0
 				line_stat[color_index_by_occurence] = int(w_factor * line_stat[color_index_by_occurence])
 
 			# print('Found ' + str(len(line_stat)) + ' colors in line ' + str(j) + '.')
@@ -97,15 +99,31 @@ def main():
 				##	If there's more than 32 colors on the same row
 				##	the hardware cannot handle it, so the palette
 				##	must be reduced.
-				original_line_palette = sort_palette_by_luminance(original_line_palette)
+				# original_line_palette = sort_palette_by_luminance(original_line_palette)
+				optimized_line_palette = []
+				found_a_color = True
+				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0 and found_a_color is True:
+					found_a_color = False
+					for _color in original_line_palette:
+						if _color[0] > 127 or _color[1] > 127 or _color[2] > 127:
+							if len(optimized_line_palette) >= g_max_color_per_line:
+								break
+							optimized_line_palette.append(_color)
+							original_line_palette.remove(_color)
+							found_a_color = True
 
-				if len(original_line_palette) < g_max_color_per_line:
-					optimized_line_palette = list(original_line_palette)
-				else:
-					optimized_line_palette = original_line_palette[0:g_max_color_per_line]
-				# 	optimized_line_palette.extend(original_line_palette[0::g_max_color_per_line - len(optimized_line_palette)])
+				found_a_color = True
+				while len(optimized_line_palette) < g_max_color_per_line and len(original_line_palette) > 0 and found_a_color is True:
+					found_a_color = False
+					for _color in original_line_palette:
+						if _color[0] > 64 or _color[1] > 64 or _color[2] > 64:
+							if len(optimized_line_palette) >= g_max_color_per_line:
+								break
+							optimized_line_palette.append(_color)
+							original_line_palette.remove(_color)
+							found_a_color = True
 
-				# print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+				print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
 			optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
 
@@ -128,7 +146,7 @@ def main():
 						if optimized_line_palette[_idx] == prev_optimized_line_palette[_idx]:
 							_updated_color_count += 1
 
-				# print(str(_updated_color_count) + ' colors updated from previous line.')
+				print(str(_updated_color_count) + ' colors updated from previous line.')
 
 			##  Make sure the colors belong to an OCS palette.
 			_tmp_palette = []
@@ -148,7 +166,7 @@ def main():
 			##	Remap the current line
 			##	Using the optimized palette
 			line_out_buffer = []
-			OPT_DUMP_PAL = False
+			OPT_DUMP_PAL = True
 			_dump_pal_count = 0
 			for p in buffer_in[j]:
 				if OPT_DUMP_PAL and _dump_pal_count < len(optimized_line_palette):
@@ -169,7 +187,6 @@ def main():
 						line_out_buffer.append(_color_match[2])
 
 				_dump_pal_count += 1
-
 
 			png_out_buffer.append(line_out_buffer)
 
