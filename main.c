@@ -10,8 +10,10 @@
 #include <exec/libraries.h>
 #include <dos/dos.h>
 #include <devices/keyboard.h>
+#include <intuition/intuition.h>
 #include <graphics/gfxmacros.h>
 #include <graphics/copper.h>
+#include <graphics/videocontrol.h>
 #include <clib/timer_protos.h>
 
 #include "ptreplay.h"
@@ -59,6 +61,7 @@ extern PLANEPTR theRaster;
 extern struct Screen *mainScreen;
 extern struct DosLibrary *DOSBase;
 extern struct GfxBase *GfxBase;
+extern struct IntuitionBase *IntuitionBase;
 extern struct Library *PTReplayBase;
 extern struct ViewPort *mainVP;
 
@@ -283,19 +286,44 @@ int InitKeyboard(void)
         }
 }
 
+#define COLOR_MAKE_LIGHTER(COL,QT) (((COL & 0xF00) + (QT << 8)) & 0xF00) | (((COL & 0x0F0) + (QT << 4)) & 0x0F0) | (((COL & 0x00F) + QT) & 0x00F)
+
 void CreateCopperList(void)
 {
-  // struct UCopList *cl;
+  struct UCopList *cl;
+  struct TagItem  uCopTags[] =
+          {
+                { VTAG_USERCLIP_SET, NULL },
+                { VTAG_END_CM, NULL }
+          };
+  int v;
 
-  // cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
-  // CWAIT(cl, 100, 0);
-  // CMOVE(cl, custom.color[0], 0xf0f);
-  // CEND(cl);
+  cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
-  // mainVP->UCopIns = cl;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, 2 * v + 80, 0);
+    CMOVE(cl, custom.color[0], COLOR_MAKE_LIGHTER(0x0423, v / 2));
+  }
 
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, 2 * v + 80 + 32, 0);
+    CMOVE(cl, custom.color[0], COLOR_MAKE_LIGHTER(0x0423, 8 - (v / 2)));
+  }
+
+  CWAIT(cl, 80 + 64 + 1, 0);
+  CMOVE(cl, custom.color[0], 0x0423);
+
+  CEND(cl);
+
+  Forbid();       /*  Forbid task switching while changing the Copper list.  */
+  mainVP->UCopIns = cl;
+  Permit();       /*  Permit task switching again.  */
+
+  (VOID) VideoControl( mainVP->ColorMap, uCopTags );
   // MrgCop();
-  // RethinkDisplay();
+  RethinkDisplay();
 }
 
 /* Main program entry point */
@@ -322,9 +350,7 @@ int main(void)
 
   Prepare2DVertexList();
 
-  // CreateCopperList();
-
-  filter_off();
+  // filter_off();
 
   myTask = FindTask(NULL);
   oldPri = SetTaskPri(myTask, 127);
@@ -342,6 +368,8 @@ int main(void)
   pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);
   disp_whack(pic, 40, 256, 0, 0, 4);
   disp_fade_in(demo_title_PaletteRGB4);
+
+  CreateCopperList();
 
   fVBLDelay(350);
 
