@@ -129,6 +129,14 @@ UWORD demo_title_PaletteRGB4[16] =
   0x0AAA,0x0BAB,0x0CB9,0x0CCC,0x0DCC,0x0DCD,0x0DDD,0x0FFF
 };
 
+UWORD face_all_topPaletteRGB4[32] =
+{
+  0x0100,0x0201,0x0023,0x0420,0x0500,0x0643,0x0723,0x0555,
+  0x0664,0x0468,0x0784,0x0A53,0x0877,0x0B58,0x0C75,0x08A8,
+  0x0F60,0x0D78,0x058D,0x03CB,0x0E96,0x0ABA,0x0BD5,0x08BD,
+  0x0E9A,0x09EC,0x0EAC,0x0FE1,0x0FD8,0x0EFB,0x0CEE,0x0FFE
+};
+
 /***** Global functions & data *****/
 extern struct Library *SysBase;
 struct Task *myTask;
@@ -363,6 +371,12 @@ int main(void)
   // writer_doit((UBYTE *) "Barking Mad"
   //                       "Hedgehogs#"
   //                       "PRESENTS#");
+
+  pic = load_getmem((UBYTE *)"assets/face_all_top.bin", 40 * 4 * 256);
+  disp_whack(pic, 40, 256, 0, 0, 4);
+  disp_fade_in(face_all_topPaletteRGB4);
+  fVBLDelay(100);
+
   disp_clear();
 
   pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);

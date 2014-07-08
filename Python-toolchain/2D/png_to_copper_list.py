@@ -123,7 +123,7 @@ def main():
 							original_line_palette.remove(_color)
 							found_a_color = True
 
-				print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
+				# print('Temporary line palette is ' + str(len(optimized_line_palette)) + ' colors.')
 
 			optimized_line_palette = sort_palette_by_luminance(optimized_line_palette)
 
@@ -146,7 +146,7 @@ def main():
 						if optimized_line_palette[_idx] == prev_optimized_line_palette[_idx]:
 							_updated_color_count += 1
 
-				print(str(_updated_color_count) + ' colors updated from previous line.')
+				# print(str(_updated_color_count) + ' colors updated from previous line.')
 
 			##  Make sure the colors belong to an OCS palette.
 			_tmp_palette = []
@@ -165,8 +165,40 @@ def main():
 
 			##	Remap the current line
 			##	Using the optimized palette
-			line_out_buffer = []
-			OPT_DUMP_PAL = True
+
+		OPT_INDEXED_OUTPUT = False
+		OPT_DUMP_PAL = False
+
+		_filename_out = _filename.replace('.png', '_out.png')
+		print('_filename_out = ' + _filename_out)
+		line_out_buffer = []
+
+		if OPT_INDEXED_OUTPUT:
+			print('Saving as indexed colors.')
+			for p in buffer_in[j]:
+				current_pixel_color = original_palette[p]
+				if current_pixel_color in optimized_line_palette or len(optimized_line_palette) < 1:
+					##	We found the exact color we were looking for
+					line_out_buffer.append(current_pixel_color[0])
+					line_out_buffer.append(current_pixel_color[1])
+					line_out_buffer.append(current_pixel_color[2])
+				else:
+					_color_match = color_best_match(current_pixel_color, optimized_line_palette)
+					line_out_buffer.append(_color_match[0])
+					line_out_buffer.append(_color_match[1])
+					line_out_buffer.append(_color_match[2])
+
+				png_out_buffer.append(line_out_buffer)
+
+			if len(png_out_buffer) > 0:
+				png_out_buffer.append(line_out_buffer)
+				f = open(_filename_out, 'wb')
+				w = png.Writer(w, h, palette=optimized_line_palette, bitdepth = 8)
+				w.write(f, png_out_buffer)
+				f.close()
+
+		if not OPT_INDEXED_OUTPUT:
+			print('Saving as true color.')
 			_dump_pal_count = 0
 			for p in buffer_in[j]:
 				if OPT_DUMP_PAL and _dump_pal_count < len(optimized_line_palette):
@@ -190,12 +222,11 @@ def main():
 
 			png_out_buffer.append(line_out_buffer)
 
-		if len(png_out_buffer) > 0:
-			_filename_out = _filename.replace('.png', '_out.png')
-			f = open(_filename_out, 'wb')
-			w = png.Writer(w, h)
-			w.write(f, png_out_buffer)
-			f.close()
+			if len(png_out_buffer) > 0:
+				f = open(_filename_out, 'wb')
+				w = png.Writer(w, h)
+				w.write(f, png_out_buffer)
+				f.close()
 
 			# print(original_line_palette)
 
