@@ -4,7 +4,10 @@
 
 /* init.c */
 
-/* Open needed global resources */
-BOOL init_open_all(void);
-/* Close opened global resources */
-void init_close_all(void);
+
+BOOL init_open_libs(void);
+BOOL Init16ColorsScreen(void);
+BOOL InitEHBScreen(void);
+
+void init_close_libs(void);
+void init_close_video(void);

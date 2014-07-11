@@ -131,10 +131,10 @@ UWORD demo_title_PaletteRGB4[16] =
 
 UWORD face_all_topPaletteRGB4[32] =
 {
-  0x0100,0x0201,0x0023,0x0420,0x0500,0x0643,0x0723,0x0555,
-  0x0664,0x0468,0x0784,0x0A53,0x0877,0x0B58,0x0C75,0x08A8,
-  0x0F60,0x0D78,0x058D,0x03CB,0x0E96,0x0ABA,0x0BD5,0x08BD,
-  0x0E9A,0x09EC,0x0EAC,0x0FE1,0x0FD8,0x0EFB,0x0CEE,0x0FFE
+  0x0423,0x0800,0x0900,0x0911,0x0A11,0x0B22,0x0B33,0x0C33,
+  0x0C44,0x0D55,0x0E66,0x0E77,0x0F88,0x0F98,0x0EA8,0x0EB8,
+  0x0EB8,0x0FC9,0x0DD9,0x0DD9,0x0CD9,0x09C9,0x07C9,0x09C9,
+  0x0AC9,0x0BCA,0x0CCA,0x0EDB,0x0FDC,0x0FDA,0x0EDB,0x0EEE
 };
 
 /***** Global functions & data *****/
@@ -243,7 +243,8 @@ void  ForceDemoClose(void)
   FreeMem(keyMatrix,KEY_MATRIX_SIZE);
   
   /* Close opened resources */
-  init_close_all();
+  init_close_video();
+  init_close_libs();
   exit(0);
 }
 
@@ -296,6 +297,67 @@ int InitKeyboard(void)
 
 #define COLOR_MAKE_LIGHTER(COL,QT) (((COL & 0xF00) + (QT << 8)) & 0xF00) | (((COL & 0x0F0) + (QT << 4)) & 0x0F0) | (((COL & 0x00F) + QT) & 0x00F)
 
+UWORD ColorMakeLighter(UWORD color_in, int dt)
+{
+  int r,g,b;
+  r = (color_in & 0xF00) >> 8;
+  g = (color_in & 0x0F0) >> 4;
+  b = color_in & 0x00F;
+  r += dt;
+  g += (dt / 2);
+  b += (dt * 2);
+  if (r > 15)
+    r = 15;
+  if (g > 15)
+    g = 15;
+  if (b > 15)
+    b = 15;
+
+  return ((UWORD)((r << 8) | (g << 4) | b));
+}
+
+UWORD ColorMakeDarker(UWORD color_in, int dt)
+{
+  int r,g,b;
+  r = (color_in & 0xF00) >> 8;
+  g = (color_in & 0x0F0) >> 4;
+  b = color_in & 0x00F;
+  r -= dt;
+  g -= (dt / 2);
+  b -= (dt / 3);
+  if (r < 0)
+    r = 0;
+  if (g < 0)
+    g = 0;
+  if (b < 0)
+    b = 0;
+
+  return ((UWORD)((r << 8) | (g << 4) | b));
+}
+
+void DeleteCopperList(void)
+{
+  struct UCopList *cl;
+  struct TagItem  uCopTags[] =
+          {
+                { VTAG_USERCLIP_SET, NULL },
+                { VTAG_END_CM, NULL }
+          };
+
+  cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
+
+  CWAIT(cl, 0, 0);
+  CEND(cl);
+
+  Forbid();       /*  Forbid task switching while changing the Copper list.  */
+  mainVP->UCopIns = cl;
+  Permit();       /*  Permit task switching again.  */
+
+  (VOID) VideoControl( mainVP->ColorMap, uCopTags );
+  // MrgCop();
+  RethinkDisplay();
+}
+
 void CreateCopperList(void)
 {
   struct UCopList *cl;
@@ -304,24 +366,103 @@ void CreateCopperList(void)
                 { VTAG_USERCLIP_SET, NULL },
                 { VTAG_END_CM, NULL }
           };
-  int v;
+  int v, c, vo;
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
+  vo = 1;
   for (v = 0; v < 16; v++)
   {
-    CWAIT(cl, 2 * v + 80, 0);
-    CMOVE(cl, custom.color[0], COLOR_MAKE_LIGHTER(0x0423, v / 2));
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
   }
 
   for (v = 0; v < 16; v++)
   {
-    CWAIT(cl, 2 * v + 80 + 32, 0);
-    CMOVE(cl, custom.color[0], COLOR_MAKE_LIGHTER(0x0423, 8 - (v / 2)));
+    CWAIT(cl, v + vo + 17, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
   }
 
-  CWAIT(cl, 80 + 64 + 1, 0);
-  CMOVE(cl, custom.color[0], 0x0423);
+  vo += 32;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
+  }
+
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + 17 + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
+  }
+
+  vo += 32;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
+  }
+
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo + 17, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
+  }
+
+  vo += 32;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
+  }
+
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + 17 + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
+  }
+
+  vo += 32;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
+  }
+
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo + 17, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
+  }
+
+  vo += 32;
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
+  }
+
+  for (v = 0; v < 16; v++)
+  {
+    CWAIT(cl, v + 17 + vo, 0);
+    for (c = 0; c < 16; c++)
+      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
+  }
+
+  CWAIT(cl, vo + 32 + 4, 0);
+  for (c = 0; c < 16; c++)
+    CMOVE(cl, custom.color[c], face_all_topPaletteRGB4[c]);
 
   CEND(cl);
 
@@ -350,9 +491,15 @@ int main(void)
 
   srand((ciaa.ciatodmid << 8) | ciaa.ciatodlow);
   /* Open all needed resources */
-  if (!init_open_all())
+  if (!init_open_libs())
   {
-    init_close_all();
+    init_close_libs();
+    return (10);
+  }
+
+  if (!Init16ColorsScreen())
+  {
+    init_close_video();
     return (10);
   }
 
@@ -372,18 +519,28 @@ int main(void)
   //                       "Hedgehogs#"
   //                       "PRESENTS#");
 
-  pic = load_getmem((UBYTE *)"assets/face_all_top.bin", 40 * 4 * 256);
-  disp_whack(pic, 40, 256, 0, 0, 4);
-  disp_fade_in(face_all_topPaletteRGB4);
-  fVBLDelay(100);
+  init_close_video();
+  InitEHBScreen();
+
+  pic = load_getmem((UBYTE *)"assets/face_all_top.bin", 40 * 6 * 256);
+  disp_whack(pic, 40, 256, 0, 0, 6);
+  LoadRGB4(mainVP, face_all_topPaletteRGB4, 32);
+  CreateCopperList();
+  fVBLDelay(1000);
 
   disp_clear();
+
+  FreeMem(pic, 40 * 6 * 256);
+
+  // DeleteCopperList();
+  init_close_video();
+  Init16ColorsScreen();
 
   pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);
   disp_whack(pic, 40, 256, 0, 0, 4);
   disp_fade_in(demo_title_PaletteRGB4);
 
-  CreateCopperList();
+  // CreateCopperList();
 
   fVBLDelay(350);
 
@@ -549,7 +706,6 @@ int main(void)
   FreeMem(pic, 34 * 120 * 4);
   
   // /* Close opened resources */
-  // init_close_all();
   ForceDemoClose();
   return (0);
 }

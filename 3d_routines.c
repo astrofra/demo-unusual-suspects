@@ -48,7 +48,7 @@ void Prepare2DVertexList(void)
 void Delete3DVertexList(void)
 {  free(verts_tr);  }
 
-int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x, int m_scale_y)
+int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
 {
 
   int i,tx,ty,

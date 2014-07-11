@@ -1,7 +1,7 @@
 #include "includes.prl"
 
 #include "common.h"
-#include "protos.h"
+// #include "protos.h"
 
 #define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)

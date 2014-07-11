@@ -23,16 +23,20 @@ struct Library *PTReplayBase;
 
 PLANEPTR theRaster;
 struct RastPort theRP;
+struct RastPort theRP_5bpl;
+struct RastPort theRP_4bpl;
 struct RastPort theRP_3bpl;
 struct RastPort theRP_2bpl;
 struct RastPort theRP_1bpl;
 struct BitMap theBitMap;
+struct BitMap theBitMap_5bpl;
+struct BitMap theBitMap_4bpl;
 struct BitMap theBitMap_3bpl;
 struct BitMap theBitMap_2bpl;
 struct BitMap theBitMap_1bpl;
 struct NewScreen theScreen =
 {
-  0, 0, 320, SCR_HEIGHT, 4, 0, 1, 0,
+  0, 0, 320, SCR_HEIGHT, 6, 0, 1, 0 | EXTRA_HALFBRITE,
   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
 };
 struct Screen *mainScreen;
@@ -44,11 +48,8 @@ struct TextAttr writerAttr =
 /***** Global functions *****/
 
 /* Open all needed global resources */
-BOOL init_open_all(void)
+BOOL init_open_libs(void)
 {
-  PLANEPTR temp;
-  UWORD i;
-
   /* Check for at least release 3.0 */
   if (SysBase->LibNode.lib_Version < 33)
   {
@@ -79,6 +80,15 @@ BOOL init_open_all(void)
     init_conerr((UBYTE *)"Unable to open ptreplay.library\n");
     return (FALSE);
   }
+
+  return (TRUE);
+
+}
+
+BOOL Init16ColorsScreen(void)
+{
+  PLANEPTR temp;
+  UWORD i;
 
   InitBitMap(&theBitMap, 4, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
@@ -128,6 +138,8 @@ BOOL init_open_all(void)
   }
 
   SetFont(&theRP, writerFont);
+  SetFont(&theRP_5bpl, writerFont);
+  SetFont(&theRP_4bpl, writerFont);  
   SetFont(&theRP_3bpl, writerFont);
   SetFont(&theRP_2bpl, writerFont);
   SetFont(&theRP_1bpl, writerFont);
@@ -135,14 +147,86 @@ BOOL init_open_all(void)
   return (TRUE);
 }
 
-/* Close all global resources opened */
-void init_close_all(void)
+BOOL InitEHBScreen(void)
 {
+  PLANEPTR temp;
+  UWORD i;
+
+  InitBitMap(&theBitMap, 6, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_3bpl, 5, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_2bpl, 4, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
+
+  if (!(theRaster = AllocRaster(384 * 6, SCR_HEIGHT)))
+  {
+    init_conerr((UBYTE *)"Unable to allocate screen memory\n");
+    return (FALSE);
+  }
+
+  temp = theRaster;
+  for (i = 0; i < 6; i ++)
+  {
+    theBitMap.Planes[i] = temp;
+    theBitMap_5bpl.Planes[i] = temp;
+    theBitMap_4bpl.Planes[i] = temp;
+    theBitMap_3bpl.Planes[i] = temp;
+    theBitMap_2bpl.Planes[i] = temp;
+    theBitMap_1bpl.Planes[i] = temp;
+    temp += (48 * SCR_HEIGHT);
+  }
+
+  InitRastPort(&theRP);
+  InitRastPort(&theRP_5bpl);
+  InitRastPort(&theRP_4bpl);  
+  InitRastPort(&theRP_3bpl);
+  InitRastPort(&theRP_2bpl);
+  InitRastPort(&theRP_1bpl);
+
+  theRP.BitMap = &theBitMap;
+  theRP_5bpl.BitMap = &theBitMap_5bpl;
+  theRP_4bpl.BitMap = &theBitMap_4bpl;  
+  theRP_3bpl.BitMap = &theBitMap_3bpl;
+  theRP_2bpl.BitMap = &theBitMap_2bpl;
+  theRP_1bpl.BitMap = &theBitMap_1bpl;
+  SetRast(&theRP, 0);
+
+  if (!(mainScreen = OpenScreen(&theScreen)))
+  {
+    init_conerr((UBYTE *)"Unable to open main screen\n");
+    return (FALSE);
+  }
+  mainVP = &mainScreen->ViewPort;
+  for (i = 0; i < 32; i ++)
+    SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
+
+  if (!(writerFont = OpenDiskFont(&writerAttr)))
+  {
+    init_conerr((UBYTE *)"Unable to open writer font\n");
+    return (FALSE);
+  }
+
+  SetFont(&theRP, writerFont); 
+  SetFont(&theRP_3bpl, writerFont);
+  SetFont(&theRP_2bpl, writerFont);
+  SetFont(&theRP_1bpl, writerFont);
+
+  return (TRUE);
+}
+
+void init_close_video(void)
+{
+  /* Close screen */
   if (writerFont) CloseFont(writerFont);
 
   if (mainScreen) CloseScreen(mainScreen);
   if (theRaster) FreeRaster(theRaster, 4 * 384, SCR_HEIGHT);
+}
 
+/* Close all global resources opened */
+void init_close_libs(void)
+{
   /* Close opened libraries */
   if (PTReplayBase) CloseLibrary(PTReplayBase);
   if (DiskfontBase) CloseLibrary(DiskfontBase);
