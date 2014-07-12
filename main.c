@@ -29,6 +29,8 @@
 #include "Assets/object_face_00.h"
 #include "Assets/object_spiroid.h"
 
+#include "Assets/faces_palettes.h"
+
 #include "3d_routines.h"
 
 static void disp_fade_in(UWORD *fadeto);
@@ -135,6 +137,12 @@ UWORD face_all_topPaletteRGB4[32] =
   0x0C44,0x0D55,0x0E66,0x0E77,0x0F88,0x0F98,0x0EA8,0x0EB8,
   0x0EB8,0x0FC9,0x0DD9,0x0DD9,0x0CD9,0x09C9,0x07C9,0x09C9,
   0x0AC9,0x0BCA,0x0CCA,0x0EDB,0x0FDC,0x0FDA,0x0EDB,0x0EEE
+};
+
+UWORD background1PaletteRGB4[16] =
+{
+  0x0000,0x0006,0x0027,0x0037,0x005A,0x00AF,0x08FF,0x0000,
+  0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000
 };
 
 /***** Global functions & data *****/
@@ -375,94 +383,19 @@ void CreateCopperList(void)
   {
     CWAIT(cl, v + vo, 0);
     for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
+      CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
   }
 
   for (v = 0; v < 16; v++)
   {
     CWAIT(cl, v + vo + 17, 0);
     for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
-
-  vo += 32;
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
-  }
-
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + 17 + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
-
-  vo += 32;
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
-  }
-
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo + 17, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
-
-  vo += 32;
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
-  }
-
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + 17 + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
-
-  vo += 32;
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
-  }
-
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo + 17, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
-
-  vo += 32;
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], v));
-  }
-
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + 17 + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c], ColorMakeDarker(face_all_topPaletteRGB4[c], 16 - (v)));
+      CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
   }
 
   CWAIT(cl, vo + 32 + 4, 0);
   for (c = 0; c < 16; c++)
-    CMOVE(cl, custom.color[c], face_all_topPaletteRGB4[c]);
+    CMOVE(cl, custom.color[c + 1], face_all_topPaletteRGB4[c + 1]);
 
   CEND(cl);
 
@@ -480,7 +413,7 @@ int main(void)
 {
   int frame_idx,
       abs_frame_idx = 0,
-      m_scale_x = 0;
+      m_scale_x;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -526,7 +459,15 @@ int main(void)
   disp_whack(pic, 40, 256, 0, 0, 6);
   LoadRGB4(mainVP, face_all_topPaletteRGB4, 32);
   CreateCopperList();
-  fVBLDelay(1000);
+  fVBLDelay(100);
+  DeleteCopperList();
+  fVBLDelay(100);
+  CreateCopperList();
+  fVBLDelay(100);
+  DeleteCopperList();
+  disp_fade_out(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_out(demo_title_PaletteRGB4);
 
   disp_clear();
 

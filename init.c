@@ -190,8 +190,8 @@ BOOL InitEHBScreen(void)
   if (theRaster) tmp_theRaster = theRaster;
 
   InitBitMap(&theBitMap, 6, 384, SCR_HEIGHT);
-  InitBitMap(&theBitMap_3bpl, 5, 384, SCR_HEIGHT);
-  InitBitMap(&theBitMap_2bpl, 4, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_5bpl, 5, 384, SCR_HEIGHT);
+  InitBitMap(&theBitMap_4bpl, 4, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
