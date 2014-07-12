@@ -519,7 +519,7 @@ int main(void)
   //                       "Hedgehogs#"
   //                       "PRESENTS#");
 
-  init_close_video();
+  // init_close_video();
   InitEHBScreen();
 
   pic = load_getmem((UBYTE *)"assets/face_all_top.bin", 40 * 6 * 256);
@@ -533,7 +533,7 @@ int main(void)
   FreeMem(pic, 40 * 6 * 256);
 
   // DeleteCopperList();
-  init_close_video();
+  // init_close_video();
   Init16ColorsScreen();
 
   pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);

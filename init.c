@@ -46,6 +46,9 @@ struct NewScreen theScreen16 =
   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
 };
 
+int current_screen_depth = 0,
+    prev_screen_depth = 0;
+
 struct Screen *mainScreen;
 struct ViewPort *mainVP;
 struct TextFont *writerFont;
@@ -96,6 +99,15 @@ BOOL Init16ColorsScreen(void)
 {
   PLANEPTR temp;
   UWORD i;
+
+  struct TextFont *tmp_writerFont = NULL;
+  struct Screen *tmp_mainScreen = NULL;
+  PLANEPTR tmp_theRaster = NULL;
+
+  if (writerFont) tmp_writerFont = writerFont;
+
+  if (mainScreen) tmp_mainScreen = mainScreen;
+  if (theRaster) tmp_theRaster = theRaster;
 
   InitBitMap(&theBitMap, 4, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
@@ -151,6 +163,15 @@ BOOL Init16ColorsScreen(void)
   SetFont(&theRP_2bpl, writerFont);
   SetFont(&theRP_1bpl, writerFont);
 
+  prev_screen_depth = current_screen_depth;
+  current_screen_depth = 4;
+
+  /* Close screen */
+  if (tmp_writerFont) CloseFont(tmp_writerFont);
+
+  if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
+  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+
   return (TRUE);
 }
 
@@ -158,6 +179,15 @@ BOOL InitEHBScreen(void)
 {
   PLANEPTR temp;
   UWORD i;
+
+  struct TextFont *tmp_writerFont = NULL;
+  struct Screen *tmp_mainScreen = NULL;
+  PLANEPTR tmp_theRaster = NULL;
+
+  if (writerFont) tmp_writerFont = writerFont;
+
+  if (mainScreen) tmp_mainScreen = mainScreen;
+  if (theRaster) tmp_theRaster = theRaster;
 
   InitBitMap(&theBitMap, 6, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_3bpl, 5, 384, SCR_HEIGHT);
@@ -218,6 +248,15 @@ BOOL InitEHBScreen(void)
   SetFont(&theRP_3bpl, writerFont);
   SetFont(&theRP_2bpl, writerFont);
   SetFont(&theRP_1bpl, writerFont);
+
+  prev_screen_depth = current_screen_depth;
+  current_screen_depth = 6;
+
+  /* Close screen */
+  if (tmp_writerFont) CloseFont(tmp_writerFont);
+
+  if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
+  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
   return (TRUE);
 }
