@@ -34,11 +34,18 @@ struct BitMap theBitMap_4bpl;
 struct BitMap theBitMap_3bpl;
 struct BitMap theBitMap_2bpl;
 struct BitMap theBitMap_1bpl;
-struct NewScreen theScreen =
+struct NewScreen theScreenEHB =
 {
   0, 0, 320, SCR_HEIGHT, 6, 0, 1, 0 | EXTRA_HALFBRITE,
   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
 };
+
+struct NewScreen theScreen16 =
+{
+  0, 0, 320, SCR_HEIGHT, 4, 0, 1, 0,
+  CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
+};
+
 struct Screen *mainScreen;
 struct ViewPort *mainVP;
 struct TextFont *writerFont;
@@ -122,7 +129,7 @@ BOOL Init16ColorsScreen(void)
   theRP_1bpl.BitMap = &theBitMap_1bpl;
   SetRast(&theRP, 0);
 
-  if (!(mainScreen = OpenScreen(&theScreen)))
+  if (!(mainScreen = OpenScreen(&theScreen16)))
   {
     init_conerr((UBYTE *)"Unable to open main screen\n");
     return (FALSE);
@@ -192,7 +199,7 @@ BOOL InitEHBScreen(void)
   theRP_1bpl.BitMap = &theBitMap_1bpl;
   SetRast(&theRP, 0);
 
-  if (!(mainScreen = OpenScreen(&theScreen)))
+  if (!(mainScreen = OpenScreen(&theScreenEHB)))
   {
     init_conerr((UBYTE *)"Unable to open main screen\n");
     return (FALSE);
