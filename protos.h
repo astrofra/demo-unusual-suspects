@@ -7,6 +7,7 @@
 
 BOOL init_open_libs(void);
 BOOL Init16ColorsScreen(void);
+BOOL Init32ColorsScreen(void);
 BOOL InitEHBScreen(void);
 
 void init_close_libs(void);

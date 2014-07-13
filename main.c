@@ -380,7 +380,7 @@ int main(void)
     return (10);
   }
 
-  if (!Init16ColorsScreen())
+  if (!Init32ColorsScreen())
   {
     init_close_video();
     return (10);
@@ -398,22 +398,26 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
-  pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 4 * 256);
-  disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
-  LoadRGB4(mainVP, background1PaletteRGB4, 16);
+  pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 5 * 256);
+  disp_whack(pic, &theBitMap, 320, 256, 0, 0, 5);
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
   fVBLDelay(100);
 
-  face = load_getmem((UBYTE *)"assets/face_02.bin", 3440);
-  disp_whack(face, &theBitMap, 71, 86, 42, 55, 4);
+  face = load_getmem((UBYTE *)"assets/face_01.bin", 3440);
 
+  SetAPen(&theRP, 0);
+  RectFill(&theRP, 48, frameOffset + 55, 48 + 71, frameOffset + 55 + 86);
+
+  disp_whack(face, &theBitMap, 71, 86, 48, 55, 4);
+  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
   fVBLDelay(500);
 
   disp_clear();
 
-  FreeMem(face,  3440);
-  FreeMem(pic,  40 * 256 * 4);
+  FreeMem(face, 3440);
+  FreeMem(pic, 40 * 256 * 5);
 
-  // Init16ColorsScreen();
+  Init16ColorsScreen();
 
   pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);
   disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
