@@ -406,7 +406,7 @@ int main(void)
   face = load_getmem((UBYTE *)"assets/face_01.bin", 3440);
 
   SetAPen(&theRP, 0);
-  RectFill(&theRP, 48, frameOffset + 55, 48 + 71, frameOffset + 55 + 86);
+  RectFill(&theRP, 48, frameOffset + 55, 48 + 70, frameOffset + 55 + 85);
 
   disp_whack(face, &theBitMap, 71, 86, 48, 55, 4);
   LoadRGB4(mainVP, face_01PaletteRGB4, 16);
