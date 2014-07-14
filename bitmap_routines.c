@@ -50,20 +50,30 @@ void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD he
   }
 }
 
-// void disp_pixel_copy(PLANEPTR *source, struct RastPort *raster_port, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth)
-// {
-// 	UWORD i,j,p;
-// 	static WORD c;
+void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth)
+{
+  PLANEPTR src, dest;
+  UWORD i, j, k;
+  UWORD x_byte, width_byte;
 
-// 	for (j = 0; j < height; j++)
-// 		for(i = 0; i < width; i++)
-// 		{
-// 			c = 0;
-// 			for (p = 0; p < depth; p++)
-// 			{
+  while(width != ((width >> 4) << 4))
+    width++;
 
-// 			}
-// 			c = ReadPixel(raster_port, i, j);
-// 			WritePixel(raster_port, i + x, j + y);
-// 		}
-// }
+  x_byte = x >> 3;
+  width_byte = width >> 3;
+
+  src = data;
+  for (i = 0; i < height; i ++)
+  {
+    for (k = 0; k < depth; k ++)
+    {
+      for (j = 0; j < width_byte; j ++)
+      {
+        src = data + (j + i * 40 * depth) + (k * 40);
+        dest = (*dest_BitMap).Planes[k] + j + x_byte + (48 * i) + 48 * y;
+
+        *dest = *src;
+      }
+    }
+  }
+}

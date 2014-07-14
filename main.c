@@ -42,6 +42,7 @@ void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 extern void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
+extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
 // extern void disp_pixel_copy(struct RastPort *raster_port, UWORD width, UWORD height, UWORD x, UWORD y);
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
@@ -397,6 +398,17 @@ int main(void)
   mod = load_getmem((UBYTE *)"assets/module.bin", 95430);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
+
+  InitEHBScreen();
+  pic = load_getmem((UBYTE *)"assets/face_all.bin", 40 * 360 * 6);
+  disp_interleaved_st_format(pic, &theBitMap, 320, 360, 0, 0, 6);
+  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
+  FreeMem(pic, 40 * 360 * 6);
+
+  fVBLDelay(1000);
+
+  disp_clear();
+  Init32ColorsScreen();
 
   pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 5 * 256);
   disp_whack(pic, &theBitMap, 320, 256, 0, 0, 5);
