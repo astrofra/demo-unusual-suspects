@@ -12,7 +12,11 @@ color_stride = 16
 def main():
 
 	##	Decode the index table
-	f_out = codecs.open(filename_out + root_name + '_palette.c', 'w')
+	index_count = 0
+	f_out = codecs.open(filename_out + root_name + '_palettes.c', 'w')
+	f_out.write('#include <exec/types.h>\n')
+	f_out.write('#include <intuition/intuition.h>\n\n')
+
 	f_out.write('/*	Color index to modify on each scanline, grouped by ' + str(index_stride) + ' */\n\n')
 
 	f_out.write('int ' + root_name + '_index[] =' + '\n')
@@ -25,7 +29,7 @@ def main():
 			line_str = '\t'
 			for i in range(0,index_stride - 1):
 				line_str += str(struct.unpack('>1B', bytes[i])[0]) + ','
-
+				index_count += 1
 			line_str += '\n'
 			f_out.write(line_str);
 		else:
@@ -60,6 +64,7 @@ def main():
 	f_in.close()
 
 	##	Decode the scanline palettes table.
+	palette_count = 0
 	f_in = open(palette_filename, "rb")
 	f_out.write('/*	RGB4 colors, grouped by ' + str(color_stride) + ' */\n\n')
 
@@ -77,6 +82,8 @@ def main():
 				color_str = struct.unpack('>H', long_word)[0]
 				color_str = str(hex(color_str))
 				line_str += color_str + ','
+
+				palette_count += 1
 				# print(color_str)
 			else:
 				break
@@ -86,6 +93,16 @@ def main():
 
 	f_out.write('};' + '\n')
 
+	f_out.close()
+
+	##	Makes the header file.
+	f_out = codecs.open(filename_out + root_name + '_palettes.h', 'w')
+	f_out.write('#include <exec/types.h>\n')
+	f_out.write('#include <intuition/intuition.h>\n\n')
+
+	f_out.write('extern int ' + root_name + '_index[' + str(index_count) + '];' + '\n')
+	f_out.write('extern UWORD ' + root_name + '_PaletteRGB4[32];' + '\n')
+	f_out.write('extern UWORD ' + root_name + '_scanline_PaletteRGB4[' + str(palette_count) + '];' + '\n')
 	f_out.close()
 
 main()

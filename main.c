@@ -31,6 +31,7 @@
 
 #include "Assets/misc_palettes.h"
 #include "Assets/faces_palettes.h"
+#include "Assets/faces_all_palettes.h"
 
 #include "3d_routines.h"
 
@@ -43,7 +44,7 @@ void reset_disp_swap(void);
 void disp_swap(void);
 extern void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
 extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
-// extern void disp_pixel_copy(struct RastPort *raster_port, UWORD width, UWORD height, UWORD x, UWORD y);
+
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
 void scroll_doit(void);
@@ -323,28 +324,38 @@ void CreateCopperList(void)
                 { VTAG_USERCLIP_SET, NULL },
                 { VTAG_END_CM, NULL }
           };
-  int v, c, vo;
+  int v, c, color_index = 0;
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
-  vo = 1;
-  for (v = 0; v < 16; v++)
+  for (v = 0; v < 360; v++)
   {
-    CWAIT(cl, v + vo, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
+    CWAIT(cl, v, 0);
+    for (c = 0; c < 15; c++)
+    {
+      CMOVE(cl, custom.color[faces_all_index[color_index]], faces_all_scanline_PaletteRGB4[color_index]);
+      color_index++;
+    }
   }
 
-  for (v = 0; v < 16; v++)
-  {
-    CWAIT(cl, v + vo + 17, 0);
-    for (c = 0; c < 16; c++)
-      CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
-  }
+  // vo = 1;
+  // for (v = 0; v < 16; v++)
+  // {
+  //   CWAIT(cl, v + vo, 0);
+  //   for (c = 0; c < 16; c++)
+  //     CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
+  // }
 
-  CWAIT(cl, vo + 32 + 4, 0);
-  for (c = 0; c < 16; c++)
-    CMOVE(cl, custom.color[c + 1], face_all_topPaletteRGB4[c + 1]);
+  // for (v = 0; v < 16; v++)
+  // {
+  //   CWAIT(cl, v + vo + 17, 0);
+  //   for (c = 0; c < 16; c++)
+  //     CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
+  // }
+
+  // CWAIT(cl, vo + 32 + 4, 0);
+  // for (c = 0; c < 16; c++)
+  //   CMOVE(cl, custom.color[c + 1], face_all_topPaletteRGB4[c + 1]);
 
   CEND(cl);
 
@@ -402,13 +413,15 @@ int main(void)
   InitEHBScreen();
   pic = load_getmem((UBYTE *)"assets/face_all.bin", 40 * 360 * 6);
   disp_interleaved_st_format(pic, &theBitMap, 320, 360, 0, 0, 6);
-  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
+  LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+  CreateCopperList();
   FreeMem(pic, 40 * 360 * 6);
 
   fVBLDelay(1000);
 
   disp_clear();
   Init32ColorsScreen();
+  DeleteCopperList();
 
   pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 5 * 256);
   disp_whack(pic, &theBitMap, 320, 256, 0, 0, 5);
