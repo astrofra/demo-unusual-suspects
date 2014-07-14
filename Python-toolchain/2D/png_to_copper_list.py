@@ -11,7 +11,7 @@ def color_best_match(sample, colors):
 	by_distance = sorted(colors, key=lambda c: color_distance(c, sample))
 	return by_distance[0]
 
-filename_in = ['face_all_bottom.png', 'face_all_top.png']
+filename_in = ['face_all.png']
 
 def color_compute_EHB_value(_color):
 	_new_color = [0,0,0]
