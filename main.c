@@ -330,8 +330,8 @@ void CreateCopperList(void)
 
   for (v = 0; v < 360; v++)
   {
-    CWAIT(cl, v, 0);
-    for (c = 0; c < 15; c++)
+    CWAIT(cl, v + 1, 0);
+    for (c = 0; c < 16; c++)
     {
       CMOVE(cl, custom.color[faces_all_index[color_index]], faces_all_scanline_PaletteRGB4[color_index]);
       color_index++;

@@ -27,7 +27,7 @@ def main():
 		bytes = f_in.read(index_stride)
 		if bytes != '':
 			line_str = '\t'
-			for i in range(0,index_stride - 1):
+			for i in range(0,index_stride):
 				line_str += str(struct.unpack('>1B', bytes[i])[0]) + ','
 				index_count += 1
 			line_str += '\n'
@@ -71,7 +71,7 @@ def main():
 	f_out.write('UWORD ' + root_name + '_scanline_PaletteRGB4[] =' + '\n')
 	f_out.write('{' + '\n')
 
-	bytes = f_in.read(color_stride * 4 * 2)	##	Skip the first 32 colors
+	bytes = f_in.read(color_stride * 4)	##	Skip the first 32 colors
 
 	long_word = ' '
 	while long_word != '':
