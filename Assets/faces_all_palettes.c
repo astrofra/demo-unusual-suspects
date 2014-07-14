@@ -1,3 +1,6 @@
+#include <exec/types.h>
+#include <intuition/intuition.h>
+
 /*	Color index to modify on each scanline, grouped by 16 */
 
 int faces_all_index[] =
