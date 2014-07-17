@@ -328,12 +328,14 @@ void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
+  scanline_offset *= 16;
+
   for (v = 0; v < 256 - y_offset; v++)
   {
     CWAIT(cl, v + y_offset + 1, 0);
     for (c = 0; c < 16; c++)
     {
-      CMOVE(cl, custom.color[faces_all_index[color_index]], faces_all_scanline_PaletteRGB4[color_index + scanline_offset]);
+      CMOVE(cl, custom.color[faces_all_index[color_index + scanline_offset]], faces_all_scanline_PaletteRGB4[color_index + scanline_offset]);
       color_index++;
     }
   }
