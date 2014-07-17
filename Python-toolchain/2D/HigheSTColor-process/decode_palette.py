@@ -1,8 +1,11 @@
 import struct
 import codecs
+import shutil
+import os
 
-palette_filename = 'data360_2000.pal'
-index_filename = 'data360_2000.idx'
+input_root_filename = 'data360_97'
+palette_filename = input_root_filename + '.pal'
+index_filename = input_root_filename + '.idx'
 root_name = 'faces_all'
 filename_out =	"../../../Assets/"
 
@@ -10,6 +13,14 @@ index_stride = 16
 color_stride = 16
 
 def main():
+	##	Copy the bitmap file
+	bitmap_file_source = input_root_filename + '.pix'
+	bitmap_file_dest = filename_out + root_name + '.bin'
+
+	if os.path.exists(bitmap_file_dest):
+		os.remove(bitmap_file_dest)
+
+	shutil.copy(bitmap_file_source, bitmap_file_dest)
 
 	##	Decode the index table
 	index_count = 0

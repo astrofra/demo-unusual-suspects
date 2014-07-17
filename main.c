@@ -328,7 +328,7 @@ void CreateCopperList(void)
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
-  for (v = 0; v < 360; v++)
+  for (v = 0; v < 256; v++)
   {
     CWAIT(cl, v + 1, 0);
     for (c = 0; c < 16; c++)
@@ -338,25 +338,6 @@ void CreateCopperList(void)
     }
   }
 
-  // vo = 1;
-  // for (v = 0; v < 16; v++)
-  // {
-  //   CWAIT(cl, v + vo, 0);
-  //   for (c = 0; c < 16; c++)
-  //     CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], v));
-  // }
-
-  // for (v = 0; v < 16; v++)
-  // {
-  //   CWAIT(cl, v + vo + 17, 0);
-  //   for (c = 0; c < 16; c++)
-  //     CMOVE(cl, custom.color[c + 1], ColorMakeLighter(face_all_topPaletteRGB4[c], 16 - (v)));
-  // }
-
-  // CWAIT(cl, vo + 32 + 4, 0);
-  // for (c = 0; c < 16; c++)
-  //   CMOVE(cl, custom.color[c + 1], face_all_topPaletteRGB4[c + 1]);
-
   CEND(cl);
 
   Forbid();       /*  Forbid task switching while changing the Copper list.  */
@@ -364,7 +345,6 @@ void CreateCopperList(void)
   Permit();       /*  Permit task switching again.  */
 
   (VOID) VideoControl( mainVP->ColorMap, uCopTags );
-  // MrgCop();
   RethinkDisplay();
 }
 
@@ -374,6 +354,8 @@ int main(void)
   int frame_idx,
       abs_frame_idx = 0,
       m_scale_x;
+
+  int scroll_y;
 
   PLANEPTR face;
 
@@ -411,11 +393,20 @@ int main(void)
   PTPlay(theMod);
 
   InitEHBScreen();
-  pic = load_getmem((UBYTE *)"assets/face_all.bin", 40 * 360 * 6);
-  disp_interleaved_st_format(pic, &theBitMap, 320, 360, 0, 0, 6);
+  pic = load_getmem((UBYTE *)"assets/faces_all.bin", 40 * 360 * 6);
+  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 0, 6);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
   CreateCopperList();
   FreeMem(pic, 40 * 360 * 6);
+
+  // for(scroll_y = 0; scroll_y < 120; scroll_y++)
+  // {
+  //     WaitTOF();
+  //     mainVP->RasInfo->RyOffset = scroll_y;
+  //     CreateCopperList();
+  //     ScrollVPort(mainVP);
+  //     sys_check_abort();
+  // }      
 
   fVBLDelay(1000);
 
