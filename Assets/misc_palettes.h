@@ -5,6 +5,8 @@
 #include <exec/types.h>
 #include <intuition/intuition.h>
 
+extern UWORD blackPaletteRGB4[32];
+
 extern UWORD pal1[16];
 
 extern UWORD pal2[16];

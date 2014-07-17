@@ -43,7 +43,7 @@ void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 extern void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
-extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
+extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth);
 
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
@@ -316,7 +316,7 @@ void DeleteCopperList(void)
   RethinkDisplay();
 }
 
-void CreateCopperList(void)
+void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
 {
   struct UCopList *cl;
   struct TagItem  uCopTags[] =
@@ -328,12 +328,12 @@ void CreateCopperList(void)
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
-  for (v = 0; v < 256; v++)
+  for (v = 0; v < 256 - y_offset; v++)
   {
-    CWAIT(cl, v + 1, 0);
+    CWAIT(cl, v + y_offset + 1, 0);
     for (c = 0; c < 16; c++)
     {
-      CMOVE(cl, custom.color[faces_all_index[color_index]], faces_all_scanline_PaletteRGB4[color_index]);
+      CMOVE(cl, custom.color[faces_all_index[color_index]], faces_all_scanline_PaletteRGB4[color_index + scanline_offset]);
       color_index++;
     }
   }
@@ -392,11 +392,36 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
+  /* Unusual faces part #1 */
   InitEHBScreen();
-  pic = load_getmem((UBYTE *)"assets/faces_all.bin", 40 * 360 * 6);
-  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 0, 6);
+  disp_clear();
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
-  CreateCopperList();
+
+  pic = load_getmem((UBYTE *)"assets/faces_all.bin", 40 * 360 * 6);
+
+  WaitTOF();           
+  disp_swap();
+  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 0, 32 + frameOffset, 6);
+  LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+  CreateHigheSTColorCopperList(0, 32);
+  WaitTOF();           
+  disp_swap();
+
+  fVBLDelay(500);
+
+  WaitTOF();    
+  disp_swap();
+  disp_clear();
+
+  /* Unusual faces part #2 */
+  WaitTOF();           
+  disp_swap();
+  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 0, 32 + frameOffset, 6);
+  LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+  CreateHigheSTColorCopperList(180, 32);
+  WaitTOF();           
+  disp_swap();
+
   FreeMem(pic, 40 * 360 * 6);
 
   // for(scroll_y = 0; scroll_y < 120; scroll_y++)

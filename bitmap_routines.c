@@ -50,7 +50,7 @@ void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD he
   }
 }
 
-void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth)
+void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth)
 {
   PLANEPTR src, dest;
   UWORD i, j, k;
@@ -69,7 +69,7 @@ void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD
     {
       for (j = 0; j < width_byte; j ++)
       {
-        src = data + (j + i * 40 * depth) + (k * 40);
+        src = data + (j + (i + src_y) * 40 * depth) + (k * 40);
         dest = (*dest_BitMap).Planes[k] + j + x_byte + (48 * i) + 48 * y;
 
         *dest = *src;
