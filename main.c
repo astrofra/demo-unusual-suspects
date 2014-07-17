@@ -15,6 +15,10 @@
 #include <graphics/copper.h>
 #include <graphics/videocontrol.h>
 #include <clib/timer_protos.h>
+#include <graphics/sprite.h>
+#include <hardware/custom.h>
+#include <hardware/dmabits.h>
+#include <clib/graphics_protos.h>
 
 #include "ptreplay.h"
 #include "ptreplay_protos.h"
@@ -203,6 +207,8 @@ void  ForceDemoClose(void)
   /* Close opened resources */
   init_close_video();
   init_close_libs();
+
+  // ON_SPRITE;
   exit(0);
 }
 
@@ -389,6 +395,8 @@ int main(void)
   myTask = FindTask(NULL);
   oldPri = SetTaskPri(myTask, 127);
   Forbid();
+
+  // OFF_SPRITE;
 
   mod = load_getmem((UBYTE *)"assets/module.bin", 95430);
   theMod = PTSetupMod((APTR)mod);
