@@ -1,4 +1,5 @@
-/* Main program initialization */
+/*  Unusual Suspects 
+    Main program initialization */
 
 #include "includes.prl"
 

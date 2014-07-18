@@ -1,6 +1,5 @@
-/*
-  Misc Palettes
-*/
+/*  Unusual Suspects 
+ 	Misc Palettes	*/
 
 #include <exec/types.h>
 #include <intuition/intuition.h>

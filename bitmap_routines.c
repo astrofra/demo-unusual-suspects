@@ -1,3 +1,6 @@
+/*  Unusual Suspects 
+    Misc bitmap routines */
+
 #include "includes.prl"
 #include "common.h"
 

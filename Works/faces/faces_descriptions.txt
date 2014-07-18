@@ -4,28 +4,28 @@ face_02 : Eggdrop Leonardh
 
 face_03 : Egolam Mosenthal
 
-face_04 : Robert Wang
+face_04 : Bjorn Thorson
 
-face_05 : Claude Bayou 
+face_05 : Claude Bayou
 
 face_06 : Sandra Nyan
 
-face_07 : Neuron X. Boll 
+face_07 : Neuron X. Boll
 
 face_08 : Prime Minister Maya
 
-face_09 : Cdt. Paul Levion
+face_09 : Paul Levion
 
 face_10 : Felex Jagger
 
-face_11 : Kenji 'U-Head' Yamada
+face_11 : U-Head
 
 face_12 : Sweety Cheung
 
 face_13 : Eckon 004
 
-face_14 : Diana #2F4
+face_14 : Diana #2FS4
 
 face_15 : Feather Magnum
 
-face_16 : Rebecka D. Vulvor.
+face_16 : Rebecka D. Vulvor
