@@ -1,5 +1,7 @@
-/*  Unusual Suspects 
-    Main program */
+/*  
+    Unusual Suspects 
+    Main program 
+*/
 
 #include "includes.prl"
 
@@ -39,6 +41,7 @@
 #include "Assets/faces_all_palettes.h"
 
 #include "3d_routines.h"
+#include "copper_routines.h"
 
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
@@ -300,62 +303,7 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
   return ((UWORD)((r << 8) | (g << 4) | b));
 }
 
-void DeleteCopperList(void)
-{
-  struct UCopList *cl;
-  struct TagItem  uCopTags[] =
-          {
-                { VTAG_USERCLIP_SET, NULL },
-                { VTAG_END_CM, NULL }
-          };
 
-  cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
-
-  CWAIT(cl, 0, 0);
-  CEND(cl);
-
-  Forbid();       /*  Forbid task switching while changing the Copper list.  */
-  mainVP->UCopIns = cl;
-  Permit();       /*  Permit task switching again.  */
-
-  (VOID) VideoControl( mainVP->ColorMap, uCopTags );
-  // MrgCop();
-  RethinkDisplay();
-}
-
-void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
-{
-  struct UCopList *cl;
-  struct TagItem  uCopTags[] =
-          {
-                { VTAG_USERCLIP_SET, NULL },
-                { VTAG_END_CM, NULL }
-          };
-  int v, c, color_index = 0;
-
-  cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
-
-  scanline_offset *= 16;
-
-  for (v = 0; v < 256 - y_offset; v++)
-  {
-    CWAIT(cl, v + y_offset + 1, 0);
-    for (c = 0; c < 16; c++)
-    {
-      CMOVE(cl, custom.color[faces_all_index[color_index + scanline_offset]], faces_all_scanline_PaletteRGB4[color_index + scanline_offset]);
-      color_index++;
-    }
-  }
-
-  CEND(cl);
-
-  Forbid();       /*  Forbid task switching while changing the Copper list.  */
-  mainVP->UCopIns = cl;
-  Permit();       /*  Permit task switching again.  */
-
-  (VOID) VideoControl( mainVP->ColorMap, uCopTags );
-  RethinkDisplay();
-}
 
 /* Main program entry point */
 int main(void)
@@ -412,7 +360,7 @@ int main(void)
 
   WaitTOF();           
   disp_swap();
-  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 0, 32 + frameOffset, 6);
+  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 8, 32 + frameOffset, 6);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
   CreateHigheSTColorCopperList(0, 32);
   WaitTOF();           
@@ -427,7 +375,7 @@ int main(void)
   /* Unusual faces part #2 */
   WaitTOF();           
   disp_swap();
-  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 0, 32 + frameOffset, 6);
+  disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 8, 32 + frameOffset, 6);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
   CreateHigheSTColorCopperList(180, 32);
   WaitTOF();           
@@ -446,9 +394,11 @@ int main(void)
 
   fVBLDelay(1000);
 
-  disp_clear();
+  full_clear();
   Init32ColorsScreen();
   DeleteCopperList();
+
+  reset_disp_swap();
 
   pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 5 * 256);
   disp_whack(pic, &theBitMap, 320, 256, 0, 0, 5);
@@ -458,7 +408,7 @@ int main(void)
   face = load_getmem((UBYTE *)"assets/face_01.bin", 3440);
 
   SetAPen(&theRP, 0);
-  RectFill(&theRP, 48, frameOffset + 55, 48 + 70, frameOffset + 55 + 85);
+  RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
   disp_whack(face, &theBitMap, 71, 86, 48, 55, 4);
   LoadRGB4(mainVP, face_01PaletteRGB4, 16);

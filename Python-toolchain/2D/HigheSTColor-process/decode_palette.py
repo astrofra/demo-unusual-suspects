@@ -3,7 +3,7 @@ import codecs
 import shutil
 import os
 
-input_root_filename = 'data360_996'
+input_root_filename = 'data360_3000'
 palette_filename = input_root_filename + '.pal'
 index_filename = input_root_filename + '.idx'
 root_name = 'faces_all'

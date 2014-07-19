@@ -1,3 +1,8 @@
+/*  
+    Unusual Suspects 
+    3D routines. 
+*/
+
 #include "3d_routines.h"
 #include "Assets/cosine_table.h"
 
