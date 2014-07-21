@@ -50,17 +50,19 @@ void disp_clear(void);
 void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
-extern void disp_whack(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
+extern void disp_whack(struct BitMap *src_BitMap, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
 extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth);
 
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
 void scroll_doit(void);
 extern PLANEPTR load_getmem(UBYTE *name, ULONG size);
+extern struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD height, UWORD depth);
 void mandel(PLANEPTR scrMem);
 #pragma regcall(mandel(a0))
 
 extern struct BitMap theBitMap;
+extern struct BitMap theBitMap_4bpl;
 extern struct BitMap theBitMap_3bpl;
 extern struct BitMap theBitMap_2bpl;
 extern struct BitMap theBitMap_1bpl;
@@ -316,6 +318,8 @@ int main(void)
 
   PLANEPTR face;
 
+  struct BitMap *tmp_bitmap;
+
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
   dispatch_func_ptr = NULL;
@@ -366,7 +370,7 @@ int main(void)
   WaitTOF();           
   disp_swap();
 
-  fVBLDelay(500);
+  fVBLDelay(5);
 
   WaitTOF();    
   disp_swap();
@@ -378,21 +382,12 @@ int main(void)
   disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 8, 32 + frameOffset, 6);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
   CreateHigheSTColorCopperList(180, 32);
-  WaitTOF();           
+  WaitTOF();
   disp_swap();
 
   FreeMem(pic, 40 * 360 * 6);
 
-  // for(scroll_y = 0; scroll_y < 120; scroll_y++)
-  // {
-  //     WaitTOF();
-  //     mainVP->RasInfo->RyOffset = scroll_y;
-  //     CreateCopperList();
-  //     ScrollVPort(mainVP);
-  //     sys_check_abort();
-  // }      
-
-  fVBLDelay(1000);
+  fVBLDelay(10);
 
   full_clear();
   Init32ColorsScreen();
@@ -400,33 +395,32 @@ int main(void)
 
   reset_disp_swap();
 
-  pic = load_getmem((UBYTE *)"assets/background1.bin", 40 * 5 * 256);
-  disp_whack(pic, &theBitMap, 320, 256, 0, 0, 5);
+  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
+  disp_whack(tmp_bitmap, &theBitMap, 320, 256, 0, 0, 5);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   fVBLDelay(100);
+  FreeBitMap(tmp_bitmap);
 
-  face = load_getmem((UBYTE *)"assets/face_01.bin", 3440);
+  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
 
   SetAPen(&theRP, 0);
   RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
-  disp_whack(face, &theBitMap, 71, 86, 48, 55, 4);
+  disp_whack(tmp_bitmap, &theBitMap_4bpl, 71, 86, 48, 55, 4);
   LoadRGB4(mainVP, face_01PaletteRGB4, 16);
   fVBLDelay(500);
 
   disp_clear();
-
-  FreeMem(face, 3440);
-  FreeMem(pic, 40 * 256 * 5);
+  FreeBitMap(tmp_bitmap);
 
   Init16ColorsScreen();
 
-  pic = load_getmem((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256);
-  disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
+  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+  disp_whack(tmp_bitmap, &theBitMap, 320, 256, 0, 0, 4);
   disp_fade_in(demo_title_PaletteRGB4);
 
   // CreateCopperList();
-
+  FreeBitMap(tmp_bitmap);
   fVBLDelay(350);
 
   full_clear();
@@ -583,7 +577,7 @@ int main(void)
   fVBLDelay(50);
 
   pic = load_getmem((UBYTE *)"assets/outside.bin", 34 * 210 * 4);
-  disp_whack(pic, &theBitMap, 272, 210, 32, 18, 4);
+  // disp_whack(pic, &theBitMap, 272, 210, 32, 18, 4);
   disp_fade_in(pal6);
   fVBLDelay(1000);
   disp_fade_out(pal6);
@@ -886,7 +880,7 @@ void scroll_doit(void)
   fontMap.Planes[0] = font;
   fontMap.Planes[1] = font + 40 * 256;
   pic = load_getmem((UBYTE *)"assets/gradient.bin", 40 * 256 * 4); // load_getmem((UBYTE *)"assets/panther.bin", 34 * 167 * 4);
-  disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
+  // disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
   currChar = scrText;
 
   disp_fade_in(gradientPaletteRGB4); //pal5);
