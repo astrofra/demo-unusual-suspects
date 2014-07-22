@@ -141,20 +141,15 @@ int InitTimerDevice(void)
 */
 int GetDeltaTime(void)
 {
-  if (TimerBase != 0)
-  {
-    CLK_P_SEC = ReadEClock(&gClock);
+  CLK_P_SEC = ReadEClock(&gClock);
 
-    dt_time = (int)(gClock.ev_lo - prev_g_clock);
-    dt_time = ((dt_time << 10) / CLK_P_SEC);
-    // dt_time = dt_time >> 4;
-    if (dt_time < 1)
-      dt_time = 1;
+  dt_time = (int)(gClock.ev_lo - prev_g_clock);
+  dt_time = ((dt_time << 10) / CLK_P_SEC);
+  // dt_time = dt_time >> 4;
+  if (dt_time < 1)
+    dt_time = 1;
 
-    prev_g_clock = gClock.ev_lo;
-
-    // printf("CLK_P_SEC = %i, dt_time = %i\n", CLK_P_SEC, dt_time);
-  }
+  prev_g_clock = gClock.ev_lo;
 
   return dt_time;
 }
@@ -355,7 +350,7 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
-  goto skipintro;
+  // goto skipintro;
 
   /* Unusual faces part #1 */
   InitEHBScreen();
@@ -402,17 +397,17 @@ skipintro:;
   tmp_bitmap = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   disp_whack(tmp_bitmap, &theBitMap, 320, 256, 0, 0, 5);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
-  fVBLDelay(100);
+  fVBLDelay(10);
   FreeBitMap(tmp_bitmap);
 
-  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
+  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/face_02.bin", 3440, 80, 86, 4);
 
   SetAPen(&theRP, 0);
   RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
-  disp_whack(tmp_bitmap, &theBitMap_4bpl, 71, 86, 48, 55, 5);
-  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
-  fVBLDelay(500);
+  disp_whack(tmp_bitmap, &theBitMap, 71, 86, 48, 55, 5);
+  LoadRGB4(mainVP, face_02PaletteRGB4, 16);
+  fVBLDelay(5000);
 
   disp_clear();
   FreeBitMap(tmp_bitmap);

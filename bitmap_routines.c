@@ -34,6 +34,7 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
 {
   BPTR fileHandle;
   struct BitMap *new_bitmap;
+  int i;
 
   if (!(fileHandle = Open(name, MODE_OLDFILE)))
     return (NULL);
@@ -48,7 +49,8 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
         (*new_bitmap).Planes,
         byte_size);
 
-  Read(fileHandle, (*new_bitmap).Planes[0], byte_size);
+  for (i = 0; i < depth; i++)
+    Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
   Close(fileHandle);
 
   return (new_bitmap);
