@@ -367,7 +367,7 @@ int main(void)
   WaitTOF();           
   disp_swap();
 
-  fVBLDelay(5);
+  fVBLDelay(100);
 
   WaitTOF();    
   disp_swap();
@@ -384,7 +384,7 @@ int main(void)
 
   FreeMem(pic, 40 * 360 * 6);
 
-  fVBLDelay(5);
+  fVBLDelay(100);
 
   full_clear();
 
@@ -407,7 +407,7 @@ skipintro:;
 
   disp_whack(tmp_bitmap, &theBitMap, 71, 86, 48, 55, 5);
   LoadRGB4(mainVP, face_02PaletteRGB4, 16);
-  fVBLDelay(5000);
+  fVBLDelay(500);
 
   disp_clear();
   FreeBitMap(tmp_bitmap);
