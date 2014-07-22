@@ -355,6 +355,8 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
+  goto skipintro;
+
   /* Unusual faces part #1 */
   InitEHBScreen();
   disp_clear();
@@ -387,9 +389,11 @@ int main(void)
 
   FreeMem(pic, 40 * 360 * 6);
 
-  fVBLDelay(10);
+  fVBLDelay(5);
 
   full_clear();
+
+skipintro:;
   Init32ColorsScreen();
   DeleteCopperList();
 
@@ -406,7 +410,7 @@ int main(void)
   SetAPen(&theRP, 0);
   RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
-  disp_whack(tmp_bitmap, &theBitMap_4bpl, 71, 86, 48, 55, 4);
+  disp_whack(tmp_bitmap, &theBitMap_4bpl, 71, 86, 48, 55, 5);
   LoadRGB4(mainVP, face_01PaletteRGB4, 16);
   fVBLDelay(500);
 
