@@ -9,9 +9,11 @@
 extern struct DosLibrary *DOSBase;
 extern struct GfxBase *GfxBase;
 
-extern struct BitMap theBitMap;
+// extern struct BitMap theBitMap;
 
-/*************** LOADER *********************/
+/*
+  Image loading 
+*/
 
 PLANEPTR load_getmem(UBYTE *name, ULONG size)
 {
@@ -54,39 +56,6 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
   Close(fileHandle);
 
   return (new_bitmap);
-}
-
-void disp_whack(struct BitMap *src_BitMap, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth)
-{
-  PLANEPTR src, dest;
-  UWORD i, j, k;
-  ULONG blit_count;
-  // int width_byte, x_byte;
-
-  blit_count = BltBitMap(src_BitMap, 0, 0,
-            dest_BitMap, x, y,
-            width, height,
-            0xC0, 0xFF, NULL);
-
-  printf("disp_whack() blit_plane_count = %i\n", blit_count);
-
-    // x_byte = x >> 3;
-    // width_byte = width >> 3;
-
-    // for (k = 0; k < depth; k ++)
-    // {
-    //   src = (*src_BitMap).Planes[k];
-    //   dest = (*dest_BitMap).Planes[k] + 48 * y + x_byte;
-    //   for (i = 0; i < height; i ++)
-    //   {
-    //     for (j = 0; j < width_byte; j ++)
-    //     {
-    //       *dest ++ = *src ++;
-    //     }
-    //     dest += (48 - width_byte);
-    //     src += (*dest_BitMap).BytesPerRow; //(width - (width_byte << 3));
-    //   }
-    // }
 }
 
 void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth)

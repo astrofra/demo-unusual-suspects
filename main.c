@@ -41,6 +41,7 @@
 #include "Assets/faces_all_palettes.h"
 
 #include "3d_routines.h"
+#include "bitmap_routines.h"
 #include "copper_routines.h"
 
 static void disp_fade_in(UWORD *fadeto);
@@ -50,14 +51,11 @@ void disp_clear(void);
 void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
-extern void disp_whack(struct BitMap *src_BitMap, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD x, UWORD y, UWORD depth);
-extern void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth);
 
+void Sequence3DRotation(int max_frame);
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
 void scroll_doit(void);
-extern PLANEPTR load_getmem(UBYTE *name, ULONG size);
-extern struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD height, UWORD depth);
 void mandel(PLANEPTR scrMem);
 #pragma regcall(mandel(a0))
 
@@ -111,6 +109,10 @@ struct Task *myTask;
 BYTE oldPri;
 PLANEPTR pic;
 UBYTE *mod;
+
+struct BitMap *bitmap_background,
+              *bitmap_tmp,
+              *bitmap_font;
 
 /*
   Delta time
@@ -305,15 +307,13 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
 /* Main program entry point */
 int main(void)
 {
-  int frame_idx,
-      abs_frame_idx = 0,
-      m_scale_x;
-
   int scroll_y;
 
   PLANEPTR face;
 
-  struct BitMap *tmp_bitmap;
+  bitmap_background = NULL;
+  bitmap_tmp = NULL;
+  bitmap_font = NULL;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -329,12 +329,16 @@ int main(void)
     init_close_libs();
     return (10);
   }
+  else
+    WriteMsg("init_open_libs() OK!\n");
 
   if (!Init32ColorsScreen())
   {
     init_close_video();
     return (10);
   }
+  else
+    WriteMsg("Init32ColorsScreen() OK!\n");
 
   Prepare2DVertexList();
 
@@ -388,200 +392,61 @@ int main(void)
 
   full_clear();
 
-skipintro:;
   Init32ColorsScreen();
   DeleteCopperList();
 
   reset_disp_swap();
 
-  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
-  disp_whack(tmp_bitmap, &theBitMap, 320, 256, 0, 0, 5);
+  bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
+  BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   fVBLDelay(10);
-  FreeBitMap(tmp_bitmap);
+  FREE_BITMAP(bitmap_background);
 
-  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/face_02.bin", 3440, 80, 86, 4);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_02.bin", 3440, 80, 86, 4);
 
   SetAPen(&theRP, 0);
   RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
-  disp_whack(tmp_bitmap, &theBitMap, 71, 86, 48, 55, 5);
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 48, 55);
   LoadRGB4(mainVP, face_02PaletteRGB4, 16);
   fVBLDelay(500);
 
   disp_clear();
-  FreeBitMap(tmp_bitmap);
+  FREE_BITMAP(bitmap_tmp);
 
   Init16ColorsScreen();
 
-  tmp_bitmap = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
-  disp_whack(tmp_bitmap, &theBitMap, 320, 256, 0, 0, 4);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
   disp_fade_in(demo_title_PaletteRGB4);
+  FREE_BITMAP(bitmap_tmp);
 
   // CreateCopperList();
-  FreeBitMap(tmp_bitmap);
+  FreeBitMap(bitmap_tmp);
   fVBLDelay(350);
 
   full_clear();
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
-
-  m_scale_x = 24;
-  for(frame_idx = 0; frame_idx < 256; frame_idx++)
-  {
-    if (frame_idx < 24)
-      m_scale_x--;
-    else
-    if (frame_idx > 256 - 24)
-      m_scale_x++;
-
-    abs_frame_idx += dt_time;
-    GetDeltaTime();
-    WaitTOF();           
-    disp_swap();
-    disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
-    sys_check_abort();
-  }
+  Sequence3DRotation(256);
 
   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
-
-  m_scale_x = 24;
-  for(frame_idx = 0; frame_idx < 256; frame_idx++)
-  {
-    if (frame_idx < 24)
-      m_scale_x--;
-    else
-    if (frame_idx > 256 - 24)
-      m_scale_x++;
-
-    abs_frame_idx += dt_time;
-    GetDeltaTime();
-    WaitTOF();           
-    disp_swap();
-    disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
-    sys_check_abort();
-  }
+  Sequence3DRotation(256);
 
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-
-  m_scale_x = 24;
-  for(frame_idx = 0; frame_idx < 256; frame_idx++)
-  {
-    if (frame_idx < 24)
-      m_scale_x--;
-    else
-    if (frame_idx > 256 - 24)
-      m_scale_x++;
-
-    abs_frame_idx += dt_time;
-    GetDeltaTime();
-    WaitTOF();           
-    disp_swap();
-    disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
-    sys_check_abort();
-  }
+  Sequence3DRotation(256);
 
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
+  Sequence3DRotation(256);
 
-  m_scale_x = 24;
-  for(frame_idx = 0; frame_idx < 256; frame_idx++)
-  {
-    if (frame_idx < 24)
-      m_scale_x--;
-    else
-    if (frame_idx > 256 - 24)
-      m_scale_x++;
-
-    abs_frame_idx += dt_time;
-    GetDeltaTime();
-    WaitTOF();           
-    disp_swap();
-    disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 5)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
-    sys_check_abort();
-  }
-
-  // fVBLDelay(350);
   disp_fade_out(pal7);
   reset_disp_swap();
   disp_clear();
-  FreeMem(pic, 40 * 4 * 256);
 
-  // writer_doit((UBYTE *)"#####     GETTIN' TIRED OF...?#");
-  // disp_clear();
-
-  writer_doit((UBYTE *) "A multitasking#"
-                        "syncing töntro#"
-                        "Coded in pure C!!!#");
-
-  disp_clear();
-  fVBLDelay(50);
-  dots_doit(pal2);
-  fVBLDelay(50);
-  disp_fade_out(pal2);
-  disp_clear();
-
-  writer_doit((UBYTE *) "Coding : Picnic#"
-                        "Art : Gunrider#"
-                        "Text : Indian of TriBal#"
-                        "Panther : Peter Kürcman#");
-  disp_clear();
-
-  fVBLDelay(50);
-  dots_doit(pal3);
-  fVBLDelay(50);
-  disp_fade_out(pal3);
-  disp_clear(); 
-
-  writer_doit((UBYTE *)
-              "Calculating errors :#" 
-	             "Pentium 90 mHz#"
-              "Moral support : A guy and his#" 
-              "oven, the snubbe with a#"
-              "liggunderlag and others..#"
-              "Inteloutside logo supplied by :#"
-              "A Danish guy with an A600..#");
-  disp_clear();
-
-  fVBLDelay(50);
-  dots_doit(pal4);
-  fVBLDelay(50);
-  disp_fade_out(pal4);
-  disp_clear();
-
-  /* LoadRGB4(mainVP, pal3, 16);
-  mandel(theRaster);
-  fVBLDelay(100);
-  disp_clear(); */
-  
-  disp_clear();
-  fVBLDelay(50);
-  scroll_doit();
-
-  disp_clear();
-  fVBLDelay(50);
-  writer_doit((UBYTE *) "Q: According to Intel, the Pentium#"
-                        "conforms to the IEEE standards 754#"
-                        "and 854 for floating point#"
-                        "arithmetic. If you fly in aircraft#"
-                        "designed using a Pentium, what is#" 
-                        "the correct pronunciation of#"
-                        "'IEEE'?##"
-                        "A: [Aaaaaaaiiiiiiiiieeeeeeeeeeeee]#");
-
-  disp_clear();
-  fVBLDelay(50);
-
-  pic = load_getmem((UBYTE *)"assets/outside.bin", 34 * 210 * 4);
-  // disp_whack(pic, &theBitMap, 272, 210, 32, 18, 4);
-  disp_fade_in(pal6);
-  fVBLDelay(1000);
-  disp_fade_out(pal6);
-  disp_clear();
-  FreeMem(pic, 34 * 120 * 4);
+  // writer_doit((UBYTE *) "A multitasking#"
+  //                       "syncing töntro#"
+  //                       "Coded in pure C!!!#");
   
   // /* Close opened resources */
   ForceDemoClose();
@@ -907,4 +772,28 @@ void scroll_doit(void)
   disp_fade_out(gradientPaletteRGB4); //pal5);  
   FreeMem(font, 80 * 256);
   FreeMem(pic, 40 * 256 * 4);
+}
+
+void Sequence3DRotation(int max_frame)
+{
+  int frame_idx,
+      abs_frame_idx = 0,
+      m_scale_x = 24;
+
+  for(frame_idx = 0; frame_idx < max_frame; frame_idx++)
+  {
+    if (frame_idx < 24)
+      m_scale_x--;
+    else
+    if (frame_idx > max_frame - 24)
+      m_scale_x++;
+
+    abs_frame_idx += dt_time;
+    GetDeltaTime();
+    WaitTOF();           
+    disp_swap();
+    disp_clear();
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
+    sys_check_abort();
+  }
 }

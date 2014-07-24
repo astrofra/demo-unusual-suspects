@@ -12,7 +12,7 @@ thanks-andy: $(OBJ) includes.gst
 	sc LINK CODE=F DATA=F OBJ $(OBJ) TO thanks-andy
 
 includes.gst: includes.prl
-main.o: main.c common.h protos.h 3d_routines.h copper_routines.h Assets/cosine_table.h Assets/object_amiga.h Assets/misc_palettes.h Assets/faces_palettes.h Assets/faces_all_palettes.h includes.gst
+main.o: main.c common.h protos.h 3d_routines.h copper_routines.h bitmap_routines.h Assets/cosine_table.h Assets/object_amiga.h Assets/misc_palettes.h Assets/faces_palettes.h Assets/faces_all_palettes.h includes.gst
 init.o: init.c common.h protos.h includes.gst
 3d_routines.o: 3d_routines.c common.h protos.h includes.gst
 bitmap_routines.o: bitmap_routines.c common.h protos.h includes.gst
