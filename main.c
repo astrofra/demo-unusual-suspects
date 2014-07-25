@@ -43,6 +43,7 @@
 #include "3d_routines.h"
 #include "bitmap_routines.h"
 #include "copper_routines.h"
+#include "font_routines.h"
 
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
@@ -307,10 +308,6 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
 /* Main program entry point */
 int main(void)
 {
-  int scroll_y;
-
-  PLANEPTR face;
-
   bitmap_background = NULL;
   bitmap_tmp = NULL;
   bitmap_font = NULL;
@@ -329,16 +326,12 @@ int main(void)
     init_close_libs();
     return (10);
   }
-  else
-    WriteMsg("init_open_libs() OK!\n");
 
   if (!Init32ColorsScreen())
   {
     init_close_video();
     return (10);
   }
-  else
-    WriteMsg("Init32ColorsScreen() OK!\n");
 
   Prepare2DVertexList();
 
@@ -356,7 +349,10 @@ int main(void)
 
   // goto skipintro;
 
-  /* Unusual faces part #1 */
+  /* 
+    Unusual faces 
+    Part #1 
+  */
   InitEHBScreen();
   disp_clear();
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
@@ -373,11 +369,14 @@ int main(void)
 
   fVBLDelay(100);
 
-  WaitTOF();    
-  disp_swap();
-  disp_clear();
+  // WaitTOF();    
+  // disp_swap();
+  // full_clear();
 
-  /* Unusual faces part #2 */
+  /* 
+    Unusual faces
+    Part #2
+  */
   WaitTOF();           
   disp_swap();
   disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 8, 32 + frameOffset, 6);

@@ -6,7 +6,7 @@
 #include "common.h"
 #include "protos.h"
 
-#define SCR_HEIGHT  ((256 << 1) + 32)
+#define SCR_HEIGHT  (256 << 1)
 
 /***** Static function declarations *****/
 
@@ -99,7 +99,6 @@ BOOL init_open_libs(void)
   }
 
   return (TRUE);
-
 }
 
 BOOL Init16ColorsScreen(void)
@@ -107,11 +106,8 @@ BOOL Init16ColorsScreen(void)
   PLANEPTR temp;
   UWORD i;
 
-  // struct TextFont *tmp_writerFont = NULL;
   struct Screen *tmp_mainScreen = NULL;
   PLANEPTR tmp_theRaster = NULL;
-
-  // if (writerFont) tmp_writerFont = writerFont;
 
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
@@ -157,23 +153,10 @@ BOOL Init16ColorsScreen(void)
   for (i = 0; i < 16; i ++)
     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
 
-  // if (!(writerFont = OpenDiskFont(&writerAttr)))
-  // {
-  //   init_conerr((UBYTE *)"Warning, Unable to open writer font\n");
-  //   // return (FALSE);
-  // }
-
-  // SetFont(&theRP, writerFont);
-  // SetFont(&theRP_3bpl, writerFont);
-  // SetFont(&theRP_2bpl, writerFont);
-  // SetFont(&theRP_1bpl, writerFont);
-
   prev_screen_depth = current_screen_depth;
   current_screen_depth = 4;
 
   /* Close screen */
-  // if (tmp_writerFont) CloseFont(tmp_writerFont);
-
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
@@ -185,11 +168,8 @@ BOOL Init32ColorsScreen(void)
   PLANEPTR temp;
   UWORD i;
 
-  // struct TextFont *tmp_writerFont = NULL;
   struct Screen *tmp_mainScreen = NULL;
   PLANEPTR tmp_theRaster = NULL;
-
-  // if (writerFont) tmp_writerFont = writerFont;
 
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
@@ -205,8 +185,6 @@ BOOL Init32ColorsScreen(void)
     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
     return (FALSE);
   }
-  else
-    init_conerr((UBYTE *)"Allocate screen memory OK!\n");
 
   temp = theRaster;
   for (i = 0; i < 5; i ++)
@@ -226,7 +204,7 @@ BOOL Init32ColorsScreen(void)
   InitRastPort(&theRP_1bpl);
 
   theRP.BitMap = &theBitMap;
-  theRP_3bpl.BitMap = &theBitMap_4bpl;
+  theRP_4bpl.BitMap = &theBitMap_4bpl;
   theRP_3bpl.BitMap = &theBitMap_3bpl;
   theRP_2bpl.BitMap = &theBitMap_2bpl;
   theRP_1bpl.BitMap = &theBitMap_1bpl;
@@ -237,28 +215,15 @@ BOOL Init32ColorsScreen(void)
     init_conerr((UBYTE *)"Unable to open main screen\n");
     return (FALSE);
   }
+
   mainVP = &mainScreen->ViewPort;
   for (i = 0; i < 32; i ++)
     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
-
-  // if (!(writerFont = OpenDiskFont(&writerAttr)))
-  // {
-  //   init_conerr((UBYTE *)"Warning, Unable to open writer font\n");
-  //   // return (FALSE);
-  // }
-
-  // SetFont(&theRP, writerFont);
-  // SetFont(&theRP_4bpl, writerFont);  
-  // SetFont(&theRP_3bpl, writerFont);
-  // SetFont(&theRP_2bpl, writerFont);
-  // SetFont(&theRP_1bpl, writerFont);
 
   prev_screen_depth = current_screen_depth;
   current_screen_depth = 5;
 
   /* Close screen */
-  // if (tmp_writerFont) CloseFont(tmp_writerFont);
-
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
@@ -270,11 +235,8 @@ BOOL InitEHBScreen(void)
   PLANEPTR temp;
   UWORD i;
 
-  // struct TextFont *tmp_writerFont = NULL;
   struct Screen *tmp_mainScreen = NULL;
   PLANEPTR tmp_theRaster = NULL;
-
-  // if (writerFont) tmp_writerFont = writerFont;
 
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
@@ -328,23 +290,10 @@ BOOL InitEHBScreen(void)
   for (i = 0; i < 32; i ++)
     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
 
-  // if (!(writerFont = OpenDiskFont(&writerAttr)))
-  // {
-  //   init_conerr((UBYTE *)"Warning, Unable to open writer font\n");
-  //   // return (FALSE);
-  // }
-
-  // SetFont(&theRP, writerFont); 
-  // SetFont(&theRP_3bpl, writerFont);
-  // SetFont(&theRP_2bpl, writerFont);
-  // SetFont(&theRP_1bpl, writerFont);
-
   prev_screen_depth = current_screen_depth;
   current_screen_depth = 6;
 
   /* Close screen */
-  // if (tmp_writerFont) CloseFont(tmp_writerFont);
-
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
@@ -354,8 +303,6 @@ BOOL InitEHBScreen(void)
 void init_close_video(void)
 {
   /* Close screen */
-  // if (writerFont) CloseFont(writerFont);
-
   if (mainScreen) CloseScreen(mainScreen);
   if (theRaster) FreeRaster(theRaster, 4 * 384, SCR_HEIGHT);
 }
