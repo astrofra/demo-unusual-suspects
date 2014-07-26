@@ -27,15 +27,18 @@ def main():
 	f.write('const char ' + filename_in + '_glyph_array[] = ' + '\n')
 	f.write('{' + '\n')
 
-	alphabet = '!"#%()+,-./0123456789:;<=>?ABCDEFGHIJKLMNOQRSTUVWXYZ[\\]_\'abcdefghijklmnopqrstuvwxyz*|$~'
+	alphabet = '!"#%()+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]_\'abcdefghijklmnopqrstuvwxyz*|$~'
 
 	out_str = ''
 	_count = 0
 	for _letter in alphabet:
 		_letter = _letter.replace('\\', '\\\\')
-		out_str += '"' + _letter + '", '
+		_letter = _letter.replace('"', '\\"')
+		_letter = _letter.replace('\'', '\\\'')
+		# print(_letter)
+		out_str += '\'' + _letter + '\', '
 		_count += 1
-		if _count > 20:
+		if _count >= 20:
 			_count = 0
 			f.write('\t' + out_str + '\n')
 			out_str = ''
@@ -76,6 +79,8 @@ def main():
 		if current_pixel == 0:
 			x_table.append(x)
 
+	x_table.append(w)
+
 	f.write('const int ' + filename_in + '_x_pos_array[] = ' + '\n')
 	f.write('{' + '\n')
 
@@ -84,7 +89,7 @@ def main():
 	for x in x_table:
 		out_str += str(x) + ', '
 		_count += 1
-		if _count > 20:
+		if _count >= 20:
 			_count = 0
 			f.write('\t' + out_str + '\n')
 			out_str = ''
@@ -99,7 +104,7 @@ def main():
 	f = codecs.open(filename_out + '.h', 'w')
 	f.write('/* Font descriptor headers */' + '\n\n')
 
-	f.write('extern const char ' + filename_in + '_glyph_array[' + str(len(x_table)) + '];' + '\n')	
+	f.write('extern const char ' + filename_in + '_glyph_array[' + str(len(alphabet)) + '];' + '\n')	
 	f.write('extern const int ' + filename_in + '_x_pos_array[' + str(len(x_table)) + '];' + '\n')	
 
 	return 1
