@@ -350,7 +350,7 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
-  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 40 * 5 * 256, 320, 256, 5);
+  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
   // goto skipintro;
 
@@ -417,7 +417,7 @@ int main(void)
 
   fVBLDelay(50);
 
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 180, 64, "This is Amiga Speaking!");
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 180, 64, (UBYTE *)"This is Amiga Speaking\n");
 
   fVBLDelay(500);
 

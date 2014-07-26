@@ -43,13 +43,13 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
 
   new_bitmap = AllocBitMap(width, height, depth, BMF_STANDARD, NULL);
 
-  // printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, &Planes = %p, byte_size = %i, \n",
-  //       (*new_bitmap).BytesPerRow,
-  //       (*new_bitmap).Rows,
-  //       (*new_bitmap).Depth,
-  //       (int)(*new_bitmap).pad,
-  //       (*new_bitmap).Planes,
-  //       byte_size);
+  printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, &Planes = %p, byte_size = %i, \n",
+        (*new_bitmap).BytesPerRow,
+        (*new_bitmap).Rows,
+        (*new_bitmap).Depth,
+        (int)(*new_bitmap).pad,
+        (*new_bitmap).Planes,
+        byte_size);
 
   for (i = 0; i < depth; i++)
     Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
