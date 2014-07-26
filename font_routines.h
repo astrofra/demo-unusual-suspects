@@ -3,6 +3,6 @@
     Fonts routines headers
 */
 
-// #include "Assets/fonts.h"
+#include "includes.prl"
 
-extern void font_writer_blit(struct BitMap *src_BitMap, int x, int y, UBYTE *text_string);
+void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, const char *glyph_array, const int *x_pos_array, int x, int y, UBYTE *text_string);

@@ -6,6 +6,7 @@
 
 OBJ = main.o init.o 3d_routines.o bitmap_routines.o copper_routines.o font_routines.o \
 		Assets/cosine_table.o Assets/object_cube.o Assets/object_amiga.o Assets/object_face_00.o Assets/object_spiroid.o \
+		Assets/fonts.o \
 		Assets/misc_palettes.o Assets/faces_palettes.o Assets/faces_all_palettes.o
 
 thanks-andy: $(OBJ) includes.gst
@@ -28,4 +29,5 @@ object_spiroid.o: Assets/object_spiroid.c
 misc_palettes.o: Assets/misc_palettes.c
 faces_palettes.o: Assets/faces_palettes.c
 faces_all_palettes.o: Assets/faces_all_palettes.c
+fonts.o: Assets/fonts.c
 

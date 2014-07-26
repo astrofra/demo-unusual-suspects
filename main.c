@@ -39,6 +39,7 @@
 #include "Assets/misc_palettes.h"
 #include "Assets/faces_palettes.h"
 #include "Assets/faces_all_palettes.h"
+#include "Assets/fonts.h"
 
 #include "3d_routines.h"
 #include "bitmap_routines.h"
@@ -342,10 +343,14 @@ int main(void)
   Forbid();
 
   // OFF_SPRITE;
-
+  /*
+    Load common assets
+  */
   mod = load_getmem((UBYTE *)"assets/module.bin", 95430);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
+
+  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 40 * 5 * 256, 320, 256, 5);
 
   // goto skipintro;
 
@@ -409,6 +414,11 @@ int main(void)
 
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 48, 55);
   LoadRGB4(mainVP, face_02PaletteRGB4, 16);
+
+  fVBLDelay(50);
+
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 180, 64, "This is Amiga Speaking!");
+
   fVBLDelay(500);
 
   disp_clear();
