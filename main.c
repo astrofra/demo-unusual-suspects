@@ -417,7 +417,7 @@ int main(void)
 
   fVBLDelay(50);
 
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 132, 52, (UBYTE *)"!\"#()+,-./0123456789\nThis is Amiga Speaking\nABCDEFGabcdefg\n");
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 130, 68, (UBYTE *)"HoHoHo\nThis is Amiga Speaking!\n/join #demofr\n");
 
   fVBLDelay(500);
 

@@ -16,15 +16,13 @@ int font_glyph_find_index(char glyph, const char *glyph_array)
 	l = 88;
 	for(i = 0; i < l; i++)
 	{
-		// printf("%c", (*glyph_array + i));
-		if (glyph == (*glyph_array + i))
+		if (glyph == glyph_array[i])
 		{
 			r = i;
 			break;
 		}
 	}
 
-	// printf("\n");
 	return(r);
 }
 
@@ -38,8 +36,6 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 	current_char = text_string;
 	glyph_h = font_BitMap->Rows;
 
-	printf("font_writer_blit() str = %s\n", text_string);
-
 	while(*current_char)
 	{
 		while(*current_char != '\n')
@@ -51,26 +47,20 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 				glyph_index = font_glyph_find_index((char)*current_char, glyph_array);
 				if (glyph_index >= 0)
 				{
+					WaitTOF();
 					glyph_w = x_pos_array[glyph_index + 1] - x_pos_array[glyph_index];
 					BltBitMap(font_BitMap, x_pos_array[glyph_index], 0,
 					            dest_BitMap, cur_x, y,
 					            glyph_w, glyph_h,
 					            0xC0, 0xFF, NULL);
 
-					cur_x += (glyph_w + 1);
-
-					printf("c = %c, ", *current_char);
-					printf("w = %i, x = %i\n", glyph_w, cur_x);
+					cur_x += (glyph_w);
 				}
 			}
 			current_char++;
-			// *current_char = 'A';
 		}
 		current_char++;
-		y += (glyph_h + 2);
+		y += (glyph_h + 1);
 		cur_x = x;
 	}
-
-	// x = 0;
-	// y = y_base;
 }

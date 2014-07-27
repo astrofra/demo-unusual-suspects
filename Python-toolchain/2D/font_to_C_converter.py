@@ -27,7 +27,9 @@ def main():
 	f.write('const char ' + filename_in + '_glyph_array[] = ' + '\n')
 	f.write('{' + '\n')
 
-	alphabet = '!"#%()+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]_\'abcdefghijklmnopqrstuvwxyz*|$~'
+	alphabet = '!"#%()+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ[@]_^abcdefghijklmnopqrstuvwxyz*|$~'
+	## \ = |
+	## `= ^
 
 	out_str = ''
 	_count = 0
