@@ -2,8 +2,8 @@
 	Various Strings */
 
 const char *desc_char_01 = {"Nasuhl Sardik\nHome planet : Glokul VI\nBlood type : various types\ncan be collected on his\nhands.\nOccupation : remove people^s\nhead, barehandedly."};
-const char *desc_char_02 = {"Eggdrop Leonardh\nHome planet : Fishia XII\nLast address : State Prison, Draconia VIII"};
-const char *desc_char_03 = {"Egolam Mosenthal\nHome planet : Foxxcon IV\nBlood type : NA\nOccupation : - Evaluate threat\n - Process data\n - Kill humans"};
+const char *desc_char_02 = {"Eggdrop Leonardh\nHome planet : Fishia XII\nResidence : State Prison,\nDraconia\nOccupation : emit a strong smell\nwhen put under heavy pressure."};
+const char *desc_char_03 = {"Egolam Mosenthal\nHome planet : Foxxcon IV\nBlood type : NA\nOccupation : - Evaluate threat\n      - Process data\n      - Kill humans"};
 const char *desc_char_04 = {"Bjorn Thorson\nHome system : Great China Empire, Q-4\nBlood type : A-Blue\nOccupation : Bamboo assets manager"};
 const char *desc_char_05 = {"Claude Bayou\nBirth place : Earth, Louisiana\nOccupation : Eat flies & cooking cajun\nFavorite food : Flies & Cajun\n"};
 const char *desc_char_06 = {"Sandra Nyan\nHome planet : undefined\nOccupation : - go outside\n - go inside\n - repeat process"};

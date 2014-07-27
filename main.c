@@ -56,6 +56,7 @@ void reset_disp_swap(void);
 void disp_swap(void);
 
 void Sequence3DRotation(int max_frame);
+void SequenceDisplaySuspectProfile(int suspect);
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
 void scroll_doit(void);
@@ -211,6 +212,9 @@ void  ForceDemoClose(void)
   FreeMem(keyMatrix,KEY_MATRIX_SIZE);
   
   /* Close opened resources */
+  FREE_BITMAP(bitmap_background);
+  FREE_BITMAP(bitmap_tmp);
+
   init_close_video();
   init_close_libs();
 
@@ -351,6 +355,7 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
+  bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
   // goto skipintro;
@@ -402,28 +407,7 @@ int main(void)
 
   reset_disp_swap();
 
-  bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
-  BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
-  LoadRGB4(mainVP, background1PaletteRGB4, 32);
-  fVBLDelay(10);
-  FREE_BITMAP(bitmap_background);
-
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
-
-  SetAPen(&theRP, 0);
-  RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
-
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 48, 55);
-  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
-
-  fVBLDelay(50);
-
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 130, 64, (UBYTE *)desc_char_01);
-
-  fVBLDelay(500);
-
-  disp_clear();
-  FREE_BITMAP(bitmap_tmp);
+  SequenceDisplaySuspectProfile(0);
 
   Init16ColorsScreen();
 
@@ -806,4 +790,29 @@ void Sequence3DRotation(int max_frame)
     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
+}
+
+void SequenceDisplaySuspectProfile(int suspect_index)
+{
+  BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  fVBLDelay(10);
+
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
+
+  SetAPen(&theRP, 0);
+  RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
+
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 43, 56);
+  BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
+  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
+
+  fVBLDelay(50);
+
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 128, 67, (UBYTE *)desc_char_01);
+
+  fVBLDelay(500);
+
+  disp_clear();
+  FREE_BITMAP(bitmap_tmp); 
 }
