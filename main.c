@@ -809,7 +809,7 @@ void SequenceDisplaySuspectProfile(int suspect_index)
 
   fVBLDelay(50);
 
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 128, 67, (UBYTE *)desc_char_01);
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 128, 64, (UBYTE *)desc_char_01);
 
   fVBLDelay(500);
 
