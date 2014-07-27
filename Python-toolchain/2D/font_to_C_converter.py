@@ -48,6 +48,8 @@ def main():
 	if out_str != '':
 		f.write('\t' + out_str + '\n')
 
+	f.write('\t\'' + '\\0' + '\'\n')
+
 	f.write('};' + '\n')
 
 	f.write('\n')

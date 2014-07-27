@@ -7,20 +7,22 @@
 #include "Assets/fonts.h"
 
 extern struct GfxBase *GfxBase;
+extern void sys_check_abort(void);
 
 int font_glyph_find_index(char glyph, const char *glyph_array)
 {
-	int i, l,
+	int i = 0,
 		r = -1;
 
-	l = 88;
-	for(i = 0; i < l; i++)
+	while(glyph_array[i])
 	{
 		if (glyph == glyph_array[i])
 		{
 			r = i;
 			break;
 		}
+
+		i++;
 	}
 
 	return(r);
@@ -28,23 +30,25 @@ int font_glyph_find_index(char glyph, const char *glyph_array)
 
 void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, const char *glyph_array, const int *x_pos_array, int x, int y, UBYTE *text_string)
 {
-	UBYTE *current_char;
-	int glyph_index, cur_x,
+	// UBYTE *current_char;
+	int i = 0, glyph_index, cur_x,
 		glyph_w, glyph_h;
 
 	cur_x = x;
-	current_char = text_string;
+	// current_char = text_string;
 	glyph_h = font_BitMap->Rows;
 
-	while(*current_char)
+	while(text_string[i])
 	{
-		while(*current_char != '\n')
+		while(text_string[i] && text_string[i] != '\n')
 		{
-			if (*current_char == ' ')
+			sys_check_abort();
+
+			if (text_string[i] == ' ')
 				cur_x += 4;
 			else
 			{
-				glyph_index = font_glyph_find_index((char)*current_char, glyph_array);
+				glyph_index = font_glyph_find_index((char)text_string[i], glyph_array);
 				if (glyph_index >= 0)
 				{
 					WaitTOF();
@@ -57,9 +61,9 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 					cur_x += (glyph_w);
 				}
 			}
-			current_char++;
+			i++;
 		}
-		current_char++;
+		i++;
 		y += (glyph_h + 1);
 		cur_x = x;
 	}
