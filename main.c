@@ -45,6 +45,7 @@
 #include "bitmap_routines.h"
 #include "copper_routines.h"
 #include "font_routines.h"
+#include "demo_strings.h"
 
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
@@ -407,17 +408,17 @@ int main(void)
   fVBLDelay(10);
   FREE_BITMAP(bitmap_background);
 
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_02.bin", 3440, 80, 86, 4);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
 
   SetAPen(&theRP, 0);
   RectFill(&theRP, 48, frameOffset + 55, 48 + 70, 55 + 85);
 
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 48, 55);
-  LoadRGB4(mainVP, face_02PaletteRGB4, 16);
+  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
 
   fVBLDelay(50);
 
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 130, 68, (UBYTE *)"HoHoHo\nThis is Amiga Speaking!\n/join #demofr\0");
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 130, 64, (UBYTE *)desc_char_01);
 
   fVBLDelay(500);
 

@@ -32,6 +32,7 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 {
 	// UBYTE *current_char;
 	int i = 0, glyph_index, cur_x,
+		line_feed = 0,
 		glyph_w, glyph_h;
 
 	cur_x = x;
@@ -45,13 +46,16 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 			sys_check_abort();
 
 			if (text_string[i] == ' ')
+			{
 				cur_x += 4;
+				WaitTOF();
+				WaitTOF();
+			}
 			else
 			{
 				glyph_index = font_glyph_find_index((char)text_string[i], glyph_array);
 				if (glyph_index >= 0)
 				{
-					WaitTOF();
 					glyph_w = x_pos_array[glyph_index + 1] - x_pos_array[glyph_index];
 					BltBitMap(font_BitMap, x_pos_array[glyph_index], 0,
 					            dest_BitMap, cur_x, y,
@@ -65,6 +69,9 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 		}
 		i++;
 		y += (glyph_h + 1);
+		line_feed++;		
 		cur_x = x;
+		if (line_feed > 4)
+			cur_x -= 50;
 	}
 }
