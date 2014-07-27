@@ -10,7 +10,7 @@ OBJ = main.o init.o 3d_routines.o bitmap_routines.o copper_routines.o font_routi
 		Assets/misc_palettes.o Assets/faces_palettes.o Assets/faces_all_palettes.o
 
 thanks-andy: $(OBJ) includes.gst
-	sc LINK CODE=F DATA=F OBJ $(OBJ) TO thanks-andy
+	sc LINK CODE=F DATA=F OBJ $(OBJ) TO unusual-suspects.exe
 
 includes.gst: includes.prl
 main.o: main.c common.h protos.h 3d_routines.h copper_routines.h bitmap_routines.h \

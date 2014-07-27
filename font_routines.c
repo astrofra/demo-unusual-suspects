@@ -39,20 +39,36 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 	// current_char = text_string;
 	glyph_h = font_BitMap->Rows;
 
-	while(text_string[i])
+	while(text_string[i] != '\0')
 	{
-		while(text_string[i] && text_string[i] != '\n')
-		{
-			sys_check_abort();
+		sys_check_abort();
 
-			if (text_string[i] == ' ')
+		/*	Space */
+		if (text_string[i] == ' ')
+		{
+			cur_x += 4;
+			WaitTOF();
+			WaitTOF();
+		}
+		else
+		{
+			/*	Line feed & carriage return */
+			if (text_string[i] == '\n')
 			{
-				cur_x += 4;
-				WaitTOF();
-				WaitTOF();
+				line_feed++;		
+				if (line_feed == 1)
+					y += (glyph_h + 5);
+				else
+					y += (glyph_h + 1);
+
+				cur_x = x;
+
+				if (line_feed > 4)
+					cur_x -= 50;
 			}
 			else
 			{
+				/*	Write glyph */
 				glyph_index = font_glyph_find_index((char)text_string[i], glyph_array);
 				if (glyph_index >= 0)
 				{
@@ -65,13 +81,8 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 					cur_x += (glyph_w);
 				}
 			}
-			i++;
 		}
+
 		i++;
-		y += (glyph_h + 1);
-		line_feed++;		
-		cur_x = x;
-		if (line_feed > 4)
-			cur_x -= 50;
 	}
 }

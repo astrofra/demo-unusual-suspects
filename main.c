@@ -408,6 +408,52 @@ int main(void)
   reset_disp_swap();
 
   SequenceDisplaySuspectProfile(0);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(1);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(2);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(3);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(4);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(5);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(6);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(7);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(8);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(9);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(10);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(11);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(12);
+  fVBLDelay(100);
+
+  SequenceDisplaySuspectProfile(13);
+  fVBLDelay(100);              
+
+  SequenceDisplaySuspectProfile(14);
+  fVBLDelay(100);              
+
+  SequenceDisplaySuspectProfile(15);
+  fVBLDelay(100);              
 
   Init16ColorsScreen();
 
@@ -794,11 +840,35 @@ void Sequence3DRotation(int max_frame)
 
 void SequenceDisplaySuspectProfile(int suspect_index)
 {
+  /*  Text dispatch */
+  UBYTE *c_desc_str;
+  UBYTE *c_face;
+
+  switch(suspect_index)
+  {
+    case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_01.bin"; break;
+    case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_02.bin"; break;
+    case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_03.bin"; break;
+    case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_04.bin"; break;
+    case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_05.bin"; break;
+    case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_06.bin"; break;
+    case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_07.bin"; break;
+    case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_08.bin"; break;
+    case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_09.bin"; break;
+    case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_10.bin"; break;
+    case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_11.bin"; break;
+    case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_12.bin"; break;
+    case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_13.bin"; break;
+    case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_14.bin"; break;
+    case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_15.bin"; break;
+    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; break;
+  }
+
   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   fVBLDelay(10);
 
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
+  bitmap_tmp = load_as_bitmap(c_face, 3440, 80, 86, 4);
 
   SetAPen(&theRP, 0);
   RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
@@ -809,7 +879,7 @@ void SequenceDisplaySuspectProfile(int suspect_index)
 
   fVBLDelay(50);
 
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 128, 64, (UBYTE *)desc_char_01);
+  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
   fVBLDelay(500);
 
