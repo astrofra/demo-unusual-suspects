@@ -448,6 +448,11 @@ int main(void)
 
   reset_disp_swap();
   disp_clear();
+  SequenceDisplaySuspectProfile(16);
+  fVBLDelay(10);  
+
+  reset_disp_swap();
+  disp_clear();
   SequenceDisplaySuspectProfile(11);
   fVBLDelay(10);
 
@@ -893,7 +898,8 @@ void SequenceDisplaySuspectProfile(int suspect_index)
     case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_13.bin"; c_pal = face_13PaletteRGB4; break;
     case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_14PaletteRGB4; break;
     case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_15PaletteRGB4; break;
-    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_16PaletteRGB4; break;
+    case 15: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_16PaletteRGB4; break;
+    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(16); c_face = (UBYTE *)"assets/face_17.bin"; c_pal = face_17PaletteRGB4; break;
   }
 
   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);

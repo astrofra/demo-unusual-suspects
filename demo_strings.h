@@ -17,5 +17,6 @@ extern const char *desc_char_12;
 extern const char *desc_char_13;
 extern const char *desc_char_14;
 extern const char *desc_char_15;
+extern const char *desc_char_16;
 
 #define DESC_CHAR_STR(N) (desc_char_ ## N)

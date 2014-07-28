@@ -21,3 +21,4 @@ extern UWORD face_13PaletteRGB4[16];
 extern UWORD face_14PaletteRGB4[16];
 extern UWORD face_15PaletteRGB4[16];
 extern UWORD face_16PaletteRGB4[16];
+extern UWORD face_17PaletteRGB4[16];
