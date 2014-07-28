@@ -355,10 +355,125 @@ int main(void)
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+
+  Init32ColorsScreen();
+  full_clear();
+
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
+
+  fVBLDelay(50);
+  disp_fade_in(demo_title_PaletteRGB4);
+  FREE_BITMAP(bitmap_tmp);
+
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
-  // goto skipintro;
+  fVBLDelay(350);
+  full_clear();
+
+  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+  Sequence3DRotation(256);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(0);
+  fVBLDelay(100);
+
+  disp_fade_in(demo_title_PaletteRGB4);
+  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
+  Sequence3DRotation(256);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(1);
+  fVBLDelay(100);
+
+  disp_fade_in(demo_title_PaletteRGB4);
+  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+  Sequence3DRotation(256);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(2);
+  fVBLDelay(100);
+
+  disp_fade_in(demo_title_PaletteRGB4);
+  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+  Sequence3DRotation(256);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(3);
+  fVBLDelay(100);
+
+  disp_fade_in(demo_title_PaletteRGB4);
+  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
+  Sequence3DRotation(256);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(4);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(5);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(6);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(7);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(8);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(9);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(10);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(11);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(12);
+  fVBLDelay(10);
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(13);
+  fVBLDelay(10);              
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(14);
+  fVBLDelay(10);              
+
+  reset_disp_swap();
+  disp_clear();
+  SequenceDisplaySuspectProfile(15);
+  fVBLDelay(10);              
+
+  disp_fade_out(pal7);
+  reset_disp_swap();
+  disp_clear();
 
   /* 
     Unusual faces 
@@ -378,11 +493,7 @@ int main(void)
   WaitTOF();           
   disp_swap();
 
-  fVBLDelay(100);
-
-  // WaitTOF();    
-  // disp_swap();
-  // full_clear();
+  fVBLDelay(250);
 
   /* 
     Unusual faces
@@ -398,91 +509,11 @@ int main(void)
 
   FreeMem(pic, 40 * 360 * 6);
 
-  fVBLDelay(100);
+  fVBLDelay(250);
 
   full_clear();
 
-  Init32ColorsScreen();
   DeleteCopperList();
-
-  reset_disp_swap();
-
-  SequenceDisplaySuspectProfile(0);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(1);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(2);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(3);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(4);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(5);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(6);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(7);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(8);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(9);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(10);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(11);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(12);
-  fVBLDelay(100);
-
-  SequenceDisplaySuspectProfile(13);
-  fVBLDelay(100);              
-
-  SequenceDisplaySuspectProfile(14);
-  fVBLDelay(100);              
-
-  SequenceDisplaySuspectProfile(15);
-  fVBLDelay(100);              
-
-  Init16ColorsScreen();
-
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
-  disp_fade_in(demo_title_PaletteRGB4);
-  FREE_BITMAP(bitmap_tmp);
-
-  // CreateCopperList();
-  FreeBitMap(bitmap_tmp);
-  fVBLDelay(350);
-
-  full_clear();
-
-  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
-  Sequence3DRotation(256);
-
-  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
-  Sequence3DRotation(256);
-
-  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-  Sequence3DRotation(256);
-
-  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
-  Sequence3DRotation(256);
-
-  disp_fade_out(pal7);
-  reset_disp_swap();
-  disp_clear();
 
   // writer_doit((UBYTE *) "A multitasking#"
   //                       "syncing töntro#"
@@ -843,25 +874,26 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   /*  Text dispatch */
   UBYTE *c_desc_str;
   UBYTE *c_face;
+  UWORD *c_pal;
 
   switch(suspect_index)
   {
-    case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_01.bin"; break;
-    case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_02.bin"; break;
-    case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_03.bin"; break;
-    case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_04.bin"; break;
-    case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_05.bin"; break;
-    case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_06.bin"; break;
-    case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_07.bin"; break;
-    case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_08.bin"; break;
-    case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_09.bin"; break;
-    case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_10.bin"; break;
-    case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_11.bin"; break;
-    case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_12.bin"; break;
-    case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_13.bin"; break;
-    case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_14.bin"; break;
-    case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_15.bin"; break;
-    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; break;
+    case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_01.bin"; c_pal = face_01PaletteRGB4; break;
+    case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_02.bin"; c_pal = face_02PaletteRGB4; break;
+    case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_03.bin"; c_pal = face_03PaletteRGB4; break;
+    case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_04.bin"; c_pal = face_04PaletteRGB4; break;
+    case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_05.bin"; c_pal = face_05PaletteRGB4; break;
+    case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_06.bin"; c_pal = face_06PaletteRGB4; break;
+    case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_07.bin"; c_pal = face_07PaletteRGB4; break;
+    case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_08.bin"; c_pal = face_08PaletteRGB4; break;
+    case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_09.bin"; c_pal = face_09PaletteRGB4; break;
+    case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_10.bin"; c_pal = face_10PaletteRGB4; break;
+    case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_11.bin"; c_pal = face_11PaletteRGB4; break;
+    case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_12.bin"; c_pal = face_12PaletteRGB4; break;
+    case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_13.bin"; c_pal = face_13PaletteRGB4; break;
+    case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_14PaletteRGB4; break;
+    case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_15PaletteRGB4; break;
+    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_16PaletteRGB4; break;
   }
 
   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
@@ -875,7 +907,7 @@ void SequenceDisplaySuspectProfile(int suspect_index)
 
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 43, 56);
   BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
-  LoadRGB4(mainVP, face_01PaletteRGB4, 16);
+  LoadRGB4(mainVP, c_pal, 16);
 
   fVBLDelay(50);
 
