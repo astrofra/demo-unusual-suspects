@@ -293,7 +293,7 @@ BOOL InitEHBScreen(void)
   prev_screen_depth = current_screen_depth;
   current_screen_depth = 6;
 
-  /* Close screen */
+  /* Close previous screen */
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
@@ -304,7 +304,7 @@ void init_close_video(void)
 {
   /* Close screen */
   if (mainScreen) CloseScreen(mainScreen);
-  if (theRaster) FreeRaster(theRaster, 4 * 384, SCR_HEIGHT);
+  if (theRaster) FreeRaster(theRaster, current_screen_depth * 384, SCR_HEIGHT);
 }
 
 /* Close all global resources opened */

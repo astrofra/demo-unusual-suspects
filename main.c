@@ -40,6 +40,7 @@
 #include "Assets/faces_palettes.h"
 #include "Assets/faces_all_palettes.h"
 #include "Assets/fonts.h"
+#include "Assets/audio_sync.h"
 
 #include "3d_routines.h"
 #include "bitmap_routines.h"
@@ -55,7 +56,7 @@ void full_clear(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 
-void Sequence3DRotation(int max_frame);
+void Sequence3DRotation(int duration_sec);
 void SequenceDisplaySuspectProfile(int suspect);
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
@@ -119,13 +120,14 @@ struct BitMap *bitmap_background,
               *bitmap_font;
 
 /*
-  Delta time
+  Delta time & g_clock
 */
 struct IORequest TimerIoR;
 struct Device *TimerBase=NULL;
 ULONG CLK_P_SEC;
 struct EClockVal gClock;
 int dt_time = 0;
+ULONG start_clock = 0;
 ULONG prev_g_clock = 0;
 
 int InitTimerDevice(void)
@@ -145,19 +147,32 @@ int InitTimerDevice(void)
 /*
   Returns a dt time factor.
 */
+void TimeInitGClock(void)
+{
+  CLK_P_SEC = ReadEClock(&gClock);
+  start_clock = gClock.ev_lo;
+  prev_g_clock = start_clock;
+}
+
 int GetDeltaTime(void)
 {
   CLK_P_SEC = ReadEClock(&gClock);
 
   dt_time = (int)(gClock.ev_lo - prev_g_clock);
   dt_time = ((dt_time << 10) / CLK_P_SEC);
-  // dt_time = dt_time >> 4;
+
   if (dt_time < 1)
     dt_time = 1;
 
   prev_g_clock = gClock.ev_lo;
 
   return dt_time;
+}
+
+ULONG TimeGetGClock(void)
+{  
+  CLK_P_SEC = ReadEClock(&gClock);
+  return ((gClock.ev_lo - start_clock) << 8) / CLK_P_SEC; 
 }
 
 /*
@@ -179,21 +194,21 @@ int  DispatchFX(void)
   Returns the actual position in the module.
   Fixed point precision on 8 bits
 */
-int  ModuleGetNormalizedPosition()
-{
-  UBYTE pattern_number, row_number;
-  APTR row_data_ptr;
-  pattern_number = PTSongPattern(theMod, PTSongPos(theMod));
-  row_number = PTPatternPos(theMod); //
-  row_data_ptr = PTPatternData(theMod, pattern_number, row_number);
-  // norm_len = norm_len << 8;
-  // norm_len /= (int)PTSongLen(theMod);
+// int  ModuleGetNormalizedPosition()
+// {
+//   UBYTE pattern_number, row_number;
+//   APTR row_data_ptr;
+//   pattern_number = PTSongPattern(theMod, PTSongPos(theMod));
+//   row_number = PTPatternPos(theMod); //
+//   row_data_ptr = PTPatternData(theMod, pattern_number, row_number);
+//   // norm_len = norm_len << 8;
+//   // norm_len /= (int)PTSongLen(theMod);
 
-  printf("pattern_number = %i, row_number = %i\n", pattern_number, row_number);
-  printf("row_data = %x\n", row_data_ptr);
+//   printf("pattern_number = %i, row_number = %i\n", pattern_number, row_number);
+//   printf("row_data = %x\n", row_data_ptr);
 
-  return 0;
-}
+//   return 0;
+// }
 
 /*Switch on the low-pass filter */
 void filter_on(void)
@@ -216,10 +231,13 @@ void WriteMsg(char *errMsg)
 /*  Demo exits  */
 void  ForceDemoClose(void)
 {
+  /*  Free the audio module */
   PTStop(theMod);
   PTFreeMod(theMod);
   FreeMem(mod, 83488);
-  Prepare2DVertexList();
+
+  /* Free the transformed vertex buffer */
+  Delete3DVertexList();
 
   Permit();
   SetTaskPri(myTask, oldPri);
@@ -234,6 +252,7 @@ void  ForceDemoClose(void)
   /* Close opened resources */
   FREE_BITMAP(bitmap_background);
   FREE_BITMAP(bitmap_tmp);
+  FREE_BITMAP(bitmap_font);
 
   init_close_video();
   init_close_libs();
@@ -359,15 +378,12 @@ int main(void)
     return (10);
   }
 
-  Prepare2DVertexList();
-
-  // filter_off();
+  Prepare3DVertexList();
 
   myTask = FindTask(NULL);
   oldPri = SetTaskPri(myTask, 127);
   Forbid();
 
-  // OFF_SPRITE;
   /*
     Load common assets
   */
@@ -376,6 +392,11 @@ int main(void)
   PTPlay(theMod);
 
   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+
+  /*
+    Set the start of the global demo clock
+  */
+  TimeInitGClock();
 
   Init32ColorsScreen();
   full_clear();
@@ -393,7 +414,7 @@ int main(void)
   full_clear();
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
-  Sequence3DRotation(256);
+  Sequence3DRotation(4);
 
   reset_disp_swap();
   disp_clear();
@@ -402,7 +423,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
-  Sequence3DRotation(256);
+  Sequence3DRotation(4);
 
   reset_disp_swap();
   disp_clear();
@@ -411,7 +432,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-  Sequence3DRotation(256);
+  Sequence3DRotation(4);
 
   reset_disp_swap();
   disp_clear();
@@ -420,7 +441,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-  Sequence3DRotation(256);
+  Sequence3DRotation(4);
 
   reset_disp_swap();
   disp_clear();
@@ -429,7 +450,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
-  Sequence3DRotation(256);
+  Sequence3DRotation(4);
 
   reset_disp_swap();
   disp_clear();
@@ -870,13 +891,20 @@ void scroll_doit(void)
   FreeMem(pic, 40 * 256 * 4);
 }
 
-void Sequence3DRotation(int max_frame)
+void Sequence3DRotation(int duration_sec)
 {
-  int frame_idx,
+  int max_frame, frame_idx,
       abs_frame_idx = 0,
       m_scale_x = 24;
 
-  for(frame_idx = 0; frame_idx < max_frame; frame_idx++)
+  ULONG seq_start_clock;
+
+  seq_start_clock = TimeGetGClock();
+
+  max_frame = duration_sec * 50;
+  duration_sec <<= 8;
+
+  for(frame_idx = 0; frame_idx < max_frame && TimeGetGClock() - seq_start_clock <= duration_sec; frame_idx++)
   {
     if (frame_idx < 24)
       m_scale_x--;
@@ -928,18 +956,25 @@ void SequenceDisplaySuspectProfile(int suspect_index)
 
   bitmap_tmp = load_as_bitmap(c_face, 3440, 80, 86, 4);
 
+  /*  Clear the portrait area */
   SetAPen(&theRP, 0);
+  WaitTOF();
   RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
 
+  /*  Load the portrait's palette */
+  LoadRGB4(mainVP, c_pal, 16);
+
+  /*  Draw the portrait */
+  WaitTOF();
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 43, 56);
   BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
-  LoadRGB4(mainVP, c_pal, 16);
 
   fVBLDelay(50);
 
+  /*  Write the profile description */
   font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
-  fVBLDelay(500);
+  fVBLDelay(250);
 
   disp_clear();
   FREE_BITMAP(bitmap_tmp); 

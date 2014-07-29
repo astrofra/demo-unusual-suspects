@@ -46,7 +46,7 @@ struct obj_3d
 
 void DrawAALine(int x1, int y1, int x2, int y2);
 
-void Prepare2DVertexList(void);
+void Prepare3DVertexList(void);
 
 void Delete3DVertexList(void);
 

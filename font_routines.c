@@ -31,7 +31,7 @@ int font_glyph_find_index(char glyph, const char *glyph_array)
 void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, const char *glyph_array, const int *x_pos_array, int x, int y, UBYTE *text_string)
 {
 	// UBYTE *current_char;
-	int i = 0, glyph_index, cur_x,
+	int i = 0, j, glyph_index, cur_x,
 		line_feed = 0,
 		glyph_w, glyph_h;
 
@@ -55,6 +55,9 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *dest_BitMap, co
 			/*	Line feed & carriage return */
 			if (text_string[i] == '\n')
 			{
+				for(j = 0; j < 8; j++)
+					WaitTOF();
+	
 				line_feed++;		
 				if (line_feed == 1)
 					y += (glyph_h + 5);

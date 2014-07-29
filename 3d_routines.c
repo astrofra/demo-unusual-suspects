@@ -18,7 +18,7 @@ extern struct RastPort theRP_1bpl;
 extern struct GfxBase *GfxBase;
 
 struct obj_3d o;
-int *verts_tr;
+int *verts_tr = NULL;
 
 /********* 3D Code *********/
 
@@ -47,11 +47,17 @@ void DrawAALine(int x1, int y1, int x2, int y2)
   }
 }
 
-void Prepare2DVertexList(void)
+void Prepare3DVertexList(void)
 {  verts_tr = (int *)malloc(sizeof(int) * MAX_VERTICE_COUNT * 3); }
 
 void Delete3DVertexList(void)
-{  free(verts_tr);  }
+{  
+  if (verts_tr != NULL)
+  {
+    free(verts_tr);
+    verts_tr = NULL;
+  }
+}
 
 int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
 {
