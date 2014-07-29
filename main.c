@@ -175,6 +175,26 @@ int  DispatchFX(void)
   return(0);
 }
 
+/*
+  Returns the actual position in the module.
+  Fixed point precision on 8 bits
+*/
+int  ModuleGetNormalizedPosition()
+{
+  UBYTE pattern_number, row_number;
+  APTR row_data_ptr;
+  pattern_number = PTSongPattern(theMod, PTSongPos(theMod));
+  row_number = PTPatternPos(theMod); //
+  row_data_ptr = PTPatternData(theMod, pattern_number, row_number);
+  // norm_len = norm_len << 8;
+  // norm_len /= (int)PTSongLen(theMod);
+
+  printf("pattern_number = %i, row_number = %i\n", pattern_number, row_number);
+  printf("row_data = %x\n", row_data_ptr);
+
+  return 0;
+}
+
 /*Switch on the low-pass filter */
 void filter_on(void)
 {
@@ -234,6 +254,8 @@ void sys_check_abort(void)
 //   printf("%i", (int)(keyMatrix[0x45/8] & (0x20)));
   if (keyMatrix[0x45/8] & (0x20))
     ForceDemoClose();
+
+  // ModuleGetNormalizedPosition();
 }
 
 /*  Custom delay function */
@@ -308,8 +330,6 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
 
   return ((UWORD)((r << 8) | (g << 4) | b));
 }
-
-
 
 /* Main program entry point */
 int main(void)
