@@ -895,29 +895,35 @@ void Sequence3DRotation(int duration_sec)
 {
   int max_frame, frame_idx,
       abs_frame_idx = 0,
-      m_scale_x = 24;
+      m_scale_x = 1 << 8;
 
-  ULONG seq_start_clock;
+  ULONG seq_start_clock, elapsed_clock = 0;
 
   seq_start_clock = TimeGetGClock();
 
   max_frame = duration_sec * 50;
   duration_sec <<= 8;
 
-  for(frame_idx = 0; frame_idx < max_frame && TimeGetGClock() - seq_start_clock <= duration_sec; frame_idx++)
+  for(frame_idx = 0; frame_idx < max_frame && elapsed_clock <= duration_sec; frame_idx++)
   {
-    if (frame_idx < 24)
-      m_scale_x--;
+    elapsed_clock = TimeGetGClock() - seq_start_clock;
+    printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
+
+    if (elapsed_clock < (1 << 4))
+      m_scale_x -= dt_time;
     else
-    if (frame_idx > max_frame - 24)
-      m_scale_x++;
+    if (elapsed_clock > duration_sec - (1 << 4))
+      m_scale_x += dt_time;
+
+    if (m_scale_x < 0)
+      m_scale_x = 0;
 
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x >> 8);
     sys_check_abort();
   }
 }
