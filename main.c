@@ -918,7 +918,7 @@ void Sequence3DRotation(int duration_sec)
         m_scale_x = 0;
     }
 
-    printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
+    // printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
 
     abs_frame_idx += dt_time;
     GetDeltaTime();

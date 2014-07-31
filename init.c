@@ -92,11 +92,20 @@ BOOL init_open_libs(void)
     init_conerr((UBYTE *)"Unable to open diskfont.library version 33\n");
     return (FALSE);
   }
+
+  if (!AssignPath("Libs","Libs"))
+  {
+    init_conerr((UBYTE *)"Failed to Assign the local Libs drawer. Please copy ptreplay.library into your Libs: drawer.\n");
+    return (FALSE);
+  }
+
   if (!(PTReplayBase = OpenLibrary((UBYTE *)"ptreplay.library", 0)))
   {
     init_conerr((UBYTE *)"Unable to open ptreplay.library\n");
     return (FALSE);
   }
+
+  // return (FALSE);
 
   return (TRUE);
 }
