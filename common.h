@@ -3,4 +3,7 @@
 /***** Common constants *****/
 
 #define _LIB_VERSION	33
-#define EVENLEN(x)	((x + 1) & -2)
+#define EVENLEN(x)		((x + 1) & -2)
+
+#define QMAX(A, B)		(A>B?A:B)
+#define QMIN(A, B)		(A<B?A:B)

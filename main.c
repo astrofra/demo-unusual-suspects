@@ -414,7 +414,7 @@ int main(void)
   full_clear();
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
-  Sequence3DRotation(4);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear();
@@ -423,7 +423,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
-  Sequence3DRotation(4);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear();
@@ -432,7 +432,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-  Sequence3DRotation(4);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear();
@@ -441,7 +441,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
-  Sequence3DRotation(4);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear();
@@ -450,7 +450,7 @@ int main(void)
 
   disp_fade_in(demo_title_PaletteRGB4);
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
-  Sequence3DRotation(4);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear();
@@ -893,9 +893,9 @@ void scroll_doit(void)
 
 void Sequence3DRotation(int duration_sec)
 {
-  int max_frame, frame_idx,
+  int max_frame,
       abs_frame_idx = 0,
-      m_scale_x = 1 << 8;
+      m_scale_x;
 
   ULONG seq_start_clock, elapsed_clock = 0;
 
@@ -904,26 +904,28 @@ void Sequence3DRotation(int duration_sec)
   max_frame = duration_sec * 50;
   duration_sec <<= 8;
 
-  for(frame_idx = 0; frame_idx < max_frame && elapsed_clock <= duration_sec; frame_idx++)
+  while(elapsed_clock <= duration_sec)
   {
     elapsed_clock = TimeGetGClock() - seq_start_clock;
-    printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
 
-    if (elapsed_clock < (1 << 4))
-      m_scale_x -= dt_time;
+    if (elapsed_clock < (1 << 7))
+      m_scale_x = (24 * QMAX(((1 << 7) - elapsed_clock), 0)) >> 8;
     else
-    if (elapsed_clock > duration_sec - (1 << 4))
-      m_scale_x += dt_time;
+    {
+      if (elapsed_clock > duration_sec - (1 << 7))
+        m_scale_x = (24 * QMAX(elapsed_clock - (duration_sec - (1 << 7)), 0)) >> 8;
+      else
+        m_scale_x = 0;
+    }
 
-    if (m_scale_x < 0)
-      m_scale_x = 0;
+    printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
 
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x >> 8);
+    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
 }
