@@ -96,7 +96,7 @@ BOOL init_open_libs(void)
   if (!AssignPath("Libs","Libs"))
   {
     init_conerr((UBYTE *)"Failed to Assign the local Libs drawer. Please copy ptreplay.library into your Libs: drawer.\n");
-    return (FALSE);
+    // return (FALSE);
   }
 
   if (!(PTReplayBase = OpenLibrary((UBYTE *)"ptreplay.library", 0)))
