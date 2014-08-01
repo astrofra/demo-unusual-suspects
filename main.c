@@ -52,7 +52,9 @@ static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
 void disp_clear(void);
+void disp_clear_bb_only(struct RastPort *rp);
 void full_clear(void);
+void init_clear_bb(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 
@@ -118,6 +120,12 @@ UBYTE *mod;
 struct BitMap *bitmap_background,
               *bitmap_tmp,
               *bitmap_font;
+
+/*  2D bounding box
+    limits the surface to be cleared
+*/
+int   drawn_min_x = 512, drawn_min_y = 512,
+      drawn_max_x = -1, drawn_max_y = -1;
 
 /*
   Delta time & g_clock
@@ -673,6 +681,29 @@ void disp_clear(void)
   RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
 }
 
+void init_clear_bb(void)
+{
+  drawn_min_x = 512;
+  drawn_min_y = 1024;
+  drawn_max_x = -1;
+  drawn_max_y = -1;
+}
+
+void disp_clear_bb_only(struct RastPort *rp)
+{
+  // printf("min_x = %d, min_y = %i, max_x = %i, max_y = %i\n", drawn_min_x, drawn_min_y, drawn_max_x, drawn_max_y);
+
+  if (drawn_max_x > 0)
+  {
+    if (rp == NULL)
+      rp = &theRP;
+
+    SetAPen(rp, 0);
+    // RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
+    RectFill(rp, drawn_min_x, drawn_min_y + frameOffset, drawn_max_x, drawn_max_y + frameOffset);
+  }
+}
+
 void full_clear(void)
 {
   // SetRast(&theRP, 0);
@@ -924,7 +955,8 @@ void Sequence3DRotation(int duration_sec)
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
-    disp_clear();
+    disp_clear_bb_only(NULL);
+    init_clear_bb();
     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }

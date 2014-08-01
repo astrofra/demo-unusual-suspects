@@ -5,6 +5,7 @@
 
 #include "3d_routines.h"
 #include "Assets/cosine_table.h"
+#include "common.h"
 
 extern struct BitMap theBitMap;
 extern struct BitMap theBitMap_3bpl;
@@ -17,8 +18,11 @@ extern struct RastPort theRP_1bpl;
 
 extern struct GfxBase *GfxBase;
 
-struct obj_3d o;
-int *verts_tr = NULL;
+extern int  drawn_min_x, drawn_min_y,
+            drawn_max_x, drawn_max_y;
+
+struct  obj_3d o;
+int     *verts_tr = NULL;
 
 /********* 3D Code *********/
 
@@ -72,7 +76,7 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
   int cs, ss, cc, sc;
 
   XC = 160;
-  YC = 128 + y_offset;
+  YC = 128;
 
   /*  Transform & project the vertices */
   //  pre-rotations
@@ -137,11 +141,11 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
     {           
       SetAPen(&theRP_2bpl, 1);
 
-      Move(&theRP_2bpl, x1, y1);
-      Draw(&theRP_2bpl, x2, y2);
-      Draw(&theRP_2bpl, x3, y3);
-      Draw(&theRP_2bpl, x4, y4);
-      Draw(&theRP_2bpl, x1, y1);
+      Move(&theRP_2bpl, x1, y1 + y_offset);
+      Draw(&theRP_2bpl, x2, y2 + y_offset);
+      Draw(&theRP_2bpl, x3, y3 + y_offset);
+      Draw(&theRP_2bpl, x4, y4 + y_offset);
+      Draw(&theRP_2bpl, x1, y1 + y_offset);
     }
   } 
 
@@ -179,11 +183,29 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
     {           
       SetAPen(&theRP_2bpl, 3);
 
-      Move(&theRP_2bpl, x1, y1);
-      Draw(&theRP_2bpl, x2, y2);
-      Draw(&theRP_2bpl, x3, y3);
-      Draw(&theRP_2bpl, x4, y4);
-      Draw(&theRP_2bpl, x1, y1);
+      Move(&theRP_2bpl, x1, y1 + y_offset);
+      Draw(&theRP_2bpl, x2, y2 + y_offset);
+      Draw(&theRP_2bpl, x3, y3 + y_offset);
+      Draw(&theRP_2bpl, x4, y4 + y_offset);
+      Draw(&theRP_2bpl, x1, y1 + y_offset);
+
+      drawn_min_x = QMIN(drawn_min_x, x1);
+      drawn_min_y = QMIN(drawn_min_y, y1);
+      drawn_max_x = QMAX(drawn_max_x, x1);
+      drawn_max_y = QMAX(drawn_max_y, y1);
+
+      drawn_min_x = QMIN(drawn_min_x, x2);
+      drawn_min_y = QMIN(drawn_min_y, y2);
+      drawn_max_x = QMAX(drawn_max_x, x2);
+      drawn_max_y = QMAX(drawn_max_y, y2);      
+
+      drawn_min_x = QMIN(drawn_min_x, x4);
+      drawn_min_y = QMIN(drawn_min_y, y4);
+      drawn_max_x = QMAX(drawn_max_x, x4);
+      drawn_max_y = QMAX(drawn_max_y, y4);      
+
+      drawn_min_x &= 0xFFF0;
+      drawn_max_x &= 0xFFF0;
     }
   }
 
