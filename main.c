@@ -121,7 +121,8 @@ struct BitMap *bitmap_background,
               *bitmap_tmp,
               *bitmap_font,
               *bitmap_font_dark,
-              *bitmap_video_noise;
+              *bitmap_video_noise,
+              *bitmap_next_face;
 
 /*  2D bounding box
     limits the surface to be cleared
@@ -265,6 +266,7 @@ void  ForceDemoClose(void)
   FREE_BITMAP(bitmap_font);
   FREE_BITMAP(bitmap_font_dark);
   FREE_BITMAP(bitmap_video_noise);
+  FREE_BITMAP(bitmap_next_face);
 
   init_close_video();
   init_close_libs();
@@ -370,6 +372,7 @@ int main(void)
   bitmap_font = NULL;
   bitmap_font_dark = NULL;
   bitmap_video_noise = NULL;
+  bitmap_next_face = NULL;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -425,6 +428,7 @@ int main(void)
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
   bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
   bitmap_video_noise = load_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
+  bitmap_next_face = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
 
   fVBLDelay(350);
   full_clear(NULL);
@@ -505,13 +509,8 @@ int main(void)
 
   reset_disp_swap();
   disp_clear(NULL);
-  SequenceDisplaySuspectProfile(16);
-  fVBLDelay(10);  
-
-  reset_disp_swap();
-  disp_clear(NULL);
   SequenceDisplaySuspectProfile(11);
-  fVBLDelay(10);
+  fVBLDelay(10);  
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -521,7 +520,7 @@ int main(void)
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(13);
-  fVBLDelay(10);              
+  fVBLDelay(10);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -531,6 +530,11 @@ int main(void)
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(15);
+  fVBLDelay(10);              
+
+  reset_disp_swap();
+  disp_clear(NULL);
+  SequenceDisplaySuspectProfile(16);
   fVBLDelay(10);              
 
   disp_fade_out(pal7);
@@ -984,30 +988,28 @@ void SequenceDisplaySuspectProfile(int suspect_index)
 
   switch(suspect_index)
   {
-    case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_01.bin"; c_pal = face_01PaletteRGB4; break;
-    case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_02.bin"; c_pal = face_02PaletteRGB4; break;
-    case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_03.bin"; c_pal = face_03PaletteRGB4; break;
-    case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_04.bin"; c_pal = face_04PaletteRGB4; break;
-    case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_05.bin"; c_pal = face_05PaletteRGB4; break;
-    case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_06.bin"; c_pal = face_06PaletteRGB4; break;
-    case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_07.bin"; c_pal = face_07PaletteRGB4; break;
-    case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_08.bin"; c_pal = face_08PaletteRGB4; break;
-    case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_09.bin"; c_pal = face_09PaletteRGB4; break;
-    case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_10.bin"; c_pal = face_10PaletteRGB4; break;
-    case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_11.bin"; c_pal = face_11PaletteRGB4; break;
-    case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_12.bin"; c_pal = face_12PaletteRGB4; break;
-    case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_13.bin"; c_pal = face_13PaletteRGB4; break;
-    case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_14PaletteRGB4; break;
-    case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_15PaletteRGB4; break;
-    case 15: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_16PaletteRGB4; break;
-    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(16); c_face = (UBYTE *)"assets/face_17.bin"; c_pal = face_17PaletteRGB4; break;
+    case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_02.bin"; c_pal = face_01PaletteRGB4; break;
+    case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_03.bin"; c_pal = face_02PaletteRGB4; break;
+    case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_04.bin"; c_pal = face_03PaletteRGB4; break;
+    case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_05.bin"; c_pal = face_04PaletteRGB4; break;
+    case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_06.bin"; c_pal = face_05PaletteRGB4; break;
+    case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_07.bin"; c_pal = face_06PaletteRGB4; break;
+    case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_08.bin"; c_pal = face_07PaletteRGB4; break;
+    case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_09.bin"; c_pal = face_08PaletteRGB4; break;
+    case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_10.bin"; c_pal = face_09PaletteRGB4; break;
+    case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_17.bin"; c_pal = face_10PaletteRGB4; break;
+    case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(16); c_face = (UBYTE *)"assets/face_11.bin"; c_pal = face_17PaletteRGB4; break;
+    case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_12.bin"; c_pal = face_11PaletteRGB4; break;
+    case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_13.bin"; c_pal = face_12PaletteRGB4; break;
+    case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_13PaletteRGB4; break;
+    case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_14PaletteRGB4; break;
+    case 15: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_15PaletteRGB4; break;
+    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = NULL; c_pal = face_16PaletteRGB4; break;
   }
 
   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   fVBLDelay(10);
-
-  bitmap_tmp = load_as_bitmap(c_face, 3440, 80, 86, 4);
 
   /*  Clear the portrait area */
   SetAPen(&theRP, 0);
@@ -1031,7 +1033,7 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   LoadRGB4(mainVP, c_pal, 16);
 
   /*  Draw the portrait */
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 43, 56);
+  BLIT_BITMAP_S(bitmap_next_face, &theBitMap, 71, 86, 43, 56);
   BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
 
   fVBLDelay(10);
@@ -1039,8 +1041,12 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   /*  Write the profile description */
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
+  FREE_BITMAP(bitmap_tmp);
+
+  if (c_face != NULL)
+    bitmap_next_face = load_as_bitmap(c_face, 3440, 80, 86, 4);
+
   fVBLDelay(250);
 
   disp_clear(NULL);
-  FREE_BITMAP(bitmap_tmp); 
 }
