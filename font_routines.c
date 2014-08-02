@@ -8,6 +8,7 @@
 
 extern struct GfxBase *GfxBase;
 extern void sys_check_abort(void);
+extern int ModuleGetSyncValue(void);
 
 int font_glyph_find_index(char glyph, const char *glyph_array)
 {
@@ -44,6 +45,7 @@ void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *font_BitMap_dar
 	while(text_string[i] != '\0')
 	{
 		sys_check_abort();
+		ModuleGetSyncValue();
 
 		/*	Space */
 		switch(text_string[i])

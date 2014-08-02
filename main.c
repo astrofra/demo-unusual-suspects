@@ -156,7 +156,7 @@ int InitTimerDevice(void)
 }
 
 /*
-  Returns a dt time factor.
+  Sets the start of the global clock.
 */
 void TimeInitGClock(void)
 {
@@ -165,6 +165,9 @@ void TimeInitGClock(void)
   prev_g_clock = start_clock;
 }
 
+/*
+  Computes a fixed point 'dt time'.
+*/
 int GetDeltaTime(void)
 {
   CLK_P_SEC = ReadEClock(&gClock);
@@ -180,10 +183,14 @@ int GetDeltaTime(void)
   return dt_time;
 }
 
+/*
+  Returns a fixed point global clock.
+*/
 ULONG TimeGetGClock(void)
 {  
-  CLK_P_SEC = ReadEClock(&gClock);
-  return ((gClock.ev_lo - start_clock) << 8) / CLK_P_SEC; 
+  CLK_P_SEC = ReadEClock(&gClock) >> 4;
+  // printf("%i %i\n", gClock.ev_hi, gClock.ev_lo);
+  return ((gClock.ev_lo - start_clock) << 4) / CLK_P_SEC;
 }
 
 /*
@@ -202,24 +209,24 @@ int  DispatchFX(void)
 }
 
 /*
-  Returns the actual position in the module.
-  Fixed point precision on 8 bits
+      Audio sync.
 */
-// int  ModuleGetNormalizedPosition()
-// {
-//   UBYTE pattern_number, row_number;
-//   APTR row_data_ptr;
-//   pattern_number = PTSongPattern(theMod, PTSongPos(theMod));
-//   row_number = PTPatternPos(theMod); //
-//   row_data_ptr = PTPatternData(theMod, pattern_number, row_number);
-//   // norm_len = norm_len << 8;
-//   // norm_len /= (int)PTSongLen(theMod);
+int  ModuleGetSyncValue(void)
+{
+  int audio_clock, sync_value;
+  audio_clock = TimeGetGClock();
+  audio_clock *= AUDIO_SYNC_FREQ;
+  audio_clock >>= 8;
 
-//   printf("pattern_number = %i, row_number = %i\n", pattern_number, row_number);
-//   printf("row_data = %x\n", row_data_ptr);
+  while (audio_clock > AUDIO_SYNC_REC_COUNT)
+    audio_clock -= AUDIO_SYNC_REC_COUNT;
 
-//   return 0;
-// }
+  sync_value = audio_sync[audio_clock];
+
+  SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
+
+  return 0;
+}
 
 /*Switch on the low-pass filter */
 void filter_on(void)
@@ -302,6 +309,7 @@ int fVBLDelay(int _sec)
     WaitTOF();
     DispatchFX();
     sys_check_abort();
+    ModuleGetSyncValue();
   }
 
   return(0);
@@ -404,11 +412,11 @@ int main(void)
   /*
     Load common assets
   */
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+
   mod = load_getmem((UBYTE *)"assets/module.bin", 95430);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
-
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
 
   /*
     Set the start of the global demo clock
@@ -945,10 +953,9 @@ void Sequence3DRotation(int duration_sec)
       m_scale_x;
 
   ULONG seq_start_clock, elapsed_clock = 0;
+  duration_sec <<= 8;
 
   seq_start_clock = TimeGetGClock();
-
-  duration_sec <<= 8;
 
   while(elapsed_clock <= duration_sec)
   {
@@ -964,8 +971,6 @@ void Sequence3DRotation(int duration_sec)
         m_scale_x = 0;
     }
 
-    // printf("elapsed_clock = %i, m_scale_x = %i, dt_time = %i\n", elapsed_clock, m_scale_x, dt_time);
-
     abs_frame_idx += dt_time;
     GetDeltaTime();
     WaitTOF();           
@@ -975,6 +980,7 @@ void Sequence3DRotation(int duration_sec)
     // init_clear_bb();
     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
+    ModuleGetSyncValue();
   }
 }
 
@@ -1019,11 +1025,24 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   LoadRGB4(mainVP, videoPaletteRGB4, 16);
 
   /*  Switched on tube FX */
+
+  SetAPen(&theRP, 15);
+  WaitTOF();
+  RectFill(&theRP, 42, frameOffset + 55 + 40, 42 + 72, 55 + 87 - 40);
+  WaitTOF();
+  RectFill(&theRP, 42, frameOffset + 55 + 32, 42 + 72, 55 + 87 - 32);
+
   for (i = 0; i < 5; i++)
   {
     WaitTOF();
     BltBitMap(bitmap_video_noise, 0, (i << 2) + ((8 - i) << 1), &theBitMap, 43, 56 + ((8 - i) << 2), 71, 86 - ((8 - i) << 3), 0xC0, 0xFF, NULL);
+    if (i == 0)   RectFill(&theRP, 42, frameOffset + 55 + 40, 42 + 72, 55 + 87 - 40);
+
+    ModuleGetSyncValue();
   }
+
+  WaitTOF();
+  BltBitMap(bitmap_video_noise, 0, 128 - 90, &theBitMap, 43, 56, 71, 86, 0xC0, 0xFF, NULL);
 
   SetAPen(&theRP, 0);
   WaitTOF();
@@ -1046,7 +1065,11 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   if (c_face != NULL)
     bitmap_next_face = load_as_bitmap(c_face, 3440, 80, 86, 4);
 
-  fVBLDelay(250);
+  for(i = 0; i < 250; i++)
+  {
+    WaitTOF();
+    ModuleGetSyncValue();
+  }
 
   disp_clear(NULL);
 }
