@@ -6,8 +6,6 @@
 #include "common.h"
 #include "protos.h"
 
-#define SCR_HEIGHT  (256 << 1)
-
 /***** Static function declarations *****/
 
 static void init_conerr(UBYTE *str);

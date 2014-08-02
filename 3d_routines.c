@@ -24,6 +24,8 @@ extern int  drawn_min_x, drawn_min_y,
 struct  obj_3d o;
 int     *verts_tr = NULL;
 
+#define BB_3D_DRAW_OUTLINE    8
+
 /********* 3D Code *********/
 
 void DrawAALine(int x1, int y1, int x2, int y2)
@@ -146,6 +148,26 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
       Draw(&theRP_2bpl, x3, y3 + y_offset);
       Draw(&theRP_2bpl, x4, y4 + y_offset);
       Draw(&theRP_2bpl, x1, y1 + y_offset);
+
+      // drawn_min_x = QMIN(drawn_min_x, x1);
+      // drawn_min_y = QMIN(drawn_min_y, y1);
+      // drawn_max_x = QMAX(drawn_max_x, x1);
+      // drawn_max_y = QMAX(drawn_max_y, y1);
+
+      // drawn_min_x = QMIN(drawn_min_x, x2);
+      // drawn_min_y = QMIN(drawn_min_y, y2);
+      // drawn_max_x = QMAX(drawn_max_x, x2);
+      // drawn_max_y = QMAX(drawn_max_y, y2);
+
+      // drawn_min_x = QMIN(drawn_min_x, x3);
+      // drawn_min_y = QMIN(drawn_min_y, y3);
+      // drawn_max_x = QMAX(drawn_max_x, x3);
+      // drawn_max_y = QMAX(drawn_max_y, y3);      
+
+      // drawn_min_x = QMIN(drawn_min_x, x4);
+      // drawn_min_y = QMIN(drawn_min_y, y4);
+      // drawn_max_x = QMAX(drawn_max_x, x4);
+      // drawn_max_y = QMAX(drawn_max_y, y4);       
     }
   } 
 
@@ -189,25 +211,37 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
       Draw(&theRP_2bpl, x4, y4 + y_offset);
       Draw(&theRP_2bpl, x1, y1 + y_offset);
 
-      drawn_min_x = QMIN(drawn_min_x, x1);
-      drawn_min_y = QMIN(drawn_min_y, y1);
-      drawn_max_x = QMAX(drawn_max_x, x1);
-      drawn_max_y = QMAX(drawn_max_y, y1);
+      // drawn_min_x = QMIN(drawn_min_x, x1);
+      // drawn_min_y = QMIN(drawn_min_y, y1);
+      // drawn_max_x = QMAX(drawn_max_x, x1);
+      // drawn_max_y = QMAX(drawn_max_y, y1);
 
-      drawn_min_x = QMIN(drawn_min_x, x2);
-      drawn_min_y = QMIN(drawn_min_y, y2);
-      drawn_max_x = QMAX(drawn_max_x, x2);
-      drawn_max_y = QMAX(drawn_max_y, y2);      
+      // drawn_min_x = QMIN(drawn_min_x, x2);
+      // drawn_min_y = QMIN(drawn_min_y, y2);
+      // drawn_max_x = QMAX(drawn_max_x, x2);
+      // drawn_max_y = QMAX(drawn_max_y, y2);
 
-      drawn_min_x = QMIN(drawn_min_x, x4);
-      drawn_min_y = QMIN(drawn_min_y, y4);
-      drawn_max_x = QMAX(drawn_max_x, x4);
-      drawn_max_y = QMAX(drawn_max_y, y4);      
+      // drawn_min_x = QMIN(drawn_min_x, x3);
+      // drawn_min_y = QMIN(drawn_min_y, y3);
+      // drawn_max_x = QMAX(drawn_max_x, x3);
+      // drawn_max_y = QMAX(drawn_max_y, y3);      
 
-      drawn_min_x &= 0xFFF0;
-      drawn_max_x &= 0xFFF0;
+      // drawn_min_x = QMIN(drawn_min_x, x4);
+      // drawn_min_y = QMIN(drawn_min_y, y4);
+      // drawn_max_x = QMAX(drawn_max_x, x4);
+      // drawn_max_y = QMAX(drawn_max_y, y4);      
+
+      //  Quantize the min & max x to 8 pixels.
+      // drawn_min_x &= 0xFFF8;
+      // drawn_max_x &= 0xFFF8;
     }
   }
+
+  //  Enlarge the bounding box for more safety.
+  // drawn_min_x -= BB_3D_DRAW_OUTLINE;
+  // drawn_min_y -= BB_3D_DRAW_OUTLINE;
+  // // drawn_max_x += BB_3D_DRAW_OUTLINE;
+  // drawn_max_y += BB_3D_DRAW_OUTLINE;
 
   return 0;
 }

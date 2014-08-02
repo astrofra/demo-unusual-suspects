@@ -51,9 +51,9 @@
 static void disp_fade_in(UWORD *fadeto);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
-void disp_clear(void);
+void disp_clear(struct RastPort *rp);
 void disp_clear_bb_only(struct RastPort *rp);
-void full_clear(void);
+void full_clear(struct RastPort *rp);
 void init_clear_bb(void);
 void reset_disp_swap(void);
 void disp_swap(void);
@@ -119,7 +119,8 @@ UBYTE *mod;
 
 struct BitMap *bitmap_background,
               *bitmap_tmp,
-              *bitmap_font;
+              *bitmap_font,
+              *bitmap_font_dark;
 
 /*  2D bounding box
     limits the surface to be cleared
@@ -261,6 +262,7 @@ void  ForceDemoClose(void)
   FREE_BITMAP(bitmap_background);
   FREE_BITMAP(bitmap_tmp);
   FREE_BITMAP(bitmap_font);
+  FREE_BITMAP(bitmap_font_dark);
 
   init_close_video();
   init_close_libs();
@@ -364,6 +366,7 @@ int main(void)
   bitmap_background = NULL;
   bitmap_tmp = NULL;
   bitmap_font = NULL;
+  bitmap_font_dark = NULL;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -407,7 +410,7 @@ int main(void)
   TimeInitGClock();
 
   Init32ColorsScreen();
-  full_clear();
+  full_clear(NULL);
 
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
 
@@ -417,15 +420,16 @@ int main(void)
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
+  bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
 
   fVBLDelay(350);
-  full_clear();
+  full_clear(NULL);
 
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(0);
   fVBLDelay(100);
 
@@ -434,7 +438,7 @@ int main(void)
   Sequence3DRotation(5);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(1);
   fVBLDelay(100);
 
@@ -443,7 +447,7 @@ int main(void)
   Sequence3DRotation(5);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(2);
   fVBLDelay(100);
 
@@ -452,7 +456,7 @@ int main(void)
   Sequence3DRotation(5);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(3);
   fVBLDelay(100);
 
@@ -461,80 +465,80 @@ int main(void)
   Sequence3DRotation(5);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(4);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(5);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(6);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(7);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(8);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(9);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(10);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(16);
   fVBLDelay(10);  
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(11);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(12);
   fVBLDelay(10);
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(13);
   fVBLDelay(10);              
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(14);
   fVBLDelay(10);              
 
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
   SequenceDisplaySuspectProfile(15);
   fVBLDelay(10);              
 
   disp_fade_out(pal7);
   reset_disp_swap();
-  disp_clear();
+  disp_clear(NULL);
 
   /* 
     Unusual faces 
     Part #1 
   */
   InitEHBScreen();
-  disp_clear();
+  disp_clear(NULL);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
 
   pic = load_getmem((UBYTE *)"assets/faces_all.bin", 40 * 360 * 6);
@@ -565,7 +569,7 @@ int main(void)
 
   fVBLDelay(250);
 
-  full_clear();
+  full_clear(NULL);
 
   DeleteCopperList();
 
@@ -674,11 +678,14 @@ static void disp_fade_setpalette(void)
 
 /***************** DISPLAY SUPPORT ********************/
 
-void disp_clear(void)
+void disp_clear(struct RastPort *rp)
 {
   // SetRast(&theRP, 0);
-  SetAPen(&theRP, 0);
-  RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
+  if (rp == NULL)
+    rp = &theRP;
+
+  SetAPen(rp, 0);
+  RectFill(rp, 0, frameOffset, 320, frameOffset + 256);
 }
 
 void init_clear_bb(void)
@@ -704,11 +711,13 @@ void disp_clear_bb_only(struct RastPort *rp)
   }
 }
 
-void full_clear(void)
+void full_clear(struct RastPort *rp)
 {
-  // SetRast(&theRP, 0);
-  SetAPen(&theRP, 0);
-  RectFill(&theRP, 0, 0, 320, 256 * 2);
+  if (rp == NULL)
+    rp = &theRP;
+
+  SetAPen(rp, 0);
+  RectFill(rp, 0, 0, 320, SCR_HEIGHT);
 }
 
 void reset_disp_swap(void)
@@ -924,15 +933,13 @@ void scroll_doit(void)
 
 void Sequence3DRotation(int duration_sec)
 {
-  int max_frame,
-      abs_frame_idx = 0,
+  int abs_frame_idx = 0,
       m_scale_x;
 
   ULONG seq_start_clock, elapsed_clock = 0;
 
   seq_start_clock = TimeGetGClock();
 
-  max_frame = duration_sec * 50;
   duration_sec <<= 8;
 
   while(elapsed_clock <= duration_sec)
@@ -955,8 +962,9 @@ void Sequence3DRotation(int duration_sec)
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
-    disp_clear_bb_only(NULL);
-    init_clear_bb();
+    disp_clear(&theRP_2bpl);
+    // disp_clear_bb_only(&theRP_2bpl);
+    // init_clear_bb();
     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
   }
@@ -1012,10 +1020,10 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   fVBLDelay(50);
 
   /*  Write the profile description */
-  font_writer_blit(bitmap_font, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
   fVBLDelay(250);
 
-  disp_clear();
+  disp_clear(NULL);
   FREE_BITMAP(bitmap_tmp); 
 }
