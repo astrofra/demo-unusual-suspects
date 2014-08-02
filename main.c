@@ -120,7 +120,8 @@ UBYTE *mod;
 struct BitMap *bitmap_background,
               *bitmap_tmp,
               *bitmap_font,
-              *bitmap_font_dark;
+              *bitmap_font_dark,
+              *bitmap_video_noise;
 
 /*  2D bounding box
     limits the surface to be cleared
@@ -263,6 +264,7 @@ void  ForceDemoClose(void)
   FREE_BITMAP(bitmap_tmp);
   FREE_BITMAP(bitmap_font);
   FREE_BITMAP(bitmap_font_dark);
+  FREE_BITMAP(bitmap_video_noise);
 
   init_close_video();
   init_close_libs();
@@ -367,6 +369,7 @@ int main(void)
   bitmap_tmp = NULL;
   bitmap_font = NULL;
   bitmap_font_dark = NULL;
+  bitmap_video_noise = NULL;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
 
@@ -421,6 +424,7 @@ int main(void)
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
   bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
+  bitmap_video_noise = load_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
 
   fVBLDelay(350);
   full_clear(NULL);
@@ -972,6 +976,7 @@ void Sequence3DRotation(int duration_sec)
 
 void SequenceDisplaySuspectProfile(int suspect_index)
 {
+  int i;
   /*  Text dispatch */
   UBYTE *c_desc_str;
   UBYTE *c_face;
@@ -1009,15 +1014,27 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   WaitTOF();
   RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
 
+  LoadRGB4(mainVP, videoPaletteRGB4, 16);
+
+  /*  Switched on tube FX */
+  for (i = 0; i < 5; i++)
+  {
+    WaitTOF();
+    BltBitMap(bitmap_video_noise, 0, (i << 2) + ((8 - i) << 1), &theBitMap, 43, 56 + ((8 - i) << 2), 71, 86 - ((8 - i) << 3), 0xC0, 0xFF, NULL);
+  }
+
+  SetAPen(&theRP, 0);
+  WaitTOF();
+  RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
+
   /*  Load the portrait's palette */
   LoadRGB4(mainVP, c_pal, 16);
 
   /*  Draw the portrait */
-  WaitTOF();
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 71, 86, 43, 56);
   BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
 
-  fVBLDelay(50);
+  fVBLDelay(10);
 
   /*  Write the profile description */
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);

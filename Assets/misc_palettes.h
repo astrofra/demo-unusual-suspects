@@ -4,6 +4,8 @@
 #include <exec/types.h>
 #include <intuition/intuition.h>
 
+extern UWORD videoPaletteRGB4[16];
+
 extern UWORD blackPaletteRGB4[32];
 
 extern UWORD pal1[16];
