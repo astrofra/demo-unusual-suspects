@@ -414,7 +414,7 @@ int main(void)
   */
   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
 
-  mod = load_getmem((UBYTE *)"assets/module.bin", 95430);
+  mod = load_getmem((UBYTE *)"assets/module.bin", 83488);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
@@ -557,7 +557,7 @@ int main(void)
   disp_clear(NULL);
   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
 
-  pic = load_getmem((UBYTE *)"assets/faces_all.bin", 40 * 360 * 6);
+  pic = load_getmem((UBYTE *)"assets/faces_all.bin", 86400);
 
   WaitTOF();           
   disp_swap();
@@ -581,7 +581,7 @@ int main(void)
   WaitTOF();
   disp_swap();
 
-  FreeMem(pic, 40 * 360 * 6);
+  FreeMem(pic, 86400);
 
   fVBLDelay(250);
 
@@ -943,8 +943,8 @@ void scroll_doit(void)
   }
 
   disp_fade_out(gradientPaletteRGB4); //pal5);  
-  FreeMem(font, 80 * 256);
-  FreeMem(pic, 40 * 256 * 4);
+  // FreeMem(font, 80 * 256);
+  // FreeMem(pic, 40 * 256 * 4);
 }
 
 void Sequence3DRotation(int duration_sec)
