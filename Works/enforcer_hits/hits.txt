@@ -1,0 +1,288 @@
+Enforcer Hit! Bad program
+Illegal LONG READ from: 00000000                PC: f4100000
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 100cbe18 1000e870 00f8302c 100cbe18 100b6194 100cdddc 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000000                 PC: f4100000
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 100cbe18 1000e870 00f8302c 100cbe18 100b6194 100cdddc 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000100                 PC: f4100000
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 100cdddc 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000104                 PC: f4100000
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 100cdddc 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000104                 PC: f4100000
+Data: 00000000 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 100cbe18 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000020                 PC: f4100000
+Data: f1e2d3c4 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000003
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 100cbe18 10000804 100cdddc
+Stck: 10000010 100cbe18 1000e870 10000918 10000804 00f96c12 80000003 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 100cbe18 00000000 10000804
+Stck: 00f96b86 00000000 00000067 00000000 00000000 00000000 00000000 00000000
+Stck: 00000000 00000000 00000000 1000ea5e 100cbe18 100b6194 1001c320 100b9b24
+Stck: 00014620 0000a000 00000140 00000100 00000004 00000000 00000000 00000000
+----> 00f96c12 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000ac6
+----> 00f96b86 - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 00000a3a
+----> 100b6194 - "unusual-suspects.exe" Hunk 0003 Offset 000001c4
+----> 100b9b24 - "unusual-suspects.exe" Hunk 0000 Offset 00000954
+----> 100bd316 - "unusual-suspects.exe" Hunk 0000 Offset 00004146
+----> 100bcbfa - "unusual-suspects.exe" Hunk 0000 Offset 00003a2a
+----> 100b93aa - "unusual-suspects.exe" Hunk 0000 Offset 000001da
+----> 100b91d0 - "unusual-suspects.exe" Hunk 0000 Offset 00000000
+----> 00f9670c - "ROM - dos 39.23 (8.9.92)" Hunk 0000 Offset 000005c0
+f40ffff0 :   ffff                 CMPA.W (A7)+,A5
+f40ffff2 :   ffff                 CMPA.W (A7)+,A5
+f40ffff4 :   ffff                 CMPA.W (A7)+,A5
+f40ffff6 :   ffff                 CMPA.W (A7)+,A5
+f40ffff8 :   ffff                 CMPA.W (A7)+,A5
+f40ffffa :   ffff                 CMPA.W (A7)+,A5
+f40ffffc :   ffff                 CMPA.W (A7)+,A5
+f40ffffe :   ffff                 CMPA.W (A7)+,A5
+f4100000 : * ffff                 CMPA.W (A7)+,A5
+f4100002 :   ffff                 CMPA.W (A7)+,A5
+f4100004 :   ffff                 CMPA.W (A7)+,A5
+f4100006 :   ffff                 CMPA.W (A7)+,A5
+f4100008 :   ffff                 CMPA.W (A7)+,A5
+f410000a :   ffff                 CMPA.W (A7)+,A5
+f410000c :   ffff                 CMPA.W (A7)+,A5
+f410000e :   ffff                 CMPA.W (A7)+,A5
+f4100010 :   ffff                 CMPA.W (A7)+,A5
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG READ from: 00000000                PC: f8302c
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000008
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 10002260 10000804 10002260
+Stck: 10000010 00000104 1000e870 100cbe18 10000804 001000f8 30ea0020 00000019
+Stck: 73766e5f 64656d6f 2d746861 6e6b732d 616e6479 000a2644 00000000 00000000
+Stck: 00000000 10009c88 100022fc ffea0000 0018000e 80148001 80451003 40840000
+Stck: 00000000 00001000 9c880000 00000000 00000000 00000002 00000000 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 10009c88 1000264c ffd30000
+----> 00f8302c - "ROM - exec 39.47 (28.8.92)" Hunk 0000 Offset 00002f72
+----> 00ff0678 - "ROM - wb 39.48 (20.8.92)" Hunk 0000 Offset 00001eb8
+----> 00ff0580 - "ROM - wb 39.48 (20.8.92)" Hunk 0000 Offset 00001dc0
+----> 10089eca - "FONTS:XEN/11" Hunk 0000 Offset 0000003a
+----> 10088b1a - "FONTS:XHelvetica/11" Hunk 0000 Offset 0000003a
+00f83010 :   6100 e866            BSR.W #$e866
+00f83014 :   7010                 MOVE.L #$00000010,D0
+00f83016 :   4eae fec2            JSR.L (A6, -$013e) == $100006c6
+00f8301a :   4fef 000c            LEA.L (A7, $000c) == $1000226c,A7
+00f8301e :   6004                 BT .B #$00000004
+00f83020 :   5268 000e            ADD.W #$00000001,(A0, $000e) == $00000112
+00f83024 :   4cdf 0303            MVMEL.L #$0303,(A7)+
+00f83028 :   6000 f81a            BT .W #$f81a
+00f8302c : * 33fc 4000 00df f09a  MOVE.W #$4000,$00dff09a
+00f83034 :   2e1f                 MOVE.L (A7)+,D7
+00f83036 :   08c7 001f            BSET.L #$001f,D7
+00f8303a :   6008                 BT .B #$00000008
+00f8303c :   33fc 4000 00df f09a  MOVE.W #$4000,$00dff09a
+00f83044 :   48e7 c0c6            MVMLE.L #$c0c6,-(A7)
+00f83048 :   2a4f                 MOVEA.L A7,A5
+00f8304a :   203c 4845 4c50       MOVE.L #$48454c50,D0
+00f83050 :   b0b8 0000            CMP.L $00000000,D0
+Name: "unusual-suspects.exe"
+
+Enforcer Hit! Bad program
+Illegal LONG WRITE to: 00000020                 PC: f8302c
+Data: 48454c50 10000010 00f9e986 00f9e99f 00004000 80000003 100cdefc 80000008
+Addr: 00000104 1000e870 00f8302c 100cbe18 100b6194 10002260 10000804 10002260
+Stck: 10000010 00000104 1000e870 100cbe18 10000804 001000f8 30ea0020 00000019
+Stck: 73766e5f 64656d6f 2d746861 6e6b732d 616e6479 000a2644 00000000 00000000
+Stck: 00000000 10009c88 100022fc ffea0000 0018000e 80148001 80451003 40840000
+Stck: 00000000 00001000 9c880000 00000000 00000000 00000002 00000000 00000000
+Stck: 00000000 00000000 00000000 00000000 00000000 10009c88 1000264c ffd30000
+----> 00f8302c - "ROM - exec 39.47 (28.8.92)" Hunk 0000 Offset 00002f72
+----> 00ff0678 - "ROM - wb 39.48 (20.8.92)" Hunk 0000 Offset 00001eb8
+----> 00ff0580 - "ROM - wb 39.48 (20.8.92)" Hunk 0000 Offset 00001dc0
+----> 10089eca - "FONTS:XEN/11" Hunk 0000 Offset 0000003a
+----> 10088b1a - "FONTS:XHelvetica/11" Hunk 0000 Offset 0000003a
+00f83010 :   6100 e866            BSR.W #$e866
+00f83014 :   7010                 MOVE.L #$00000010,D0
+00f83016 :   4eae fec2            JSR.L (A6, -$013e) == $100006c6
+00f8301a :   4fef 000c            LEA.L (A7, $000c) == $1000226c,A7
+00f8301e :   6004                 BT .B #$00000004
+00f83020 :   5268 000e            ADD.W #$00000001,(A0, $000e) == $00000112
+00f83024 :   4cdf 0303            MVMEL.L #$0303,(A7)+
+00f83028 :   6000 f81a            BT .W #$f81a
+00f8302c : * 33fc 4000 00df f09a  MOVE.W #$4000,$00dff09a
+00f83034 :   2e1f                 MOVE.L (A7)+,D7
+00f83036 :   08c7 001f            BSET.L #$001f,D7
+00f8303a :   6008                 BT .B #$00000008
+00f8303c :   33fc 4000 00df f09a  MOVE.W #$4000,$00dff09a
+00f83044 :   48e7 c0c6            MVMLE.L #$c0c6,-(A7)
+00f83048 :   2a4f                 MOVEA.L A7,A5
+00f8304a :   203c 4845 4c50       MOVE.L #$48454c50,D0
+00f83050 :   b0b8 0000            CMP.L $00000000,D0
+Name: "unusual-suspects.exe"
+
