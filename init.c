@@ -165,7 +165,7 @@ BOOL Init16ColorsScreen(void)
 
   /* Close screen */
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, (prev_screen_depth * 384) >> 3, SCR_HEIGHT);
+  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
   return (TRUE);
 }
@@ -232,7 +232,7 @@ BOOL Init32ColorsScreen(void)
 
   /* Close screen */
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, (prev_screen_depth * 384) >> 3, SCR_HEIGHT);
+  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
   return (TRUE);
 }
@@ -302,7 +302,7 @@ BOOL InitEHBScreen(void)
 
   /* Close previous screen */
   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, (prev_screen_depth * 384) >> 3, SCR_HEIGHT);
+  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
 
   return (TRUE);
 }
@@ -311,7 +311,7 @@ void init_close_video(void)
 {
   /* Close screen */
   if (mainScreen) CloseScreen(mainScreen);
-  if (theRaster) FreeRaster(theRaster, (current_screen_depth * 384) >> 3, SCR_HEIGHT);
+  if (theRaster) FreeRaster(theRaster, current_screen_depth * 384, SCR_HEIGHT);
 }
 
 /* Close all global resources opened */

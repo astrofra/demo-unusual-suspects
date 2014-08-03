@@ -24,7 +24,7 @@ extern UWORD pal7[16];
 
 extern UWORD gradientPaletteRGB4[16];
 
-extern UWORD demo_title_PaletteRGB4[16];
+extern UWORD demo_title_PaletteRGB4[32];
 
 extern UWORD face_all_topPaletteRGB4[32];
 

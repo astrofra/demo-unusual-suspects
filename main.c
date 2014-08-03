@@ -1,4 +1,4 @@
-/*  
+/*
     Unusual Suspects 
     Main program 
 */
@@ -48,7 +48,7 @@
 #include "font_routines.h"
 #include "demo_strings.h"
 
-static void disp_fade_in(UWORD *fadeto);
+static void disp_fade_in(UWORD *fadeto, SHORT pal_len);
 static void disp_fade_out(UWORD *fadeFrom);
 static void disp_fade_setpalette(void);
 void disp_clear(struct RastPort *rp);
@@ -108,7 +108,7 @@ long  frame = 0,
 
 /* Palettes */
 UWORD incr[16][3];
-UWORD col[16][3];
+UWORD col[32][3];
 
 /***** Global functions & data *****/
 extern struct Library *SysBase;
@@ -412,7 +412,7 @@ int main(void)
   /*
     Load common assets
   */
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 40 * 4 * 256, 320, 256, 4);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
 
   mod = load_getmem((UBYTE *)"assets/module.bin", 83488);
   theMod = PTSetupMod((APTR)mod);
@@ -426,10 +426,9 @@ int main(void)
   Init32ColorsScreen();
   full_clear(NULL);
 
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 140, 0, (256 - 140) / 2);
 
-  fVBLDelay(50);
-  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4, 32);
   FREE_BITMAP(bitmap_tmp);
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
@@ -449,7 +448,7 @@ int main(void)
   SequenceDisplaySuspectProfile(0);
   fVBLDelay(100);
 
-  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4, 16);
   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
@@ -458,7 +457,7 @@ int main(void)
   SequenceDisplaySuspectProfile(1);
   fVBLDelay(100);
 
-  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4, 16);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
   Sequence3DRotation(5);
 
@@ -467,7 +466,7 @@ int main(void)
   SequenceDisplaySuspectProfile(2);
   fVBLDelay(100);
 
-  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4, 16);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
   Sequence3DRotation(5);
 
@@ -476,7 +475,7 @@ int main(void)
   SequenceDisplaySuspectProfile(3);
   fVBLDelay(100);
 
-  disp_fade_in(demo_title_PaletteRGB4);
+  disp_fade_in(demo_title_PaletteRGB4, 16);
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
   Sequence3DRotation(5);
 
@@ -601,13 +600,12 @@ int main(void)
 /*********** FADER ***************/
 
 /* Fade palette from all black to specified colors */
-static void disp_fade_in(UWORD *fadeto)
+static void disp_fade_in(UWORD *fadeto, SHORT pal_len)
 {
   SHORT i, p;
-  
 
   for (i = 0; i < 3; i ++)
-    for (p = 0; p < 16; p ++)
+    for (p = 0; p < pal_len; p ++)
       col[p][i] = 0;
 
   for (i = 0; i < 16; i ++)
@@ -620,7 +618,7 @@ static void disp_fade_in(UWORD *fadeto)
   disp_fade_setpalette();
   for (i = 1; i < 16; i ++)
   {
-    for (p = 0; p < 16; p ++)
+    for (p = 0; p < pal_len; p ++)
     {
       col[p][0] += incr[p][0];
       col[p][1] += incr[p][1];
@@ -628,16 +626,16 @@ static void disp_fade_in(UWORD *fadeto)
     }
 
     WaitTOF();
-    WaitTOF();
-    WaitTOF();
+    // WaitTOF();
+    // WaitTOF();
     disp_fade_setpalette();
     sys_check_abort();
   }
 
   WaitTOF();
-  WaitTOF();
-  WaitTOF();
-  LoadRGB4(mainVP, fadeto, 16);
+  // WaitTOF();
+  // WaitTOF();
+  LoadRGB4(mainVP, fadeto, pal_len);
 }
 
 /* Fade palette from colors to all black */
@@ -859,7 +857,7 @@ void writer_doit(UBYTE *wrText)
     x = 0;
   }
 
-  disp_fade_in(pal1);
+  disp_fade_in(pal1, 16);
   fVBLDelay(400);
   disp_fade_out(pal1);
 }
@@ -920,7 +918,7 @@ void scroll_doit(void)
   // disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
   currChar = scrText;
 
-  disp_fade_in(gradientPaletteRGB4); //pal5);
+  disp_fade_in(gradientPaletteRGB4, 16); //pal5);
   fVBLDelay(100);
   
   while (*currChar)
