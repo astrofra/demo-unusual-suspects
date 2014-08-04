@@ -49,8 +49,8 @@
 #include "demo_strings.h"
 
 static void disp_fade_in(UWORD *fadeto, SHORT pal_len);
-static void disp_fade_out(UWORD *fadeFrom);
-static void disp_fade_setpalette(void);
+static void disp_fade_out(UWORD *fadeFrom, SHORT pal_len);
+static void disp_fade_setpalette(SHORT pal_len);
 void disp_clear(struct RastPort *rp);
 void disp_clear_bb_only(struct RastPort *rp);
 void full_clear(struct RastPort *rp);
@@ -107,7 +107,7 @@ long  frame = 0,
       frameOffset = 0;
 
 /* Palettes */
-UWORD incr[16][3];
+UWORD incr[32][3];
 UWORD col[32][3];
 
 /***** Global functions & data *****/
@@ -544,7 +544,7 @@ int main(void)
   SequenceDisplaySuspectProfile(16);
   fVBLDelay(10);              
 
-  disp_fade_out(pal7);
+  disp_fade_out(pal7, 16);
   reset_disp_swap();
   disp_clear(NULL);
 
@@ -608,14 +608,15 @@ static void disp_fade_in(UWORD *fadeto, SHORT pal_len)
     for (p = 0; p < pal_len; p ++)
       col[p][i] = 0;
 
-  for (i = 0; i < 16; i ++)
+  for (i = 0; i < pal_len; i ++)
   {
     incr[i][0] = ((fadeto[i] << 4) & 0xf000) / 15;
     incr[i][1] = ((fadeto[i] << 8) & 0xf000) / 15;
     incr[i][2] = ((fadeto[i] << 12) & 0xf000) / 15;
   }
 
-  disp_fade_setpalette();
+  disp_fade_setpalette(pal_len);
+
   for (i = 1; i < 16; i ++)
   {
     for (p = 0; p < pal_len; p ++)
@@ -626,24 +627,22 @@ static void disp_fade_in(UWORD *fadeto, SHORT pal_len)
     }
 
     WaitTOF();
-    // WaitTOF();
-    // WaitTOF();
-    disp_fade_setpalette();
+    disp_fade_setpalette(pal_len);
+
     sys_check_abort();
   }
 
   WaitTOF();
-  // WaitTOF();
-  // WaitTOF();
+
   LoadRGB4(mainVP, fadeto, pal_len);
 }
 
 /* Fade palette from colors to all black */
-static void disp_fade_out(UWORD *fadeFrom)
+static void disp_fade_out(UWORD *fadeFrom, SHORT pal_len)
 {
   UWORD i, p;
 
-  for (i = 0; i < 16; i ++)
+  for (i = 0; i < pal_len; i ++)
   {
     col[i][0] = (fadeFrom[i] & 0x0f00) << 4;
     col[i][1] = (fadeFrom[i] & 0x00f0) << 8;
@@ -662,24 +661,23 @@ static void disp_fade_out(UWORD *fadeFrom)
       col[p][2] -= incr[p][2];
     }
     WaitTOF();
-    WaitTOF();
-    WaitTOF();
-    disp_fade_setpalette();
+    disp_fade_setpalette(pal_len);
+
     sys_check_abort();
   }
+
   WaitTOF();
-  WaitTOF();
-  WaitTOF();
-  for (i = 0; i < 16; i ++)
+
+  for (i = 0; i < pal_len; i ++)
     SetRGB4(mainVP, i, 0, 0, 0);
 }
 
 /* Set palette registers to currents colors while fading */
-static void disp_fade_setpalette(void)
+static void disp_fade_setpalette(SHORT pal_len)
 {
-  UWORD i, temp, pal[16];
+  UWORD i, temp, pal[32];
 
-  for (i = 0; i < 16; i ++)
+  for (i = 0; i < pal_len; i ++)
   {
     pal[i] = (col[i][0] & 0xf000) >> 4;
     temp = (col[i][1] & 0xf000) >> 8;
@@ -687,7 +685,7 @@ static void disp_fade_setpalette(void)
     temp = (col[i][2] & 0xf000) >> 12;
     pal[i] |= temp;
   }
-  LoadRGB4(mainVP, pal, 16);
+  LoadRGB4(mainVP, pal, pal_len);
 }
 
 /***************** DISPLAY SUPPORT ********************/
@@ -859,7 +857,7 @@ void writer_doit(UBYTE *wrText)
 
   disp_fade_in(pal1, 16);
   fVBLDelay(400);
-  disp_fade_out(pal1);
+  disp_fade_out(pal1, 16);
 }
 
 /**************** SCROLLTEXT *********************/
@@ -940,7 +938,7 @@ void scroll_doit(void)
     sys_check_abort();
   }
 
-  disp_fade_out(gradientPaletteRGB4); //pal5);  
+  disp_fade_out(gradientPaletteRGB4, 16); //pal5);  
   // FreeMem(font, 80 * 256);
   // FreeMem(pic, 40 * 256 * 4);
 }
