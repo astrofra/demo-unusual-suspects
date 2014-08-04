@@ -115,7 +115,7 @@ extern struct Library *SysBase;
 struct Task *myTask;
 BYTE oldPri;
 PLANEPTR pic;
-UBYTE *mod;
+UBYTE *mod = NULL;
 
 struct BitMap *bitmap_background,
               *bitmap_tmp,
@@ -250,9 +250,13 @@ void WriteMsg(char *errMsg)
 void  ForceDemoClose(void)
 {
   /*  Free the audio module */
-  PTStop(theMod);
-  PTFreeMod(theMod);
-  FreeMem(mod, 83488);
+
+  if (mod != NULL)
+  {
+    PTStop(theMod);
+    PTFreeMod(theMod);
+    FreeMem(mod, 83488);
+  }
 
   /* Free the transformed vertex buffer */
   Delete3DVertexList();
@@ -429,6 +433,7 @@ int main(void)
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 140, 0, (256 - 140) / 2);
 
   disp_fade_in(demo_title_PaletteRGB4, 32);
+  LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
   FREE_BITMAP(bitmap_tmp);
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
@@ -592,7 +597,7 @@ int main(void)
   //                       "syncing töntro#"
   //                       "Coded in pure C!!!#");
   
-  // /* Close opened resources */
+  /* Close opened resources */
   ForceDemoClose();
   return (0);
 }
@@ -697,7 +702,7 @@ void disp_clear(struct RastPort *rp)
     rp = &theRP;
 
   SetAPen(rp, 0);
-  RectFill(rp, 0, frameOffset, 320, frameOffset + 256);
+  RectFill(rp, 0, frameOffset, 320 - 1, frameOffset + (SCR_HEIGHT / 2) - 1);
 }
 
 void init_clear_bb(void)
@@ -718,7 +723,6 @@ void disp_clear_bb_only(struct RastPort *rp)
       rp = &theRP;
 
     SetAPen(rp, 0);
-    // RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
     RectFill(rp, drawn_min_x, drawn_min_y + frameOffset, drawn_max_x, drawn_max_y + frameOffset);
   }
 }
@@ -728,8 +732,9 @@ void full_clear(struct RastPort *rp)
   if (rp == NULL)
     rp = &theRP;
 
-  SetAPen(rp, 0);
-  RectFill(rp, 0, 0, 320, SCR_HEIGHT);
+  SetRast(rp, 0);
+  // SetAPen(rp, 0);
+  // RectFill(rp, 0, 0, 320 - 1, SCR_HEIGHT - 1);
 }
 
 void reset_disp_swap(void)
