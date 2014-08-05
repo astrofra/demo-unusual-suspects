@@ -58,6 +58,7 @@ void init_clear_bb(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 
+void SequenceDemoTitle(void);
 void Sequence3DRotation(int duration_sec);
 void SequenceDisplaySuspectProfile(int suspect);
 void dots_doit(UWORD *pal);
@@ -261,7 +262,7 @@ void  ForceDemoClose(void)
   /* Free the transformed vertex buffer */
   Delete3DVertexList();
 
-  Permit();
+  // Permit();
   SetTaskPri(myTask, oldPri);
 
   /*  Close the keyboard device */
@@ -411,7 +412,7 @@ int main(void)
 
   myTask = FindTask(NULL);
   oldPri = SetTaskPri(myTask, 127);
-  Forbid();
+  // Forbid();
 
   /*
     Load common assets
@@ -430,11 +431,7 @@ int main(void)
   Init32ColorsScreen();
   full_clear(NULL);
 
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 140, 0, (256 - 140) / 2);
-
-  disp_fade_in(demo_title_PaletteRGB4, 32);
-  LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
-  FREE_BITMAP(bitmap_tmp);
+  SequenceDemoTitle();
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
@@ -948,6 +945,30 @@ void scroll_doit(void)
   // FreeMem(pic, 40 * 256 * 4);
 }
 
+void SequenceDemoTitle(void)
+{
+  int i, j;
+
+  LoadRGB4(mainVP, whitePaletteRGB4, 32);
+
+  SetAPen(&theRP, 15);
+
+  for(i = 1, j = 1; i < 70; i += j, j++)
+  {
+    WaitTOF();
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+  }
+
+  WaitTOF();
+  WaitTOF();
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 140, 0, (256 - 140) / 2);
+
+  disp_fade_in(demo_title_PaletteRGB4, 32);
+  LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
+  FREE_BITMAP(bitmap_tmp);
+}
+
 void Sequence3DRotation(int duration_sec)
 {
   int abs_frame_idx = 0,
@@ -1071,6 +1092,9 @@ void SequenceDisplaySuspectProfile(int suspect_index)
     WaitTOF();
     ModuleGetSyncValue();
   }
+
+  WaitTOF();
+  disp_fade_in(blackPaletteRGB4, 32);
 
   disp_clear(NULL);
 }
