@@ -1,0 +1,295 @@
+SAS AMIGA 680x0OBJ Module Disassembler 6.57
+Copyright © 1995 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_load_getmem 0000-00    _load_as_bitmap 006C-00    
+_disp_interleaved_st_format 0118-00
+
+SECTION 00 "text" 00000248 BYTES
+;   1: /*  
+;   2:     Unusual Suspects 
+;   3:     Misc bitmap routines 
+;   4: */
+;   5: 
+;   6: #include "includes.prl"
+;   7: #include "common.h"
+;   8: 
+;   9: extern struct DosLibrary *DOSBase;
+;  10: extern struct GfxBase *GfxBase;
+;  11: 
+;  12: // extern struct BitMap theBitMap;
+;  13: 
+;  14: /*
+;  15:   Image loading 
+;  16: */
+;  17: 
+;  18: PLANEPTR load_getmem(UBYTE *name, ULONG size)
+       | 0000  200F                           MOVE.L      A7,D0
+       | 0002  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 0008  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 000E  6406                           BCC.B       0016
+       | 0010  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0016  48E7 3202                      MOVEM.L     D2-D3/D6/A6,-(A7)
+       | 001A  262F 0018                      MOVE.L      0018(A7),D3
+;  19: {
+;  20:   BPTR fileHandle;
+;  21:   PLANEPTR mem;
+;  22: 
+;  23:   if (!(fileHandle = Open(name, MODE_OLDFILE)))
+       | 001E  222F 0014                      MOVE.L      0014(A7),D1
+       | 0022  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 0028  243C 0000 03ED                 MOVE.L      #000003ED,D2
+       | 002E  4EAE FFE2                      JSR         FFE2(A6)
+       | 0032  2C00                           MOVE.L      D0,D6
+       | 0034  6604                           BNE.B       003A
+;  24:     return (NULL);
+       | 0036  7000                           MOVEQ       #00,D0
+       | 0038  602C                           BRA.B       0066
+;  25: 
+;  26:   if (!(mem = AllocMem(size, MEMF_CHIP)))
+       | 003A  2003                           MOVE.L      D3,D0
+       | 003C  7202                           MOVEQ       #02,D1
+       | 003E  2C78 0004                      MOVEA.L     0004,A6
+       | 0042  4EAE FF3A                      JSR         FF3A(A6)
+       | 0046  2040                           MOVEA.L     D0,A0
+       | 0048  4A80                           TST.L       D0
+       | 004A  6604                           BNE.B       0050
+;  27:     return (NULL);
+       | 004C  7000                           MOVEQ       #00,D0
+       | 004E  6016                           BRA.B       0066
+;  28: 
+;  29:   Read(fileHandle, mem, size);
+       | 0050  2206                           MOVE.L      D6,D1
+       | 0052  2408                           MOVE.L      A0,D2
+       | 0054  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 005A  4EAE FFD6                      JSR         FFD6(A6)
+;  30:   Close(fileHandle);
+       | 005E  2206                           MOVE.L      D6,D1
+       | 0060  4EAE FFDC                      JSR         FFDC(A6)
+;  31: 
+;  32:   return (mem);
+       | 0064  2002                           MOVE.L      D2,D0
+       | 0066  4CDF 404C                      MOVEM.L     (A7)+,D2-D3/D6/A6
+       | 006A  4E75                           RTS
+;  33: }
+;  34: 
+;  35: struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD height, UWORD depth)
+       | 006C  200F                           MOVE.L      A7,D0
+       | 006E  90BC 0000 0018                 SUB.L       #00000018,D0
+       | 0074  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 007A  6406                           BCC.B       0082
+       | 007C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0082  594F                           SUBQ.W      #4,A7
+       | 0084  48E7 3F16                      MOVEM.L     D2-D7/A3/A5-A6,-(A7)
+       | 0088  3C2F 003E                      MOVE.W      003E(A7),D6
+       | 008C  2E2F 0030                      MOVE.L      0030(A7),D7
+;  36: {
+;  37:   BPTR fileHandle;
+;  38:   struct BitMap *new_bitmap;
+;  39:   int i;
+;  40: 
+;  41:   if (!(fileHandle = Open(name, MODE_OLDFILE)))
+       | 0090  222F 002C                      MOVE.L      002C(A7),D1
+       | 0094  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 009A  243C 0000 03ED                 MOVE.L      #000003ED,D2
+       | 00A0  4EAE FFE2                      JSR         FFE2(A6)
+       | 00A4  2A00                           MOVE.L      D0,D5
+;  42:     return (NULL);
+       | 00A6  9BCD                           SUBA.L      A5,A5
+       | 00A8  6764                           BEQ.B       010E
+;  43: 
+;  44:   new_bitmap = AllocBitMap(width, height, depth, BMF_STANDARD, NULL);
+       | 00AA  7000                           MOVEQ       #00,D0
+       | 00AC  302F 0036                      MOVE.W      0036(A7),D0
+       | 00B0  7200                           MOVEQ       #00,D1
+       | 00B2  322F 003A                      MOVE.W      003A(A7),D1
+       | 00B6  7400                           MOVEQ       #00,D2
+       | 00B8  3406                           MOVE.W      D6,D2
+       | 00BA  204D                           MOVEA.L     A5,A0
+       | 00BC  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 00C2  7608                           MOVEQ       #08,D3
+       | 00C4  4EAE FC6A                      JSR         FC6A(A6)
+       | 00C8  2A40                           MOVEA.L     D0,A5
+;  45: 
+;  46:   // printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, &Planes = %p, byte_size = %i, \n",
+;  47:   //       (*new_bitmap).BytesPerRow,
+;  48:   //       (*new_bitmap).Rows,
+;  49:   //       (*new_bitmap).Depth,
+;  50:   //       (int)(*new_bitmap).pad,
+;  51:   //       (*new_bitmap).Planes,
+;  52:   //       byte_size);
+;  53: 
+;  54:   for (i = 0; i < depth; i++)
+       | 00CA  7800                           MOVEQ       #00,D4
+       | 00CC  2640                           MOVEA.L     D0,A3
+       | 00CE  602A                           BRA.B       00FA
+;  55:     Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
+       | 00D0  7000                           MOVEQ       #00,D0
+       | 00D2  3006                           MOVE.W      D6,D0
+       | 00D4  2F40 0024                      MOVE.L      D0,0024(A7)
+       | 00D8  2007                           MOVE.L      D7,D0
+       | 00DA  222F 0024                      MOVE.L      0024(A7),D1
+       | 00DE  4EB9  0000 0000-XX             JSR         __CXD22
+       | 00E4  2600                           MOVE.L      D0,D3
+       | 00E6  2205                           MOVE.L      D5,D1
+       | 00E8  242B 0008                      MOVE.L      0008(A3),D2
+       | 00EC  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 00F2  4EAE FFD6                      JSR         FFD6(A6)
+       | 00F6  5284                           ADDQ.L      #1,D4
+       | 00F8  588B                           ADDQ.L      #4,A3
+       | 00FA  7000                           MOVEQ       #00,D0
+       | 00FC  3006                           MOVE.W      D6,D0
+       | 00FE  B880                           CMP.L       D0,D4
+       | 0100  6DCE                           BLT.B       00D0
+;  56:   Close(fileHandle);
+       | 0102  2205                           MOVE.L      D5,D1
+       | 0104  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 010A  4EAE FFDC                      JSR         FFDC(A6)
+;  57: 
+;  58:   return (new_bitmap);
+       | 010E  200D                           MOVE.L      A5,D0
+       | 0110  4CDF 68FC                      MOVEM.L     (A7)+,D2-D7/A3/A5-A6
+       | 0114  584F                           ADDQ.W      #4,A7
+       | 0116  4E75                           RTS
+;  59: }
+;  60: 
+;  61: void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth)
+       | 0118  200F                           MOVE.L      A7,D0
+       | 011A  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 0120  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0126  6406                           BCC.B       012E
+       | 0128  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 012E  9EFC 000C                      SUBA.W      #000C,A7
+       | 0132  48E7 3F34                      MOVEM.L     D2-D7/A2-A3/A5,-(A7)
+       | 0136  266F 0038                      MOVEA.L     0038(A7),A3
+       | 013A  2A6F 0034                      MOVEA.L     0034(A7),A5
+;  62: {
+;  63:   PLANEPTR src, dest;
+;  64:   UWORD i, j, k;
+;  65:   UWORD x_byte, width_byte;
+;  66: 
+;  67:   while(width != ((width >> 4) << 4))
+       | 013E  6004                           BRA.B       0144
+;  68:     width++;
+       | 0140  526F 003E                      ADDQ.W      #1,003E(A7)
+       | 0144  302F 003E                      MOVE.W      003E(A7),D0
+       | 0148  2200                           MOVE.L      D0,D1
+       | 014A  E849                           LSR.W       #4,D1
+       | 014C  7400                           MOVEQ       #00,D2
+       | 014E  3401                           MOVE.W      D1,D2
+       | 0150  E982                           ASL.L       #4,D2
+       | 0152  7200                           MOVEQ       #00,D1
+       | 0154  3200                           MOVE.W      D0,D1
+       | 0156  B282                           CMP.L       D2,D1
+       | 0158  66E6                           BNE.B       0140
+;  69: 
+;  70:   x_byte = x >> 3;
+       | 015A  302F 004A                      MOVE.W      004A(A7),D0
+       | 015E  E648                           LSR.W       #3,D0
+;  71:   width_byte = width >> 3;
+       | 0160  322F 003E                      MOVE.W      003E(A7),D1
+       | 0164  E649                           LSR.W       #3,D1
+;  72: 
+;  73:   src = data;
+;  74:   for (i = 0; i < height; i ++)
+       | 0166  426F 002E                      CLR.W       002E(A7)
+       | 016A  342F 004E                      MOVE.W      004E(A7),D2
+       | 016E  4842                           SWAP        D2
+       | 0170  4242                           CLR.W       D2
+       | 0172  4842                           SWAP        D2
+       | 0174  2E02                           MOVE.L      D2,D7
+       | 0176  DE87                           ADD.L       D7,D7
+       | 0178  DE82                           ADD.L       D2,D7
+       | 017A  E987                           ASL.L       #4,D7
+       | 017C  3F40 0026                      MOVE.W      D0,0026(A7)
+       | 0180  3F41 0024                      MOVE.W      D1,0024(A7)
+       | 0184  6000 00AA                      BRA.W       0230
+;  75:   {
+;  76:     for (k = 0; k < depth; k ++)
+       | 0188  426F 002A                      CLR.W       002A(A7)
+       | 018C  7000                           MOVEQ       #00,D0
+       | 018E  302F 0052                      MOVE.W      0052(A7),D0
+       | 0192  7200                           MOVEQ       #00,D1
+       | 0194  322F 0046                      MOVE.W      0046(A7),D1
+       | 0198  7400                           MOVEQ       #00,D2
+       | 019A  342F 002E                      MOVE.W      002E(A7),D2
+       | 019E  2602                           MOVE.L      D2,D3
+       | 01A0  D681                           ADD.L       D1,D3
+       | 01A2  2203                           MOVE.L      D3,D1
+       | 01A4  E581                           ASL.L       #2,D1
+       | 01A6  D283                           ADD.L       D3,D1
+       | 01A8  E781                           ASL.L       #3,D1
+       | 01AA  4EB9  0000 0000-XX             JSR         __CXM33
+       | 01B0  2C00                           MOVE.L      D0,D6
+       | 01B2  4842                           SWAP        D2
+       | 01B4  4242                           CLR.W       D2
+       | 01B6  4842                           SWAP        D2
+       | 01B8  2002                           MOVE.L      D2,D0
+       | 01BA  D080                           ADD.L       D0,D0
+       | 01BC  D082                           ADD.L       D2,D0
+       | 01BE  E980                           ASL.L       #4,D0
+       | 01C0  2A00                           MOVE.L      D0,D5
+       | 01C2  605E                           BRA.B       0222
+;  77:     {
+;  78:       for (j = 0; j < width_byte; j ++)
+       | 01C4  426F 002C                      CLR.W       002C(A7)
+       | 01C8  302F 002A                      MOVE.W      002A(A7),D0
+       | 01CC  4840                           SWAP        D0
+       | 01CE  4240                           CLR.W       D0
+       | 01D0  4840                           SWAP        D0
+       | 01D2  2800                           MOVE.L      D0,D4
+       | 01D4  E584                           ASL.L       #2,D4
+       | 01D6  D880                           ADD.L       D0,D4
+       | 01D8  E784                           ASL.L       #3,D4
+       | 01DA  4840                           SWAP        D0
+       | 01DC  4240                           CLR.W       D0
+       | 01DE  4840                           SWAP        D0
+       | 01E0  2200                           MOVE.L      D0,D1
+       | 01E2  E581                           ASL.L       #2,D1
+       | 01E4  244B                           MOVEA.L     A3,A2
+       | 01E6  D5C1                           ADDA.L      D1,A2
+       | 01E8  602A                           BRA.B       0214
+;  79:       {
+;  80:         src = data + (j + (i + src_y) * 40 * depth) + (k * 40);
+;  81:         dest = (*dest_BitMap).Planes[k] + j + x_byte + (48 * i) + 48 * y;
+       | 01EA  206A 0008                      MOVEA.L     0008(A2),A0
+       | 01EE  7000                           MOVEQ       #00,D0
+       | 01F0  302F 002C                      MOVE.W      002C(A7),D0
+       | 01F4  D1C0                           ADDA.L      D0,A0
+       | 01F6  7200                           MOVEQ       #00,D1
+       | 01F8  3200                           MOVE.W      D0,D1
+       | 01FA  D286                           ADD.L       D6,D1
+       | 01FC  224D                           MOVEA.L     A5,A1
+       | 01FE  D3C1                           ADDA.L      D1,A1
+;  82: 
+;  83:         *dest = *src;
+       | 0200  7200                           MOVEQ       #00,D1
+       | 0202  322F 0026                      MOVE.W      0026(A7),D1
+       | 0206  D1C1                           ADDA.L      D1,A0
+       | 0208  D1C5                           ADDA.L      D5,A0
+       | 020A  11B1 4800 7800                 MOVE.B      00(A1,D4.L),00(A0,D7.L)
+       | 0210  526F 002C                      ADDQ.W      #1,002C(A7)
+       | 0214  302F 002C                      MOVE.W      002C(A7),D0
+       | 0218  B06F 0024                      CMP.W       0024(A7),D0
+       | 021C  65CC                           BCS.B       01EA
+       | 021E  526F 002A                      ADDQ.W      #1,002A(A7)
+       | 0222  302F 002A                      MOVE.W      002A(A7),D0
+       | 0226  B06F 0052                      CMP.W       0052(A7),D0
+       | 022A  6598                           BCS.B       01C4
+       | 022C  526F 002E                      ADDQ.W      #1,002E(A7)
+       | 0230  302F 002E                      MOVE.W      002E(A7),D0
+       | 0234  B06F 0042                      CMP.W       0042(A7),D0
+       | 0238  6500 FF4E                      BCS.W       0188
+;  84:       }
+;  85:     }
+;  86:   }
+;  87: }**END OF SOURCE FILE
+       | 023C  4CDF 2CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5
+       | 0240  DEFC 000C                      ADDA.W      #000C,A7
+       | 0244  4E75                           RTS
+       | 0246  4E71                           NOP

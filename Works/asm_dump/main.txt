@@ -1,0 +1,3108 @@
+SAS AMIGA 680x0OBJ Module Disassembler 6.57
+Copyright © 1995 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_InitTimerDevice 0000-00    _TimeInitGClock 005C-00    _GetDeltaTime 0096-00
+_TimeGetGClock 0100-00    _DispatchFX 0144-00    _ModuleGetSyncValue 0156-00
+_filter_on 01C8-00    _filter_off 01E2-00    _WriteMsg 01FC-00    
+_ForceDemoClose 023E-00    _sys_check_abort 0382-00    _fVBLDelay 03E8-00    
+_InitKeyboard 042A-00    _ColorMakeLighter 04B8-00    _ColorMakeDarker 052A-00
+_main 05A4-00    _disp_clear 1036-00    _init_clear_bb 1090-00    
+_disp_clear_bb_only 10C2-00    _full_clear 112E-00    _reset_disp_swap 117C-00
+_disp_swap 11B8-00    _dots_doit 1204-00    _writer_doit 138C-00    
+_scroll_doit 14E4-00    _Sequence3DRotation 162E-00    
+_SequenceDisplaySuspectProfile 1714-00    _swapFlag 0000-01    _frame 0002-01
+_frameOffset 0006-01    _drawn_min_x 000A-01    _drawn_min_y 000E-01    
+_drawn_max_x 0012-01    _drawn_max_y 0016-01    _TimerBase 001A-01    
+_dt_time 001E-01    _start_clock 0022-01    _prev_g_clock 0026-01    
+_KeyMP 0028-02    _KeyIO 002C-02    _keyMatrix 0030-02    _theMod 0034-02    
+_incr 0038-02    _col 00F8-02    _myTask 01B8-02    _oldPri 01BC-02    
+_pic 01BE-02    _mod 01C2-02    _bitmap_background 01C6-02    
+_bitmap_tmp 01CA-02    _bitmap_font 01CE-02    _bitmap_font_dark 01D2-02    
+_bitmap_video_noise 01D6-02    _bitmap_next_face 01DA-02    _TimerIoR 01DE-02
+_CLK_P_SEC 01FE-02    _gClock 0202-02    _dispatch_func_ptr 020A-02
+
+SECTION 00 "text" 00001B88 BYTES
+;   1: /*
+;   2:     Unusual Suspects 
+;   3:     Main program 
+;   4: */
+;   5: 
+;   6: #include "includes.prl"
+;   7: 
+;   8: #include <stdio.h>
+;   9: #include <stdlib.h>
+;  10: 
+;  11: #include <exec/types.h>
+;  12: #include <exec/memory.h>
+;  13: #include <exec/libraries.h>
+;  14: #include <dos/dos.h>
+;  15: #include <devices/keyboard.h>
+;  16: #include <intuition/intuition.h>
+;  17: #include <graphics/gfxmacros.h>
+;  18: #include <graphics/copper.h>
+;  19: #include <graphics/videocontrol.h>
+;  20: #include <clib/timer_protos.h>
+;  21: #include <graphics/sprite.h>
+;  22: #include <hardware/custom.h>
+;  23: #include <hardware/dmabits.h>
+;  24: #include <clib/graphics_protos.h>
+;  25: 
+;  26: #include "ptreplay.h"
+;  27: #include "ptreplay_protos.h"
+;  28: #include "ptreplay_pragmas.h"
+;  29: 
+;  30: #include "common.h"
+;  31: #include "protos.h"
+;  32: 
+;  33: #include "Assets/cosine_table.h"
+;  34: #include "Assets/object_cube.h"
+;  35: #include "Assets/object_amiga.h"
+;  36: #include "Assets/object_face_00.h"
+;  37: #include "Assets/object_spiroid.h"
+;  38: 
+;  39: #include "Assets/misc_palettes.h"
+;  40: #include "Assets/faces_palettes.h"
+;  41: #include "Assets/faces_all_palettes.h"
+;  42: #include "Assets/fonts.h"
+;  43: #include "Assets/audio_sync.h"
+;  44: 
+;  45: #include "3d_routines.h"
+;  46: #include "bitmap_routines.h"
+;  47: #include "copper_routines.h"
+;  48: #include "font_routines.h"
+;  49: #include "demo_strings.h"
+;  50: 
+;  51: static void disp_fade_in(UWORD *fadeto, SHORT pal_len);
+;  52: static void disp_fade_out(UWORD *fadeFrom, SHORT pal_len);
+;  53: static void disp_fade_setpalette(SHORT pal_len);
+;  54: void disp_clear(struct RastPort *rp);
+;  55: void disp_clear_bb_only(struct RastPort *rp);
+;  56: void full_clear(struct RastPort *rp);
+;  57: void init_clear_bb(void);
+;  58: void reset_disp_swap(void);
+;  59: void disp_swap(void);
+;  60: 
+;  61: void Sequence3DRotation(int duration_sec);
+;  62: void SequenceDisplaySuspectProfile(int suspect);
+;  63: void dots_doit(UWORD *pal);
+;  64: void writer_doit(UBYTE *wrText);
+;  65: void scroll_doit(void);
+;  66: void mandel(PLANEPTR scrMem);
+;  67: #pragma regcall(mandel(a0))
+;  68: 
+;  69: extern struct BitMap theBitMap;
+;  70: extern struct BitMap theBitMap_4bpl;
+;  71: extern struct BitMap theBitMap_3bpl;
+;  72: extern struct BitMap theBitMap_2bpl;
+;  73: extern struct BitMap theBitMap_1bpl;
+;  74: extern struct RastPort theRP;
+;  75: extern struct RastPort theRP_3bpl;
+;  76: extern struct RastPort theRP_2bpl;
+;  77: extern struct RastPort theRP_1bpl;
+;  78: 
+;  79: extern struct Custom custom;
+;  80: extern struct CIA ciaa, ciab;
+;  81: extern PLANEPTR theRaster;
+;  82: extern struct Screen *mainScreen;
+;  83: extern struct DosLibrary *DOSBase;
+;  84: extern struct GfxBase *GfxBase;
+;  85: extern struct IntuitionBase *IntuitionBase;
+;  86: extern struct Library *PTReplayBase;
+;  87: extern struct ViewPort *mainVP;
+;  88: 
+;  89: extern struct obj_3d o;
+;  90: extern int *verts_tr;
+;  91: 
+;  92: #define DEBUG_CONSOLE_ENABLED 0
+;  93: 
+;  94: /* Keyboard device */
+;  95: struct MsgPort  *KeyMP;         /* Pointer for Message Port */
+;  96: struct IOStdReq *KeyIO;         /* Pointer for I/O request */
+;  97: UBYTE    *keyMatrix;
+;  98: #define KEY_MATRIX_SIZE 16
+;  99: 
+; 100: /* Music */
+; 101: struct Module *theMod;
+; 102: 
+; 103: /* Double Buffer */
+; 104: BOOL  swapFlag = FALSE;
+; 105: 
+; 106: long  frame = 0,
+; 107:       frameOffset = 0;
+; 108: 
+; 109: /* Palettes */
+; 110: UWORD incr[32][3];
+; 111: UWORD col[32][3];
+; 112: 
+; 113: /***** Global functions & data *****/
+; 114: extern struct Library *SysBase;
+; 115: struct Task *myTask;
+; 116: BYTE oldPri;
+; 117: PLANEPTR pic;
+; 118: UBYTE *mod;
+; 119: 
+; 120: struct BitMap *bitmap_background,
+; 121:               *bitmap_tmp,
+; 122:               *bitmap_font,
+; 123:               *bitmap_font_dark,
+; 124:               *bitmap_video_noise,
+; 125:               *bitmap_next_face;
+; 126: 
+; 127: /*  2D bounding box
+; 128:     limits the surface to be cleared
+; 129: */
+; 130: int   drawn_min_x = 512, drawn_min_y = 512,
+; 131:       drawn_max_x = -1, drawn_max_y = -1;
+; 132: 
+; 133: /*
+; 134:   Delta time & g_clock
+; 135: */
+; 136: struct IORequest TimerIoR;
+; 137: struct Device *TimerBase=NULL;
+; 138: ULONG CLK_P_SEC;
+; 139: struct EClockVal gClock;
+; 140: int dt_time = 0;
+; 141: ULONG start_clock = 0;
+; 142: ULONG prev_g_clock = 0;
+; 143: 
+; 144: int InitTimerDevice(void)
+       | 0000  200F                           MOVE.L      A7,D0
+       | 0002  90BC 0000 0010                 SUB.L       #00000010,D0
+       | 0008  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 000E  6406                           BCC.B       0016
+       | 0010  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0016  2F0E                           MOVE.L      A6,-(A7)
+; 145: {
+; 146:   if (OpenDevice(TIMERNAME, UNIT_ECLOCK, &TimerIoR , TR_GETSYSTIME) != 0)
+       | 0018  41F9  0000 002A-01.2           LEA         01.0000002A,A0
+       | 001E  43F9  0000 01DE-02             LEA         02.000001DE,A1
+       | 0024  7002                           MOVEQ       #02,D0
+       | 0026  720A                           MOVEQ       #0A,D1
+       | 0028  2C78 0004                      MOVEA.L     0004,A6
+       | 002C  4EAE FE44                      JSR         FE44(A6)
+       | 0030  4A00                           TST.B       D0
+       | 0032  6718                           BEQ.B       004C
+; 147:   {
+; 148:     printf("Unable to open Timer.device");
+       | 0034  4879  0000 0038-01.2           PEA         01.00000038
+       | 003A  4EB9  0000 0000-XX             JSR         __writes
+       | 0040  584F                           ADDQ.W      #4,A7
+; 149:     TimerBase = 0;
+       | 0042  42B9  0000 001A-01             CLR.L       01.0000001A
+; 150:     return 0;
+       | 0048  7000                           MOVEQ       #00,D0
+       | 004A  600C                           BRA.B       0058
+; 151:   }
+; 152: 
+; 153:   TimerBase = TimerIoR.io_Device;
+       | 004C  23F9  0000 01F2-02   0000 001A-01 MOVE.L   02.000001F2,01.0000001A
+; 154: 
+; 155:   return 1;
+       | 0056  7001                           MOVEQ       #01,D0
+       | 0058  2C5F                           MOVEA.L     (A7)+,A6
+       | 005A  4E75                           RTS
+; 156: }
+; 157: 
+; 158: /*
+; 159:   Sets the start of the global clock.
+; 160: */
+; 161: void TimeInitGClock(void)
+       | 005C  200F                           MOVE.L      A7,D0
+       | 005E  5980                           SUBQ.L      #4,D0
+       | 0060  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0066  6406                           BCC.B       006E
+       | 0068  4EF9  0000 0000-XX             JMP         __XCOVF
+; 162: {
+; 163:   CLK_P_SEC = ReadEClock(&gClock);
+       | 006E  4879  0000 0202-02             PEA         02.00000202
+       | 0074  4EB9  0000 0000-XX             JSR         _ReadEClock
+       | 007A  584F                           ADDQ.W      #4,A7
+       | 007C  23C0  0000 01FE-02             MOVE.L      D0,02.000001FE
+; 164:   start_clock = gClock.ev_lo;
+       | 0082  2039  0000 0206-02             MOVE.L      02.00000206,D0
+       | 0088  23C0  0000 0022-01             MOVE.L      D0,01.00000022
+; 165:   prev_g_clock = start_clock;
+       | 008E  23C0  0000 0026-01             MOVE.L      D0,01.00000026
+; 166: }
+       | 0094  4E75                           RTS
+; 167: 
+; 168: /*
+; 169:   Computes a fixed point 'dt time'.
+; 170: */
+; 171: int GetDeltaTime(void)
+       | 0096  200F                           MOVE.L      A7,D0
+       | 0098  5180                           SUBQ.L      #8,D0
+       | 009A  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 00A0  6406                           BCC.B       00A8
+       | 00A2  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 00A8  594F                           SUBQ.W      #4,A7
+; 172: {
+; 173:   CLK_P_SEC = ReadEClock(&gClock);
+       | 00AA  4879  0000 0202-02             PEA         02.00000202
+       | 00B0  4EB9  0000 0000-XX             JSR         _ReadEClock
+       | 00B6  584F                           ADDQ.W      #4,A7
+       | 00B8  23C0  0000 01FE-02             MOVE.L      D0,02.000001FE
+; 174: 
+; 175:   dt_time = (int)(gClock.ev_lo - prev_g_clock);
+       | 00BE  2239  0000 0206-02             MOVE.L      02.00000206,D1
+       | 00C4  92B9  0000 0026-01             SUB.L       01.00000026,D1
+; 176:   dt_time = ((dt_time << 10) / CLK_P_SEC);
+       | 00CA  E181                           ASL.L       #8,D1
+       | 00CC  E581                           ASL.L       #2,D1
+       | 00CE  2E80                           MOVE.L      D0,(A7)
+       | 00D0  2001                           MOVE.L      D1,D0
+       | 00D2  2217                           MOVE.L      (A7),D1
+       | 00D4  4EB9  0000 0000-XX             JSR         __CXD22
+       | 00DA  23C0  0000 001E-01             MOVE.L      D0,01.0000001E
+; 177: 
+; 178:   if (dt_time < 1)
+       | 00E0  7201                           MOVEQ       #01,D1
+       | 00E2  B081                           CMP.L       D1,D0
+       | 00E4  6C06                           BGE.B       00EC
+; 179:     dt_time = 1;
+       | 00E6  23C1  0000 001E-01             MOVE.L      D1,01.0000001E
+; 180: 
+; 181:   prev_g_clock = gClock.ev_lo;
+       | 00EC  23F9  0000 0206-02   0000 0026-01 MOVE.L   02.00000206,01.00000026
+; 182: 
+; 183:   return dt_time;
+       | 00F6  2039  0000 001E-01             MOVE.L      01.0000001E,D0
+       | 00FC  584F                           ADDQ.W      #4,A7
+       | 00FE  4E75                           RTS
+; 184: }
+; 185: 
+; 186: /*
+; 187:   Returns a fixed point global clock.
+; 188: */
+; 189: ULONG TimeGetGClock(void)
+       | 0100  200F                           MOVE.L      A7,D0
+       | 0102  5980                           SUBQ.L      #4,D0
+       | 0104  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 010A  6406                           BCC.B       0112
+       | 010C  4EF9  0000 0000-XX             JMP         __XCOVF
+; 190: {  
+; 191:   CLK_P_SEC = ReadEClock(&gClock) >> 4;
+       | 0112  4879  0000 0202-02             PEA         02.00000202
+       | 0118  4EB9  0000 0000-XX             JSR         _ReadEClock
+       | 011E  584F                           ADDQ.W      #4,A7
+       | 0120  E888                           LSR.L       #4,D0
+       | 0122  23C0  0000 01FE-02             MOVE.L      D0,02.000001FE
+; 192:   // printf("%i %i\n", gClock.ev_hi, gClock.ev_lo);
+; 193:   return ((gClock.ev_lo - start_clock) << 4) / CLK_P_SEC;
+       | 0128  2039  0000 0206-02             MOVE.L      02.00000206,D0
+       | 012E  90B9  0000 0022-01             SUB.L       01.00000022,D0
+       | 0134  E980                           ASL.L       #4,D0
+       | 0136  2239  0000 01FE-02             MOVE.L      02.000001FE,D1
+       | 013C  4EB9  0000 0000-XX             JSR         __CXD22
+       | 0142  4E75                           RTS
+; 194: }
+; 195: 
+; 196: /*
+; 197:   Dispatch system
+; 198: */
+; 199: int (*dispatch_func_ptr)(int);
+; 200: 
+; 201: int  DispatchFX(void)
+       | 0144  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 014A  6406                           BCC.B       0152
+       | 014C  4EF9  0000 0000-XX             JMP         __XCOVF
+; 202: {
+; 203:   if (dispatch_func_ptr != dispatch_func_ptr)
+; 204:   {
+; 205: 
+; 206:   }
+; 207: 
+; 208:   return(0);
+       | 0152  7000                           MOVEQ       #00,D0
+       | 0154  4E75                           RTS
+; 209: }
+; 210: 
+; 211: /*
+; 212:       Audio sync.
+; 213: */
+; 214: int  ModuleGetSyncValue(void)
+       | 0156  200F                           MOVE.L      A7,D0
+       | 0158  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 015E  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0164  6406                           BCC.B       016C
+       | 0166  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 016C  48E7 3002                      MOVEM.L     D2-D3/A6,-(A7)
+; 215: {
+; 216:   int audio_clock, sync_value;
+; 217:   audio_clock = TimeGetGClock();
+       | 0170  618E                           BSR.B       0100
+; 218:   audio_clock *= AUDIO_SYNC_FREQ;
+       | 0172  2200                           MOVE.L      D0,D1
+       | 0174  E581                           ASL.L       #2,D1
+       | 0176  9280                           SUB.L       D0,D1
+       | 0178  E781                           ASL.L       #3,D1
+       | 017A  D280                           ADD.L       D0,D1
+       | 017C  D281                           ADD.L       D1,D1
+; 219:   audio_clock >>= 8;
+       | 017E  E081                           ASR.L       #8,D1
+; 220: 
+; 221:   while (audio_clock > AUDIO_SYNC_REC_COUNT)
+       | 0180  6006                           BRA.B       0188
+; 222:     audio_clock -= AUDIO_SYNC_REC_COUNT;
+       | 0182  0481 0000 1F05                 SUBI.L      #00001F05,D1
+       | 0188  0C81 0000 1F05                 CMPI.L      #00001F05,D1
+       | 018E  6EF2                           BGT.B       0182
+; 223: 
+; 224:   sync_value = audio_sync[audio_clock];
+       | 0190  41F9  0000 0000-XX.2           LEA         _audio_sync,A0
+; 225: 
+; 226:   SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
+       | 0196  2279  0000 0000-XX             MOVEA.L     _mainScreen,A1
+       | 019C  D2FC 002C                      ADDA.W      #002C,A1
+       | 01A0  7000                           MOVEQ       #00,D0
+       | 01A2  1030 1800                      MOVE.B      00(A0,D1.L),D0
+       | 01A6  EC80                           ASR.L       #6,D0
+       | 01A8  7203                           MOVEQ       #03,D1
+       | 01AA  C280                           AND.L       D0,D1
+       | 01AC  D281                           ADD.L       D1,D1
+       | 01AE  2049                           MOVEA.L     A1,A0
+       | 01B0  2401                           MOVE.L      D1,D2
+       | 01B2  2601                           MOVE.L      D1,D3
+       | 01B4  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 01BA  7000                           MOVEQ       #00,D0
+       | 01BC  4EAE FEE0                      JSR         FEE0(A6)
+; 227: 
+; 228:   return 0;
+       | 01C0  7000                           MOVEQ       #00,D0
+       | 01C2  4CDF 400C                      MOVEM.L     (A7)+,D2-D3/A6
+       | 01C6  4E75                           RTS
+; 229: }
+; 230: 
+; 231: /*Switch on the low-pass filter */
+; 232: void filter_on(void)
+       | 01C8  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 01CE  6406                           BCC.B       01D6
+       | 01D0  4EF9  0000 0000-XX             JMP         __XCOVF
+; 233: {
+; 234:    *((char *)0x0bfe001)&=0xFD;
+       | 01D6  207C 00BF E001                 MOVEA.L     #00BFE001,A0
+       | 01DC  0890 0001                      BCLR        #0001,(A0)
+; 235: }
+       | 01E0  4E75                           RTS
+; 236: 
+; 237: /*Switch off the low-pass filter*/
+; 238: void filter_off(void)
+       | 01E2  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 01E8  6406                           BCC.B       01F0
+       | 01EA  4EF9  0000 0000-XX             JMP         __XCOVF
+; 239: {
+; 240:    *((char *)0x0bfe001)|=0x02;
+       | 01F0  207C 00BF E001                 MOVEA.L     #00BFE001,A0
+       | 01F6  08D0 0001                      BSET        #0001,(A0)
+; 241: }
+       | 01FA  4E75                           RTS
+; 242: 
+; 243: /*Write a message to the CLI*/
+; 244: void WriteMsg(char *errMsg)
+       | 01FC  200F                           MOVE.L      A7,D0
+       | 01FE  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 0204  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 020A  6406                           BCC.B       0212
+       | 020C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0212  48E7 3006                      MOVEM.L     D2-D3/A5-A6,-(A7)
+       | 0216  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 245: {
+; 246:    Write(Output(),errMsg,strlen(errMsg));
+       | 021A  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 0220  4EAE FFC4                      JSR         FFC4(A6)
+       | 0224  204D                           MOVEA.L     A5,A0
+       | 0226  4A18                           TST.B       (A0)+
+       | 0228  66FC                           BNE.B       0226
+       | 022A  5388                           SUBQ.L      #1,A0
+       | 022C  91CD                           SUBA.L      A5,A0
+       | 022E  2608                           MOVE.L      A0,D3
+       | 0230  2200                           MOVE.L      D0,D1
+       | 0232  240D                           MOVE.L      A5,D2
+       | 0234  4EAE FFD0                      JSR         FFD0(A6)
+; 247: }
+       | 0238  4CDF 600C                      MOVEM.L     (A7)+,D2-D3/A5-A6
+       | 023C  4E75                           RTS
+; 248: 
+; 249: /*  Demo exits  */
+; 250: void  ForceDemoClose(void)
+       | 023E  200F                           MOVE.L      A7,D0
+       | 0240  5180                           SUBQ.L      #8,D0
+       | 0242  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0248  6406                           BCC.B       0250
+       | 024A  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0250  2F0E                           MOVE.L      A6,-(A7)
+; 251: {
+; 252:   /*  Free the audio module */
+; 253:   PTStop(theMod);
+       | 0252  2079  0000 0034-02             MOVEA.L     02.00000034,A0
+       | 0258  2C79  0000 0000-XX             MOVEA.L     _PTReplayBase,A6
+       | 025E  4EAE FFD0                      JSR         FFD0(A6)
+; 254:   PTFreeMod(theMod);
+       | 0262  2079  0000 0034-02             MOVEA.L     02.00000034,A0
+       | 0268  4EAE FF88                      JSR         FF88(A6)
+; 255:   FreeMem(mod, 83488);
+       | 026C  2279  0000 01C2-02             MOVEA.L     02.000001C2,A1
+       | 0272  203C 0001 4620                 MOVE.L      #00014620,D0
+       | 0278  2C78 0004                      MOVEA.L     0004,A6
+       | 027C  4EAE FF2E                      JSR         FF2E(A6)
+; 256: 
+; 257:   /* Free the transformed vertex buffer */
+; 258:   Delete3DVertexList();
+       | 0280  4EB9  0000 0000-XX             JSR         _Delete3DVertexList
+; 259: 
+; 260:   Permit();
+       | 0286  4EAE FF76                      JSR         FF76(A6)
+; 261:   SetTaskPri(myTask, oldPri);
+       | 028A  1039  0000 01BC-02             MOVE.B      02.000001BC,D0
+       | 0290  4880                           EXT.W       D0
+       | 0292  48C0                           EXT.L       D0
+       | 0294  2279  0000 01B8-02             MOVEA.L     02.000001B8,A1
+       | 029A  4EAE FED4                      JSR         FED4(A6)
+; 262: 
+; 263:   /*  Close the keyboard device */
+; 264:   if (!(CheckIO((struct IORequest *)KeyIO)))
+       | 029E  2279  0000 002C-02             MOVEA.L     02.0000002C,A1
+       | 02A4  4EAE FE2C                      JSR         FE2C(A6)
+       | 02A8  4A80                           TST.L       D0
+       | 02AA  660A                           BNE.B       02B6
+; 265:     AbortIO((struct IORequest *)KeyIO);   //  Ask device to abort request, if pending 
+       | 02AC  2279  0000 002C-02             MOVEA.L     02.0000002C,A1
+       | 02B2  4EAE FE20                      JSR         FE20(A6)
+; 266:   // WaitIO((struct IORequest *)KeyIO);   /* Wait for abort, then clean up */
+; 267:   CloseDevice((struct IORequest *)KeyIO);
+       | 02B6  2279  0000 002C-02             MOVEA.L     02.0000002C,A1
+       | 02BC  4EAE FE3E                      JSR         FE3E(A6)
+; 268:   FreeMem(keyMatrix,KEY_MATRIX_SIZE);
+       | 02C0  2279  0000 0030-02             MOVEA.L     02.00000030,A1
+       | 02C6  7010                           MOVEQ       #10,D0
+       | 02C8  4EAE FF2E                      JSR         FF2E(A6)
+; 269:   
+; 270:   /* Close opened resources */
+; 271:   FREE_BITMAP(bitmap_background);
+       | 02CC  2039  0000 01C6-02             MOVE.L      02.000001C6,D0
+       | 02D2  670C                           BEQ.B       02E0
+       | 02D4  2040                           MOVEA.L     D0,A0
+       | 02D6  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 02DC  4EAE FC64                      JSR         FC64(A6)
+       | 02E0  42B9  0000 01C6-02             CLR.L       02.000001C6
+; 272:   FREE_BITMAP(bitmap_tmp);
+       | 02E6  2039  0000 01CA-02             MOVE.L      02.000001CA,D0
+       | 02EC  670C                           BEQ.B       02FA
+       | 02EE  2040                           MOVEA.L     D0,A0
+       | 02F0  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 02F6  4EAE FC64                      JSR         FC64(A6)
+       | 02FA  42B9  0000 01CA-02             CLR.L       02.000001CA
+; 273:   FREE_BITMAP(bitmap_font);
+       | 0300  2039  0000 01CE-02             MOVE.L      02.000001CE,D0
+       | 0306  670C                           BEQ.B       0314
+       | 0308  2040                           MOVEA.L     D0,A0
+       | 030A  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0310  4EAE FC64                      JSR         FC64(A6)
+       | 0314  42B9  0000 01CE-02             CLR.L       02.000001CE
+; 274:   FREE_BITMAP(bitmap_font_dark);
+       | 031A  2039  0000 01D2-02             MOVE.L      02.000001D2,D0
+       | 0320  670C                           BEQ.B       032E
+       | 0322  2040                           MOVEA.L     D0,A0
+       | 0324  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 032A  4EAE FC64                      JSR         FC64(A6)
+       | 032E  42B9  0000 01D2-02             CLR.L       02.000001D2
+; 275:   FREE_BITMAP(bitmap_video_noise);
+       | 0334  2039  0000 01D6-02             MOVE.L      02.000001D6,D0
+       | 033A  670C                           BEQ.B       0348
+       | 033C  2040                           MOVEA.L     D0,A0
+       | 033E  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0344  4EAE FC64                      JSR         FC64(A6)
+       | 0348  42B9  0000 01D6-02             CLR.L       02.000001D6
+; 276:   FREE_BITMAP(bitmap_next_face);
+       | 034E  2039  0000 01DA-02             MOVE.L      02.000001DA,D0
+       | 0354  670C                           BEQ.B       0362
+       | 0356  2040                           MOVEA.L     D0,A0
+       | 0358  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 035E  4EAE FC64                      JSR         FC64(A6)
+       | 0362  42B9  0000 01DA-02             CLR.L       02.000001DA
+; 277: 
+; 278:   init_close_video();
+       | 0368  4EB9  0000 0000-XX             JSR         _init_close_video
+; 279:   init_close_libs();
+       | 036E  4EB9  0000 0000-XX             JSR         _init_close_libs
+; 280: 
+; 281:   // ON_SPRITE;
+; 282:   exit(0);
+       | 0374  42A7                           CLR.L       -(A7)
+       | 0376  4EB9  0000 0000-XX             JSR         _exit
+       | 037C  584F                           ADDQ.W      #4,A7
+; 283: }
+       | 037E  2C5F                           MOVEA.L     (A7)+,A6
+       | 0380  4E75                           RTS
+; 284: 
+; 285: /*  Test is mouse button was pressed */
+; 286: //  TODO : make the test os friendly!
+; 287: void sys_check_abort(void)
+       | 0382  200F                           MOVE.L      A7,D0
+       | 0384  5980                           SUBQ.L      #4,D0
+       | 0386  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 038C  6406                           BCC.B       0394
+       | 038E  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0394  2F0E                           MOVE.L      A6,-(A7)
+; 288: {
+; 289:   KeyIO->io_Command=KBD_READMATRIX;
+       | 0396  2279  0000 002C-02             MOVEA.L     02.0000002C,A1
+       | 039C  337C 000A 001C                 MOVE.W      #000A,001C(A1)
+; 290:   KeyIO->io_Data=(APTR)keyMatrix;
+       | 03A2  2379  0000 0030-02  0028       MOVE.L      02.00000030,0028(A1)
+; 291:   KeyIO->io_Length = SysBase->lib_Version >= 36 ? KEY_MATRIX_SIZE : 13;
+       | 03AA  2279  0000 0000-XX             MOVEA.L     _SysBase,A1
+       | 03B0  0C69 0024 0014                 CMPI.W      #0024,0014(A1)
+       | 03B6  54C0                           SCC         D0
+       | 03B8  720D                           MOVEQ       #0D,D1
+       | 03BA  9200                           SUB.B       D0,D1
+       | 03BC  9200                           SUB.B       D0,D1
+       | 03BE  9200                           SUB.B       D0,D1
+       | 03C0  2279  0000 002C-02             MOVEA.L     02.0000002C,A1
+       | 03C6  2341 0024                      MOVE.L      D1,0024(A1)
+; 292:   DoIO((struct IORequest *)KeyIO);
+       | 03CA  2C78 0004                      MOVEA.L     0004,A6
+       | 03CE  4EAE FE38                      JSR         FE38(A6)
+; 293: 
+; 294: //   printf("%i", (int)(keyMatrix[0x45/8] & (0x20)));
+; 295:   if (keyMatrix[0x45/8] & (0x20))
+       | 03D2  2079  0000 0030-02             MOVEA.L     02.00000030,A0
+       | 03D8  0828 0005 0008                 BTST        #0005,0008(A0)
+       | 03DE  6704                           BEQ.B       03E4
+; 296:     ForceDemoClose();
+       | 03E0  6100 FE5C                      BSR.W       023E
+; 297: 
+; 298:   // ModuleGetNormalizedPosition();
+; 299: }
+       | 03E4  2C5F                           MOVEA.L     (A7)+,A6
+       | 03E6  4E75                           RTS
+; 300: 
+; 301: /*  Custom delay function */
+; 302: int fVBLDelay(int _sec)
+       | 03E8  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 03EE  6406                           BCC.B       03F6
+       | 03F0  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 03F6  48E7 0302                      MOVEM.L     D6-D7/A6,-(A7)
+       | 03FA  2E2F 0010                      MOVE.L      0010(A7),D7
+; 303: {
+; 304:   int _count;
+; 305: 
+; 306:   for (_count = 0; _count < _sec; _count++)
+       | 03FE  7C00                           MOVEQ       #00,D6
+       | 0400  601C                           BRA.B       041E
+; 307:   {
+; 308:     GetDeltaTime();
+       | 0402  6100 FC92                      BSR.W       0096
+; 309:     WaitTOF();
+       | 0406  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 040C  4EAE FEF2                      JSR         FEF2(A6)
+; 310:     DispatchFX();
+       | 0410  6100 FD32                      BSR.W       0144
+; 311:     sys_check_abort();
+       | 0414  6100 FF6C                      BSR.W       0382
+; 312:     ModuleGetSyncValue();
+       | 0418  6100 FD3C                      BSR.W       0156
+       | 041C  5286                           ADDQ.L      #1,D6
+       | 041E  BC87                           CMP.L       D7,D6
+       | 0420  6DE0                           BLT.B       0402
+; 313:   }
+; 314: 
+; 315:   return(0);
+       | 0422  7000                           MOVEQ       #00,D0
+       | 0424  4CDF 40C0                      MOVEM.L     (A7)+,D6-D7/A6
+       | 0428  4E75                           RTS
+; 316: }
+; 317: 
+; 318: int InitKeyboard(void)
+       | 042A  200F                           MOVE.L      A7,D0
+       | 042C  90BC 0000 0010                 SUB.L       #00000010,D0
+       | 0432  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0438  6406                           BCC.B       0440
+       | 043A  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0440  2F0E                           MOVE.L      A6,-(A7)
+; 319: {
+; 320:     if (KeyMP=CreatePort(NULL,NULL))
+       | 0442  42A7                           CLR.L       -(A7)
+       | 0444  42A7                           CLR.L       -(A7)
+       | 0446  4EB9  0000 0000-XX             JSR         _CreatePort
+       | 044C  504F                           ADDQ.W      #8,A7
+       | 044E  23C0  0000 0028-02             MOVE.L      D0,02.00000028
+       | 0454  675E                           BEQ.B       04B4
+; 321:       if (KeyIO=(struct IOStdReq *)CreateExtIO(KeyMP,sizeof(struct IOStdReq)))
+       | 0456  4878 0030                      PEA         0030
+       | 045A  2F00                           MOVE.L      D0,-(A7)
+       | 045C  4EB9  0000 0000-XX             JSR         _CreateExtIO
+       | 0462  504F                           ADDQ.W      #8,A7
+       | 0464  23C0  0000 002C-02             MOVE.L      D0,02.0000002C
+       | 046A  6748                           BEQ.B       04B4
+; 322:         if (OpenDevice( "keyboard.device",NULL,(struct IORequest *)KeyIO,NULL))
+       | 046C  2240                           MOVEA.L     D0,A1
+       | 046E  41F9  0000 0054-01.2           LEA         01.00000054,A0
+       | 0474  7000                           MOVEQ       #00,D0
+       | 0476  2200                           MOVE.L      D0,D1
+       | 0478  2C78 0004                      MOVEA.L     0004,A6
+       | 047C  4EAE FE44                      JSR         FE44(A6)
+       | 0480  4A00                           TST.B       D0
+       | 0482  6708                           BEQ.B       048C
+; 323:         {
+; 324:           printf("keyboard.device did not open\n");
+       | 0484  4879  0000 0064-01.2           PEA         01.00000064
+; 325:           return(0);
+       | 048A  601E                           BRA.B       04AA
+; 326:         }
+; 327:         else
+; 328:         if (!(keyMatrix=AllocMem(KEY_MATRIX_SIZE,MEMF_PUBLIC|MEMF_CLEAR)))
+       | 048C  7010                           MOVEQ       #10,D0
+       | 048E  223C 0001 0001                 MOVE.L      #00010001,D1
+       | 0494  2C78 0004                      MOVEA.L     0004,A6
+       | 0498  4EAE FF3A                      JSR         FF3A(A6)
+       | 049C  23C0  0000 0030-02             MOVE.L      D0,02.00000030
+       | 04A2  6610                           BNE.B       04B4
+; 329:         {
+; 330:           printf("Cannot allocate keyboard buffer\n");
+       | 04A4  4879  0000 0082-01.2           PEA         01.00000082
+; 331:           return(0);
+       | 04AA  4EB9  0000 0000-XX             JSR         __writes
+       | 04B0  584F                           ADDQ.W      #4,A7
+       | 04B2  7000                           MOVEQ       #00,D0
+       | 04B4  2C5F                           MOVEA.L     (A7)+,A6
+       | 04B6  4E75                           RTS
+; 332:         }
+; 333: }
+; 334: 
+; 335: #define COLOR_MAKE_LIGHTER(COL,QT) (((COL & 0xF00) + (QT << 8)) & 0xF00) | (((COL & 0x0F0) + (QT << 4)) & 0x0F0) | (((COL & 0x00F) + QT) & 0x00F)
+; 336: 
+; 337: UWORD ColorMakeLighter(UWORD color_in, int dt)
+       | 04B8  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 04BE  6406                           BCC.B       04C6
+       | 04C0  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 04C6  48E7 3F00                      MOVEM.L     D2-D7,-(A7)
+; 338: {
+; 339:   int r,g,b;
+; 340:   r = (color_in & 0xF00) >> 8;
+; 341:   g = (color_in & 0x0F0) >> 4;
+; 342:   b = color_in & 0x00F;
+; 343:   r += dt;
+       | 04CA  7000                           MOVEQ       #00,D0
+       | 04CC  302F 001E                      MOVE.W      001E(A7),D0
+       | 04D0  2E00                           MOVE.L      D0,D7
+       | 04D2  0287 0000 0F00                 ANDI.L      #00000F00,D7
+       | 04D8  E087                           ASR.L       #8,D7
+       | 04DA  242F 0020                      MOVE.L      0020(A7),D2
+       | 04DE  DE82                           ADD.L       D2,D7
+; 344:   g += (dt / 2);
+       | 04E0  2202                           MOVE.L      D2,D1
+       | 04E2  6A02                           BPL.B       04E6
+       | 04E4  5281                           ADDQ.L      #1,D1
+       | 04E6  E281                           ASR.L       #1,D1
+       | 04E8  363C 00F0                      MOVE.W      #00F0,D3
+       | 04EC  C640                           AND.W       D0,D3
+       | 04EE  E84B                           LSR.W       #4,D3
+       | 04F0  7800                           MOVEQ       #00,D4
+       | 04F2  3803                           MOVE.W      D3,D4
+       | 04F4  D881                           ADD.L       D1,D4
+       | 04F6  2C04                           MOVE.L      D4,D6
+; 345:   b += (dt * 2);
+       | 04F8  D482                           ADD.L       D2,D2
+       | 04FA  0240 000F                      ANDI.W      #000F,D0
+       | 04FE  48C0                           EXT.L       D0
+       | 0500  D082                           ADD.L       D2,D0
+       | 0502  2A00                           MOVE.L      D0,D5
+; 346:   if (r > 15)
+       | 0504  700F                           MOVEQ       #0F,D0
+       | 0506  BE80                           CMP.L       D0,D7
+       | 0508  6F02                           BLE.B       050C
+; 347:     r = 15;
+       | 050A  2E00                           MOVE.L      D0,D7
+; 348:   if (g > 15)
+       | 050C  BC80                           CMP.L       D0,D6
+       | 050E  6F02                           BLE.B       0512
+; 349:     g = 15;
+       | 0510  2C00                           MOVE.L      D0,D6
+; 350:   if (b > 15)
+       | 0512  BA80                           CMP.L       D0,D5
+       | 0514  6F02                           BLE.B       0518
+; 351:     b = 15;
+       | 0516  2A00                           MOVE.L      D0,D5
+; 352: 
+; 353:   return ((UWORD)((r << 8) | (g << 4) | b));
+       | 0518  2006                           MOVE.L      D6,D0
+       | 051A  E980                           ASL.L       #4,D0
+       | 051C  E187                           ASL.L       #8,D7
+       | 051E  8E80                           OR.L        D0,D7
+       | 0520  8E85                           OR.L        D5,D7
+       | 0522  3007                           MOVE.W      D7,D0
+       | 0524  4CDF 00FC                      MOVEM.L     (A7)+,D2-D7
+       | 0528  4E75                           RTS
+; 354: }
+; 355: 
+; 356: UWORD ColorMakeDarker(UWORD color_in, int dt)
+       | 052A  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 0530  6406                           BCC.B       0538
+       | 0532  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0538  48E7 3700                      MOVEM.L     D2-D3/D5-D7,-(A7)
+; 357: {
+; 358:   int r,g,b;
+; 359:   r = (color_in & 0xF00) >> 8;
+; 360:   g = (color_in & 0x0F0) >> 4;
+; 361:   b = color_in & 0x00F;
+; 362:   r -= dt;
+       | 053C  7000                           MOVEQ       #00,D0
+       | 053E  302F 001A                      MOVE.W      001A(A7),D0
+       | 0542  2E00                           MOVE.L      D0,D7
+       | 0544  0287 0000 0F00                 ANDI.L      #00000F00,D7
+       | 054A  E087                           ASR.L       #8,D7
+       | 054C  242F 001C                      MOVE.L      001C(A7),D2
+       | 0550  9E82                           SUB.L       D2,D7
+; 363:   g -= (dt / 2);
+       | 0552  2202                           MOVE.L      D2,D1
+       | 0554  6A02                           BPL.B       0558
+       | 0556  5281                           ADDQ.L      #1,D1
+       | 0558  E281                           ASR.L       #1,D1
+       | 055A  363C 00F0                      MOVE.W      #00F0,D3
+       | 055E  C640                           AND.W       D0,D3
+       | 0560  E84B                           LSR.W       #4,D3
+       | 0562  7000                           MOVEQ       #00,D0
+       | 0564  3003                           MOVE.W      D3,D0
+       | 0566  9081                           SUB.L       D1,D0
+       | 0568  2C00                           MOVE.L      D0,D6
+; 364:   b -= (dt / 3);
+       | 056A  2002                           MOVE.L      D2,D0
+       | 056C  7203                           MOVEQ       #03,D1
+       | 056E  4EB9  0000 0000-XX             JSR         __CXD33
+       | 0574  720F                           MOVEQ       #0F,D1
+       | 0576  C26F 001A                      AND.W       001A(A7),D1
+       | 057A  48C1                           EXT.L       D1
+       | 057C  9280                           SUB.L       D0,D1
+       | 057E  2A01                           MOVE.L      D1,D5
+; 365:   if (r < 0)
+       | 0580  4A87                           TST.L       D7
+       | 0582  6A02                           BPL.B       0586
+; 366:     r = 0;
+       | 0584  7E00                           MOVEQ       #00,D7
+; 367:   if (g < 0)
+       | 0586  4A86                           TST.L       D6
+       | 0588  6A02                           BPL.B       058C
+; 368:     g = 0;
+       | 058A  7C00                           MOVEQ       #00,D6
+; 369:   if (b < 0)
+       | 058C  4A85                           TST.L       D5
+       | 058E  6A02                           BPL.B       0592
+; 370:     b = 0;
+       | 0590  7A00                           MOVEQ       #00,D5
+; 371: 
+; 372:   return ((UWORD)((r << 8) | (g << 4) | b));
+       | 0592  2006                           MOVE.L      D6,D0
+       | 0594  E980                           ASL.L       #4,D0
+       | 0596  E187                           ASL.L       #8,D7
+       | 0598  8E80                           OR.L        D0,D7
+       | 059A  8E85                           OR.L        D5,D7
+       | 059C  3007                           MOVE.W      D7,D0
+       | 059E  4CDF 00EC                      MOVEM.L     (A7)+,D2-D3/D5-D7
+       | 05A2  4E75                           RTS
+; 373: }
+; 374: 
+; 375: /* Main program entry point */
+; 376: int main(void)
+       | 05A4  200F                           MOVE.L      A7,D0
+       | 05A6  90BC 0000 002C                 SUB.L       #0000002C,D0
+       | 05AC  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 05B2  6406                           BCC.B       05BA
+       | 05B4  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 05BA  48E7 3F22                      MOVEM.L     D2-D7/A2/A6,-(A7)
+; 377: {
+; 378:   bitmap_background = NULL;
+       | 05BE  42B9  0000 01C6-02             CLR.L       02.000001C6
+; 379:   bitmap_tmp = NULL;
+       | 05C4  42B9  0000 01CA-02             CLR.L       02.000001CA
+; 380:   bitmap_font = NULL;
+       | 05CA  42B9  0000 01CE-02             CLR.L       02.000001CE
+; 381:   bitmap_font_dark = NULL;
+       | 05D0  42B9  0000 01D2-02             CLR.L       02.000001D2
+; 382:   bitmap_video_noise = NULL;
+       | 05D6  42B9  0000 01D6-02             CLR.L       02.000001D6
+; 383:   bitmap_next_face = NULL;
+       | 05DC  42B9  0000 01DA-02             CLR.L       02.000001DA
+; 384: 
+; 385:   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
+       | 05E2  4879  0000 00A4-01.2           PEA         01.000000A4
+       | 05E8  6100 FC12                      BSR.W       01FC
+; 386: 
+; 387:   dispatch_func_ptr = NULL;
+       | 05EC  42B9  0000 020A-02             CLR.L       02.0000020A
+; 388: 
+; 389:   InitKeyboard();
+       | 05F2  6100 FE36                      BSR.W       042A
+; 390:   InitTimerDevice();
+       | 05F6  6100 FA08                      BSR.W       0000
+; 391: 
+; 392:   srand((ciaa.ciatodmid << 8) | ciaa.ciatodlow);
+       | 05FA  7000                           MOVEQ       #00,D0
+       | 05FC  1039  0000 0800-XX             MOVE.B      _ciaa+00000800,D0
+       | 0602  7200                           MOVEQ       #00,D1
+       | 0604  1239  0000 0900-XX             MOVE.B      _ciaa+00000900,D1
+       | 060A  E181                           ASL.L       #8,D1
+       | 060C  8280                           OR.L        D0,D1
+       | 060E  2E81                           MOVE.L      D1,(A7)
+       | 0610  4EB9  0000 0000-XX             JSR         _srand
+; 393:   /* Open all needed resources */
+; 394:   if (!init_open_libs())
+       | 0616  4EB9  0000 0000-XX             JSR         _init_open_libs
+       | 061C  584F                           ADDQ.W      #4,A7
+       | 061E  4A40                           TST.W       D0
+       | 0620  660C                           BNE.B       062E
+; 395:   {
+; 396:     init_close_libs();
+       | 0622  4EB9  0000 0000-XX             JSR         _init_close_libs
+; 397:     return (10);
+       | 0628  700A                           MOVEQ       #0A,D0
+       | 062A  6000 06EA                      BRA.W       0D16
+; 398:   }
+; 399: 
+; 400:   if (!Init32ColorsScreen())
+       | 062E  4EB9  0000 0000-XX             JSR         _Init32ColorsScreen
+       | 0634  4A40                           TST.W       D0
+       | 0636  660C                           BNE.B       0644
+; 401:   {
+; 402:     init_close_video();
+       | 0638  4EB9  0000 0000-XX             JSR         _init_close_video
+; 403:     return (10);
+       | 063E  700A                           MOVEQ       #0A,D0
+       | 0640  6000 06D4                      BRA.W       0D16
+; 404:   }
+; 405: 
+; 406:   Prepare3DVertexList();
+       | 0644  4EB9  0000 0000-XX             JSR         _Prepare3DVertexList
+; 407: 
+; 408:   myTask = FindTask(NULL);
+       | 064A  93C9                           SUBA.L      A1,A1
+       | 064C  2C78 0004                      MOVEA.L     0004,A6
+       | 0650  4EAE FEDA                      JSR         FEDA(A6)
+       | 0654  23C0  0000 01B8-02             MOVE.L      D0,02.000001B8
+; 409:   oldPri = SetTaskPri(myTask, 127);
+       | 065A  2240                           MOVEA.L     D0,A1
+       | 065C  707F                           MOVEQ       #7F,D0
+       | 065E  4EAE FED4                      JSR         FED4(A6)
+       | 0662  13C0  0000 01BC-02             MOVE.B      D0,02.000001BC
+; 410:   Forbid();
+       | 0668  4EAE FF7C                      JSR         FF7C(A6)
+; 411: 
+; 412:   /*
+; 413:     Load common assets
+; 414:   */
+; 415:   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
+       | 066C  4878 0005                      PEA         0005
+       | 0670  4878 008C                      PEA         008C
+       | 0674  4878 0140                      PEA         0140
+       | 0678  4878 6D60                      PEA         6D60
+       | 067C  4879  0000 00CA-01.2           PEA         01.000000CA
+       | 0682  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 0688  23C0  0000 01CA-02             MOVE.L      D0,02.000001CA
+; 416: 
+; 417:   mod = load_getmem((UBYTE *)"assets/module.bin", 83488);
+       | 068E  2EBC 0001 4620                 MOVE.L      #00014620,(A7)
+       | 0694  4879  0000 00E0-01.2           PEA         01.000000E0
+       | 069A  4EB9  0000 0000-XX             JSR         _load_getmem
+       | 06A0  23C0  0000 01C2-02             MOVE.L      D0,02.000001C2
+; 418:   theMod = PTSetupMod((APTR)mod);
+       | 06A6  2040                           MOVEA.L     D0,A0
+       | 06A8  2C79  0000 0000-XX             MOVEA.L     _PTReplayBase,A6
+       | 06AE  4EAE FF8E                      JSR         FF8E(A6)
+       | 06B2  23C0  0000 0034-02             MOVE.L      D0,02.00000034
+; 419:   PTPlay(theMod);
+       | 06B8  2040                           MOVEA.L     D0,A0
+       | 06BA  4EAE FFD6                      JSR         FFD6(A6)
+; 420: 
+; 421:   /*
+; 422:     Set the start of the global demo clock
+; 423:   */
+; 424:   TimeInitGClock();
+       | 06BE  6100 F99C                      BSR.W       005C
+; 425: 
+; 426:   Init32ColorsScreen();
+       | 06C2  4EB9  0000 0000-XX             JSR         _Init32ColorsScreen
+; 427:   full_clear(NULL);
+       | 06C8  4297                           CLR.L       (A7)
+       | 06CA  4EB9  0000 112E-00             JSR         00.0000112E
+; 428: 
+; 429:   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 140, 0, (256 - 140) / 2);
+       | 06D0  2079  0000 01CA-02             MOVEA.L     02.000001CA,A0
+       | 06D6  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 06DC  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 06E2  7000                           MOVEQ       #00,D0
+       | 06E4  2200                           MOVE.L      D0,D1
+       | 06E6  2400                           MOVE.L      D0,D2
+       | 06E8  763A                           MOVEQ       #3A,D3
+       | 06EA  7850                           MOVEQ       #50,D4
+       | 06EC  E58C                           LSL.L       #2,D4
+       | 06EE  7A46                           MOVEQ       #46,D5
+       | 06F0  DA85                           ADD.L       D5,D5
+       | 06F2  7C60                           MOVEQ       #60,D6
+       | 06F4  DC86                           ADD.L       D6,D6
+       | 06F6  7E00                           MOVEQ       #00,D7
+       | 06F8  4607                           NOT.B       D7
+       | 06FA  95CA                           SUBA.L      A2,A2
+       | 06FC  4EAE FFE2                      JSR         FFE2(A6)
+; 430: 
+; 431:   disp_fade_in(demo_title_PaletteRGB4, 32);
+       | 0700  4878 0020                      PEA         0020
+       | 0704  4879  0000 0000-XX             PEA         _demo_title_PaletteRGB4
+       | 070A  4EB9  0000 0D1C-00             JSR         00.00000D1C
+       | 0710  4FEF 0020                      LEA         0020(A7),A7
+; 432:   FREE_BITMAP(bitmap_tmp);
+       | 0714  2039  0000 01CA-02             MOVE.L      02.000001CA,D0
+       | 071A  6706                           BEQ.B       0722
+       | 071C  2040                           MOVEA.L     D0,A0
+       | 071E  4EAE FC64                      JSR         FC64(A6)
+       | 0722  23C2  0000 01CA-02             MOVE.L      D2,02.000001CA
+; 433: 
+; 434:   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
+       | 0728  4878 0005                      PEA         0005
+       | 072C  4878 0100                      PEA         0100
+       | 0730  2F04                           MOVE.L      D4,-(A7)
+       | 0732  2F3C 0000 C800                 MOVE.L      #0000C800,-(A7)
+       | 0738  4879  0000 00F2-01.2           PEA         01.000000F2
+       | 073E  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 0744  23C0  0000 01C6-02             MOVE.L      D0,02.000001C6
+; 435:   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
+       | 074A  4878 0005                      PEA         0005
+       | 074E  4878 000F                      PEA         000F
+       | 0752  4878 0253                      PEA         0253
+       | 0756  4878 1644                      PEA         1644
+       | 075A  4879  0000 010A-01.2           PEA         01.0000010A
+       | 0760  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 0766  23C0  0000 01CE-02             MOVE.L      D0,02.000001CE
+; 436:   bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
+       | 076C  4878 0005                      PEA         0005
+       | 0770  4878 000F                      PEA         000F
+       | 0774  4878 0253                      PEA         0253
+       | 0778  4878 1644                      PEA         1644
+       | 077C  4879  0000 0122-01.2           PEA         01.00000122
+       | 0782  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 0788  23C0  0000 01D2-02             MOVE.L      D0,02.000001D2
+; 437:   bitmap_video_noise = load_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
+       | 078E  4878 0004                      PEA         0004
+       | 0792  4878 0080                      PEA         0080
+       | 0796  4878 0047                      PEA         0047
+       | 079A  4878 1400                      PEA         1400
+       | 079E  4879  0000 013E-01.2           PEA         01.0000013E
+       | 07A4  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 07AA  4FEF 0050                      LEA         0050(A7),A7
+       | 07AE  23C0  0000 01D6-02             MOVE.L      D0,02.000001D6
+; 438:   bitmap_next_face = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
+       | 07B4  4878 0004                      PEA         0004
+       | 07B8  4878 0056                      PEA         0056
+       | 07BC  4878 0050                      PEA         0050
+       | 07C0  4878 0D70                      PEA         0D70
+       | 07C4  4879  0000 0156-01.2           PEA         01.00000156
+       | 07CA  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 07D0  23C0  0000 01DA-02             MOVE.L      D0,02.000001DA
+; 439: 
+; 440:   fVBLDelay(350);
+       | 07D6  4878 015E                      PEA         015E
+       | 07DA  6100 FC0C                      BSR.W       03E8
+; 441:   full_clear(NULL);
+       | 07DE  4297                           CLR.L       (A7)
+       | 07E0  4EB9  0000 112E-00             JSR         00.0000112E
+; 442: 
+; 443:   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+       | 07E6  23FC  0000 0000-XX   0000 0000-XX MOVE.L   #_object_cube_verts,_o
+       | 07F0  7008                           MOVEQ       #08,D0
+       | 07F2  23C0  0000 0004-XX             MOVE.L      D0,_o+00000004
+       | 07F8  23FC  0000 0000-XX   0000 0008-XX MOVE.L   #_object_cube_faces,_o+00000008
+       | 0802  7006                           MOVEQ       #06,D0
+       | 0804  23C0  0000 000C-XX             MOVE.L      D0,_o+0000000C
+       | 080A  7040                           MOVEQ       #40,D0
+       | 080C  E588                           LSL.L       #2,D0
+       | 080E  23C0  0000 0010-XX             MOVE.L      D0,_o+00000010
+       | 0814  23C0  0000 0014-XX             MOVE.L      D0,_o+00000014
+       | 081A  23C2  0000 0018-XX             MOVE.L      D2,_o+00000018
+; 444:   Sequence3DRotation(5);
+       | 0820  4878 0005                      PEA         0005
+       | 0824  4EB9  0000 162E-00             JSR         00.0000162E
+; 445: 
+; 446:   reset_disp_swap();
+       | 082A  4EB9  0000 117C-00             JSR         00.0000117C
+; 447:   disp_clear(NULL);
+       | 0830  4297                           CLR.L       (A7)
+       | 0832  4EB9  0000 1036-00             JSR         00.00001036
+; 448:   SequenceDisplaySuspectProfile(0);
+       | 0838  2E82                           MOVE.L      D2,(A7)
+       | 083A  4EB9  0000 1714-00             JSR         00.00001714
+; 449:   fVBLDelay(100);
+       | 0840  4878 0064                      PEA         0064
+       | 0844  6100 FBA2                      BSR.W       03E8
+; 450: 
+; 451:   disp_fade_in(demo_title_PaletteRGB4, 16);
+       | 0848  4878 0010                      PEA         0010
+       | 084C  4879  0000 0000-XX             PEA         _demo_title_PaletteRGB4
+       | 0852  4EB9  0000 0D1C-00             JSR         00.00000D1C
+; 452:   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
+       | 0858  23FC  0000 0000-XX   0000 0000-XX MOVE.L   #_object_spiroid_verts,_o
+       | 0862  7062                           MOVEQ       #62,D0
+       | 0864  23C0  0000 0004-XX             MOVE.L      D0,_o+00000004
+       | 086A  23FC  0000 0000-XX   0000 0008-XX MOVE.L   #_object_spiroid_faces,_o+00000008
+       | 0874  7030                           MOVEQ       #30,D0
+       | 0876  23C0  0000 000C-XX             MOVE.L      D0,_o+0000000C
+       | 087C  23FC 0000 0100  0000 0010-XX   MOVE.L      #00000100,_o+00000010
+       | 0886  23FC 0000 00A0  0000 0014-XX   MOVE.L      #000000A0,_o+00000014
+       | 0890  23C2  0000 0018-XX             MOVE.L      D2,_o+00000018
+; 453:   Sequence3DRotation(5);
+       | 0896  4878 0005                      PEA         0005
+       | 089A  4EB9  0000 162E-00             JSR         00.0000162E
+; 454: 
+; 455:   reset_disp_swap();
+       | 08A0  4EB9  0000 117C-00             JSR         00.0000117C
+; 456:   disp_clear(NULL);
+       | 08A6  4297                           CLR.L       (A7)
+       | 08A8  4EB9  0000 1036-00             JSR         00.00001036
+; 457:   SequenceDisplaySuspectProfile(1);
+       | 08AE  4878 0001                      PEA         0001
+       | 08B2  4EB9  0000 1714-00             JSR         00.00001714
+; 458:   fVBLDelay(100);
+       | 08B8  4878 0064                      PEA         0064
+       | 08BC  6100 FB2A                      BSR.W       03E8
+; 459: 
+; 460:   disp_fade_in(demo_title_PaletteRGB4, 16);
+       | 08C0  4878 0010                      PEA         0010
+       | 08C4  4879  0000 0000-XX             PEA         _demo_title_PaletteRGB4
+       | 08CA  4EB9  0000 0D1C-00             JSR         00.00000D1C
+; 461:   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+       | 08D0  23FC  0000 0000-XX   0000 0000-XX MOVE.L   #_object_face_00_verts,_o
+       | 08DA  7073                           MOVEQ       #73,D0
+       | 08DC  23C0  0000 0004-XX             MOVE.L      D0,_o+00000004
+       | 08E2  23FC  0000 0000-XX   0000 0008-XX MOVE.L   #_object_face_00_faces,_o+00000008
+       | 08EC  706D                           MOVEQ       #6D,D0
+       | 08EE  23C0  0000 000C-XX             MOVE.L      D0,_o+0000000C
+       | 08F4  23FC 0000 0320  0000 0010-XX   MOVE.L      #00000320,_o+00000010
+       | 08FE  23FC 0000 0100  0000 0014-XX   MOVE.L      #00000100,_o+00000014
+       | 0908  7001                           MOVEQ       #01,D0
+       | 090A  23C0  0000 0018-XX             MOVE.L      D0,_o+00000018
+; 462:   Sequence3DRotation(5);
+       | 0910  4878 0005                      PEA         0005
+       | 0914  4EB9  0000 162E-00             JSR         00.0000162E
+; 463: 
+; 464:   reset_disp_swap();
+       | 091A  4EB9  0000 117C-00             JSR         00.0000117C
+; 465:   disp_clear(NULL);
+       | 0920  4297                           CLR.L       (A7)
+       | 0922  4EB9  0000 1036-00             JSR         00.00001036
+; 466:   SequenceDisplaySuspectProfile(2);
+       | 0928  4878 0002                      PEA         0002
+       | 092C  4EB9  0000 1714-00             JSR         00.00001714
+       | 0932  4FEF 0044                      LEA         0044(A7),A7
+; 467:   fVBLDelay(100);
+       | 0936  4878 0064                      PEA         0064
+       | 093A  6100 FAAC                      BSR.W       03E8
+; 468: 
+; 469:   disp_fade_in(demo_title_PaletteRGB4, 16);
+       | 093E  4878 0010                      PEA         0010
+       | 0942  4879  0000 0000-XX             PEA         _demo_title_PaletteRGB4
+       | 0948  4EB9  0000 0D1C-00             JSR         00.00000D1C
+; 470:   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+       | 094E  23FC  0000 0000-XX   0000 0000-XX MOVE.L   #_object_face_00_verts,_o
+       | 0958  7073                           MOVEQ       #73,D0
+       | 095A  23C0  0000 0004-XX             MOVE.L      D0,_o+00000004
+       | 0960  23FC  0000 0000-XX   0000 0008-XX MOVE.L   #_object_face_00_faces,_o+00000008
+       | 096A  706D                           MOVEQ       #6D,D0
+       | 096C  23C0  0000 000C-XX             MOVE.L      D0,_o+0000000C
+       | 0972  23FC 0000 0320  0000 0010-XX   MOVE.L      #00000320,_o+00000010
+       | 097C  23FC 0000 0100  0000 0014-XX   MOVE.L      #00000100,_o+00000014
+       | 0986  7001                           MOVEQ       #01,D0
+       | 0988  23C0  0000 0018-XX             MOVE.L      D0,_o+00000018
+; 471:   Sequence3DRotation(5);
+       | 098E  4878 0005                      PEA         0005
+       | 0992  4EB9  0000 162E-00             JSR         00.0000162E
+; 472: 
+; 473:   reset_disp_swap();
+       | 0998  4EB9  0000 117C-00             JSR         00.0000117C
+; 474:   disp_clear(NULL);
+       | 099E  4297                           CLR.L       (A7)
+       | 09A0  4EB9  0000 1036-00             JSR         00.00001036
+; 475:   SequenceDisplaySuspectProfile(3);
+       | 09A6  4878 0003                      PEA         0003
+       | 09AA  4EB9  0000 1714-00             JSR         00.00001714
+; 476:   fVBLDelay(100);
+       | 09B0  4878 0064                      PEA         0064
+       | 09B4  6100 FA32                      BSR.W       03E8
+; 477: 
+; 478:   disp_fade_in(demo_title_PaletteRGB4, 16);
+       | 09B8  4878 0010                      PEA         0010
+       | 09BC  4879  0000 0000-XX             PEA         _demo_title_PaletteRGB4
+       | 09C2  4EB9  0000 0D1C-00             JSR         00.00000D1C
+; 479:   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
+       | 09C8  23FC  0000 0000-XX   0000 0000-XX MOVE.L   #_object_amiga_verts,_o
+       | 09D2  703C                           MOVEQ       #3C,D0
+       | 09D4  23C0  0000 0004-XX             MOVE.L      D0,_o+00000004
+       | 09DA  23FC  0000 0000-XX   0000 0008-XX MOVE.L   #_object_amiga_faces,_o+00000008
+       | 09E4  7027                           MOVEQ       #27,D0
+       | 09E6  23C0  0000 000C-XX             MOVE.L      D0,_o+0000000C
+       | 09EC  23FC 0000 0320  0000 0010-XX   MOVE.L      #00000320,_o+00000010
+       | 09F6  23FC 0000 0200  0000 0014-XX   MOVE.L      #00000200,_o+00000014
+       | 0A00  23C2  0000 0018-XX             MOVE.L      D2,_o+00000018
+; 480:   Sequence3DRotation(5);
+       | 0A06  4878 0005                      PEA         0005
+       | 0A0A  4EB9  0000 162E-00             JSR         00.0000162E
+; 481: 
+; 482:   reset_disp_swap();
+       | 0A10  4EB9  0000 117C-00             JSR         00.0000117C
+; 483:   disp_clear(NULL);
+       | 0A16  4297                           CLR.L       (A7)
+       | 0A18  4EB9  0000 1036-00             JSR         00.00001036
+; 484:   SequenceDisplaySuspectProfile(4);
+       | 0A1E  4878 0004                      PEA         0004
+       | 0A22  4EB9  0000 1714-00             JSR         00.00001714
+; 485:   fVBLDelay(10);
+       | 0A28  4878 000A                      PEA         000A
+       | 0A2C  6100 F9BA                      BSR.W       03E8
+; 486: 
+; 487:   reset_disp_swap();
+       | 0A30  4EB9  0000 117C-00             JSR         00.0000117C
+; 488:   disp_clear(NULL);
+       | 0A36  4297                           CLR.L       (A7)
+       | 0A38  4EB9  0000 1036-00             JSR         00.00001036
+; 489:   SequenceDisplaySuspectProfile(5);
+       | 0A3E  4878 0005                      PEA         0005
+       | 0A42  4EB9  0000 1714-00             JSR         00.00001714
+; 490:   fVBLDelay(10);
+       | 0A48  4878 000A                      PEA         000A
+       | 0A4C  6100 F99A                      BSR.W       03E8
+; 491: 
+; 492:   reset_disp_swap();
+       | 0A50  4EB9  0000 117C-00             JSR         00.0000117C
+; 493:   disp_clear(NULL);
+       | 0A56  4297                           CLR.L       (A7)
+       | 0A58  4EB9  0000 1036-00             JSR         00.00001036
+; 494:   SequenceDisplaySuspectProfile(6);
+       | 0A5E  4878 0006                      PEA         0006
+       | 0A62  4EB9  0000 1714-00             JSR         00.00001714
+; 495:   fVBLDelay(10);
+       | 0A68  4878 000A                      PEA         000A
+       | 0A6C  6100 F97A                      BSR.W       03E8
+; 496: 
+; 497:   reset_disp_swap();
+       | 0A70  4EB9  0000 117C-00             JSR         00.0000117C
+; 498:   disp_clear(NULL);
+       | 0A76  4297                           CLR.L       (A7)
+       | 0A78  4EB9  0000 1036-00             JSR         00.00001036
+; 499:   SequenceDisplaySuspectProfile(7);
+       | 0A7E  4878 0007                      PEA         0007
+       | 0A82  4EB9  0000 1714-00             JSR         00.00001714
+; 500:   fVBLDelay(10);
+       | 0A88  4878 000A                      PEA         000A
+       | 0A8C  6100 F95A                      BSR.W       03E8
+       | 0A90  4FEF 0044                      LEA         0044(A7),A7
+; 501: 
+; 502:   reset_disp_swap();
+       | 0A94  4EB9  0000 117C-00             JSR         00.0000117C
+; 503:   disp_clear(NULL);
+       | 0A9A  42A7                           CLR.L       -(A7)
+       | 0A9C  4EB9  0000 1036-00             JSR         00.00001036
+; 504:   SequenceDisplaySuspectProfile(8);
+       | 0AA2  4878 0008                      PEA         0008
+       | 0AA6  4EB9  0000 1714-00             JSR         00.00001714
+; 505:   fVBLDelay(10);
+       | 0AAC  4878 000A                      PEA         000A
+       | 0AB0  6100 F936                      BSR.W       03E8
+; 506: 
+; 507:   reset_disp_swap();
+       | 0AB4  4EB9  0000 117C-00             JSR         00.0000117C
+; 508:   disp_clear(NULL);
+       | 0ABA  4297                           CLR.L       (A7)
+       | 0ABC  4EB9  0000 1036-00             JSR         00.00001036
+; 509:   SequenceDisplaySuspectProfile(9);
+       | 0AC2  4878 0009                      PEA         0009
+       | 0AC6  4EB9  0000 1714-00             JSR         00.00001714
+; 510:   fVBLDelay(10);
+       | 0ACC  4878 000A                      PEA         000A
+       | 0AD0  6100 F916                      BSR.W       03E8
+; 511: 
+; 512:   reset_disp_swap();
+       | 0AD4  4EB9  0000 117C-00             JSR         00.0000117C
+; 513:   disp_clear(NULL);
+       | 0ADA  4297                           CLR.L       (A7)
+       | 0ADC  4EB9  0000 1036-00             JSR         00.00001036
+; 514:   SequenceDisplaySuspectProfile(10);
+       | 0AE2  4878 000A                      PEA         000A
+       | 0AE6  4EB9  0000 1714-00             JSR         00.00001714
+; 515:   fVBLDelay(10);
+       | 0AEC  4878 000A                      PEA         000A
+       | 0AF0  6100 F8F6                      BSR.W       03E8
+; 516: 
+; 517:   reset_disp_swap();
+       | 0AF4  4EB9  0000 117C-00             JSR         00.0000117C
+; 518:   disp_clear(NULL);
+       | 0AFA  4297                           CLR.L       (A7)
+       | 0AFC  4EB9  0000 1036-00             JSR         00.00001036
+; 519:   SequenceDisplaySuspectProfile(11);
+       | 0B02  4878 000B                      PEA         000B
+       | 0B06  4EB9  0000 1714-00             JSR         00.00001714
+; 520:   fVBLDelay(10);  
+       | 0B0C  4878 000A                      PEA         000A
+       | 0B10  6100 F8D6                      BSR.W       03E8
+; 521: 
+; 522:   reset_disp_swap();
+       | 0B14  4EB9  0000 117C-00             JSR         00.0000117C
+; 523:   disp_clear(NULL);
+       | 0B1A  4297                           CLR.L       (A7)
+       | 0B1C  4EB9  0000 1036-00             JSR         00.00001036
+; 524:   SequenceDisplaySuspectProfile(12);
+       | 0B22  4878 000C                      PEA         000C
+       | 0B26  4EB9  0000 1714-00             JSR         00.00001714
+; 525:   fVBLDelay(10);
+       | 0B2C  4878 000A                      PEA         000A
+       | 0B30  6100 F8B6                      BSR.W       03E8
+; 526: 
+; 527:   reset_disp_swap();
+       | 0B34  4EB9  0000 117C-00             JSR         00.0000117C
+; 528:   disp_clear(NULL);
+       | 0B3A  4297                           CLR.L       (A7)
+       | 0B3C  4EB9  0000 1036-00             JSR         00.00001036
+; 529:   SequenceDisplaySuspectProfile(13);
+       | 0B42  4878 000D                      PEA         000D
+       | 0B46  4EB9  0000 1714-00             JSR         00.00001714
+; 530:   fVBLDelay(10);
+       | 0B4C  4878 000A                      PEA         000A
+       | 0B50  6100 F896                      BSR.W       03E8
+; 531: 
+; 532:   reset_disp_swap();
+       | 0B54  4EB9  0000 117C-00             JSR         00.0000117C
+; 533:   disp_clear(NULL);
+       | 0B5A  4297                           CLR.L       (A7)
+       | 0B5C  4EB9  0000 1036-00             JSR         00.00001036
+; 534:   SequenceDisplaySuspectProfile(14);
+       | 0B62  4878 000E                      PEA         000E
+       | 0B66  4EB9  0000 1714-00             JSR         00.00001714
+; 535:   fVBLDelay(10);              
+       | 0B6C  4878 000A                      PEA         000A
+       | 0B70  6100 F876                      BSR.W       03E8
+; 536: 
+; 537:   reset_disp_swap();
+       | 0B74  4EB9  0000 117C-00             JSR         00.0000117C
+; 538:   disp_clear(NULL);
+       | 0B7A  4297                           CLR.L       (A7)
+       | 0B7C  4EB9  0000 1036-00             JSR         00.00001036
+; 539:   SequenceDisplaySuspectProfile(15);
+       | 0B82  4878 000F                      PEA         000F
+       | 0B86  4EB9  0000 1714-00             JSR         00.00001714
+; 540:   fVBLDelay(10);              
+       | 0B8C  4878 000A                      PEA         000A
+       | 0B90  6100 F856                      BSR.W       03E8
+       | 0B94  4FEF 0044                      LEA         0044(A7),A7
+; 541: 
+; 542:   reset_disp_swap();
+       | 0B98  4EB9  0000 117C-00             JSR         00.0000117C
+; 543:   disp_clear(NULL);
+       | 0B9E  42A7                           CLR.L       -(A7)
+       | 0BA0  4EB9  0000 1036-00             JSR         00.00001036
+; 544:   SequenceDisplaySuspectProfile(16);
+       | 0BA6  4878 0010                      PEA         0010
+       | 0BAA  4EB9  0000 1714-00             JSR         00.00001714
+; 545:   fVBLDelay(10);              
+       | 0BB0  4878 000A                      PEA         000A
+       | 0BB4  6100 F832                      BSR.W       03E8
+; 546: 
+; 547:   disp_fade_out(pal7, 16);
+       | 0BB8  4878 0010                      PEA         0010
+       | 0BBC  4879  0000 0000-XX             PEA         _pal7
+       | 0BC2  4EB9  0000 0E5C-00             JSR         00.00000E5C
+; 548:   reset_disp_swap();
+       | 0BC8  4EB9  0000 117C-00             JSR         00.0000117C
+; 549:   disp_clear(NULL);
+       | 0BCE  4297                           CLR.L       (A7)
+       | 0BD0  4EB9  0000 1036-00             JSR         00.00001036
+; 550: 
+; 551:   /* 
+; 552:     Unusual faces 
+; 553:     Part #1 
+; 554:   */
+; 555:   InitEHBScreen();
+       | 0BD6  4EB9  0000 0000-XX             JSR         _InitEHBScreen
+; 556:   disp_clear(NULL);
+       | 0BDC  4297                           CLR.L       (A7)
+       | 0BDE  4EB9  0000 1036-00             JSR         00.00001036
+; 557:   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+       | 0BE4  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 0BEA  43F9  0000 0000-XX             LEA         _faces_all_PaletteRGB4,A1
+       | 0BF0  7020                           MOVEQ       #20,D0
+       | 0BF2  4EAE FF40                      JSR         FF40(A6)
+; 558: 
+; 559:   pic = load_getmem((UBYTE *)"assets/faces_all.bin", 86400);
+       | 0BF6  2EBC 0001 5180                 MOVE.L      #00015180,(A7)
+       | 0BFC  4879  0000 016A-01.2           PEA         01.0000016A
+       | 0C02  4EB9  0000 0000-XX             JSR         _load_getmem
+       | 0C08  23C0  0000 01BE-02             MOVE.L      D0,02.000001BE
+; 560: 
+; 561:   WaitTOF();           
+       | 0C0E  4EAE FEF2                      JSR         FEF2(A6)
+; 562:   disp_swap();
+       | 0C12  4EB9  0000 11B8-00             JSR         00.000011B8
+; 563:   disp_interleaved_st_format(pic, &theBitMap, 320, 180, 0, 8, 32 + frameOffset, 6);
+       | 0C18  7020                           MOVEQ       #20,D0
+       | 0C1A  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 0C20  7200                           MOVEQ       #00,D1
+       | 0C22  3200                           MOVE.W      D0,D1
+       | 0C24  4878 0006                      PEA         0006
+       | 0C28  2F01                           MOVE.L      D1,-(A7)
+       | 0C2A  4878 0008                      PEA         0008
+       | 0C2E  2F02                           MOVE.L      D2,-(A7)
+       | 0C30  4878 00B4                      PEA         00B4
+       | 0C34  2F04                           MOVE.L      D4,-(A7)
+       | 0C36  4879  0000 0000-XX             PEA         _theBitMap
+       | 0C3C  2F39  0000 01BE-02             MOVE.L      02.000001BE,-(A7)
+       | 0C42  4EB9  0000 0000-XX             JSR         _disp_interleaved_st_format
+; 564:   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+       | 0C48  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 0C4E  43F9  0000 0000-XX             LEA         _faces_all_PaletteRGB4,A1
+       | 0C54  7020                           MOVEQ       #20,D0
+       | 0C56  4EAE FF40                      JSR         FF40(A6)
+; 565:   CreateHigheSTColorCopperList(0, 32);
+       | 0C5A  4878 0020                      PEA         0020
+       | 0C5E  2F02                           MOVE.L      D2,-(A7)
+       | 0C60  4EB9  0000 0000-XX             JSR         _CreateHigheSTColorCopperList
+; 566:   WaitTOF();           
+       | 0C66  4EAE FEF2                      JSR         FEF2(A6)
+; 567:   disp_swap();
+       | 0C6A  4EB9  0000 11B8-00             JSR         00.000011B8
+; 568: 
+; 569:   fVBLDelay(250);
+       | 0C70  4878 00FA                      PEA         00FA
+       | 0C74  6100 F772                      BSR.W       03E8
+       | 0C78  4FEF 0044                      LEA         0044(A7),A7
+; 570: 
+; 571:   /* 
+; 572:     Unusual faces
+; 573:     Part #2
+; 574:   */
+; 575:   WaitTOF();           
+       | 0C7C  4EAE FEF2                      JSR         FEF2(A6)
+; 576:   disp_swap();
+       | 0C80  4EB9  0000 11B8-00             JSR         00.000011B8
+; 577:   disp_interleaved_st_format(pic, &theBitMap, 320, 180, 180, 8, 32 + frameOffset, 6);
+       | 0C86  7020                           MOVEQ       #20,D0
+       | 0C88  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 0C8E  7200                           MOVEQ       #00,D1
+       | 0C90  3200                           MOVE.W      D0,D1
+       | 0C92  4878 0006                      PEA         0006
+       | 0C96  2F01                           MOVE.L      D1,-(A7)
+       | 0C98  4878 0008                      PEA         0008
+       | 0C9C  705A                           MOVEQ       #5A,D0
+       | 0C9E  D080                           ADD.L       D0,D0
+       | 0CA0  2F00                           MOVE.L      D0,-(A7)
+       | 0CA2  2F00                           MOVE.L      D0,-(A7)
+       | 0CA4  2F04                           MOVE.L      D4,-(A7)
+       | 0CA6  4879  0000 0000-XX             PEA         _theBitMap
+       | 0CAC  2F39  0000 01BE-02             MOVE.L      02.000001BE,-(A7)
+       | 0CB2  4EB9  0000 0000-XX             JSR         _disp_interleaved_st_format
+; 578:   LoadRGB4(mainVP, faces_all_PaletteRGB4, 32);
+       | 0CB8  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 0CBE  43F9  0000 0000-XX             LEA         _faces_all_PaletteRGB4,A1
+       | 0CC4  7020                           MOVEQ       #20,D0
+       | 0CC6  4EAE FF40                      JSR         FF40(A6)
+; 579:   CreateHigheSTColorCopperList(180, 32);
+       | 0CCA  4878 0020                      PEA         0020
+       | 0CCE  4878 00B4                      PEA         00B4
+       | 0CD2  4EB9  0000 0000-XX             JSR         _CreateHigheSTColorCopperList
+; 580:   WaitTOF();
+       | 0CD8  4EAE FEF2                      JSR         FEF2(A6)
+; 581:   disp_swap();
+       | 0CDC  4EB9  0000 11B8-00             JSR         00.000011B8
+; 582: 
+; 583:   FreeMem(pic, 86400);
+       | 0CE2  2279  0000 01BE-02             MOVEA.L     02.000001BE,A1
+       | 0CE8  203C 0001 5180                 MOVE.L      #00015180,D0
+       | 0CEE  2C78 0004                      MOVEA.L     0004,A6
+       | 0CF2  4EAE FF2E                      JSR         FF2E(A6)
+; 584: 
+; 585:   fVBLDelay(250);
+       | 0CF6  4878 00FA                      PEA         00FA
+       | 0CFA  6100 F6EC                      BSR.W       03E8
+; 586: 
+; 587:   full_clear(NULL);
+       | 0CFE  4297                           CLR.L       (A7)
+       | 0D00  4EB9  0000 112E-00             JSR         00.0000112E
+; 588: 
+; 589:   DeleteCopperList();
+       | 0D06  4EB9  0000 0000-XX             JSR         _DeleteCopperList
+; 590: 
+; 591:   // writer_doit((UBYTE *) "A multitasking#"
+; 592:   //                       "syncing töntro#"
+; 593:   //                       "Coded in pure C!!!#");
+; 594:   
+; 595:   // /* Close opened resources */
+; 596:   ForceDemoClose();
+       | 0D0C  6100 F530                      BSR.W       023E
+       | 0D10  4FEF 002C                      LEA         002C(A7),A7
+; 597:   return (0);
+       | 0D14  2002                           MOVE.L      D2,D0
+       | 0D16  4CDF 44FC                      MOVEM.L     (A7)+,D2-D7/A2/A6
+       | 0D1A  4E75                           RTS
+; 598: }
+; 599: 
+; 600: /*********** FADER ***************/
+; 601: 
+; 602: /* Fade palette from all black to specified colors */
+; 603: static void disp_fade_in(UWORD *fadeto, SHORT pal_len)
+       | 0D1C  200F                           MOVE.L      A7,D0
+       | 0D1E  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 0D24  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0D2A  6406                           BCC.B       0D32
+       | 0D2C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0D32  48E7 3F06                      MOVEM.L     D2-D7/A5-A6,-(A7)
+       | 0D36  3E2F 002A                      MOVE.W      002A(A7),D7
+       | 0D3A  2A6F 0024                      MOVEA.L     0024(A7),A5
+; 604: {
+; 605:   SHORT i, p;
+; 606: 
+; 607:   for (i = 0; i < 3; i ++)
+       | 0D3E  7A00                           MOVEQ       #00,D5
+; 608:     for (p = 0; p < pal_len; p ++)
+       | 0D40  7800                           MOVEQ       #00,D4
+       | 0D42  48C5                           EXT.L       D5
+       | 0D44  2C05                           MOVE.L      D5,D6
+       | 0D46  DC86                           ADD.L       D6,D6
+       | 0D48  6018                           BRA.B       0D62
+; 609:       col[p][i] = 0;
+       | 0D4A  48C4                           EXT.L       D4
+       | 0D4C  2004                           MOVE.L      D4,D0
+       | 0D4E  E580                           ASL.L       #2,D0
+       | 0D50  9084                           SUB.L       D4,D0
+       | 0D52  D080                           ADD.L       D0,D0
+       | 0D54  41F9  0000 00F8-02             LEA         02.000000F8,A0
+       | 0D5A  D1C0                           ADDA.L      D0,A0
+       | 0D5C  4270 6800                      CLR.W       00(A0,D6.L)
+       | 0D60  5244                           ADDQ.W      #1,D4
+       | 0D62  B847                           CMP.W       D7,D4
+       | 0D64  6DE4                           BLT.B       0D4A
+       | 0D66  5245                           ADDQ.W      #1,D5
+       | 0D68  7003                           MOVEQ       #03,D0
+       | 0D6A  BA40                           CMP.W       D0,D5
+       | 0D6C  6DD2                           BLT.B       0D40
+; 610: 
+; 611:   for (i = 0; i < pal_len; i ++)
+       | 0D6E  7A00                           MOVEQ       #00,D5
+       | 0D70  605E                           BRA.B       0DD0
+; 612:   {
+; 613:     incr[i][0] = ((fadeto[i] << 4) & 0xf000) / 15;
+       | 0D72  48C5                           EXT.L       D5
+       | 0D74  2005                           MOVE.L      D5,D0
+       | 0D76  D080                           ADD.L       D0,D0
+       | 0D78  48C5                           EXT.L       D5
+       | 0D7A  2205                           MOVE.L      D5,D1
+       | 0D7C  E581                           ASL.L       #2,D1
+       | 0D7E  9285                           SUB.L       D5,D1
+       | 0D80  D281                           ADD.L       D1,D1
+       | 0D82  41F9  0000 0038-02             LEA         02.00000038,A0
+       | 0D88  D1C1                           ADDA.L      D1,A0
+       | 0D8A  3235 0800                      MOVE.W      00(A5,D0.L),D1
+       | 0D8E  2401                           MOVE.L      D1,D2
+       | 0D90  E942                           ASL.W       #4,D2
+       | 0D92  0242 F000                      ANDI.W      #F000,D2
+       | 0D96  0282 0000 FFFF                 ANDI.L      #0000FFFF,D2
+       | 0D9C  760F                           MOVEQ       #0F,D3
+       | 0D9E  84C3                           DIVU.W      D3,D2
+       | 0DA0  4DD0                           LEA         (A0),A6
+; 614:     incr[i][1] = ((fadeto[i] << 8) & 0xf000) / 15;
+       | 0DA2  3CC2                           MOVE.W      D2,(A6)+
+       | 0DA4  3235 0800                      MOVE.W      00(A5,D0.L),D1
+       | 0DA8  E141                           ASL.W       #8,D1
+       | 0DAA  0241 F000                      ANDI.W      #F000,D1
+       | 0DAE  0281 0000 FFFF                 ANDI.L      #0000FFFF,D1
+       | 0DB4  82C3                           DIVU.W      D3,D1
+; 615:     incr[i][2] = ((fadeto[i] << 12) & 0xf000) / 15;
+       | 0DB6  3CC1                           MOVE.W      D1,(A6)+
+       | 0DB8  3235 0800                      MOVE.W      00(A5,D0.L),D1
+       | 0DBC  E141                           ASL.W       #8,D1
+       | 0DBE  E941                           ASL.W       #4,D1
+       | 0DC0  0241 F000                      ANDI.W      #F000,D1
+       | 0DC4  0281 0000 FFFF                 ANDI.L      #0000FFFF,D1
+       | 0DCA  82C3                           DIVU.W      D3,D1
+       | 0DCC  3CC1                           MOVE.W      D1,(A6)+
+       | 0DCE  5245                           ADDQ.W      #1,D5
+       | 0DD0  BA47                           CMP.W       D7,D5
+       | 0DD2  6D9E                           BLT.B       0D72
+; 616:   }
+; 617: 
+; 618:   disp_fade_setpalette(pal_len);
+       | 0DD4  3007                           MOVE.W      D7,D0
+       | 0DD6  48C0                           EXT.L       D0
+       | 0DD8  2F00                           MOVE.L      D0,-(A7)
+       | 0DDA  4EB9  0000 0F9A-00             JSR         00.00000F9A
+       | 0DE0  584F                           ADDQ.W      #4,A7
+; 619: 
+; 620:   for (i = 1; i < 16; i ++)
+       | 0DE2  7401                           MOVEQ       #01,D2
+; 621:   {
+; 622:     for (p = 0; p < pal_len; p ++)
+       | 0DE4  7800                           MOVEQ       #00,D4
+       | 0DE6  602C                           BRA.B       0E14
+; 623:     {
+; 624:       col[p][0] += incr[p][0];
+       | 0DE8  48C4                           EXT.L       D4
+       | 0DEA  2004                           MOVE.L      D4,D0
+       | 0DEC  E580                           ASL.L       #2,D0
+       | 0DEE  9084                           SUB.L       D4,D0
+       | 0DF0  D080                           ADD.L       D0,D0
+       | 0DF2  41F9  0000 00F8-02             LEA         02.000000F8,A0
+       | 0DF8  D1C0                           ADDA.L      D0,A0
+       | 0DFA  43F9  0000 0038-02             LEA         02.00000038,A1
+       | 0E00  4DF1 0800                      LEA         00(A1,D0.L),A6
+       | 0E04  301E                           MOVE.W      (A6)+,D0
+; 625:       col[p][1] += incr[p][1];
+       | 0E06  43D0                           LEA         (A0),A1
+       | 0E08  D159                           ADD.W       D0,(A1)+
+; 626:       col[p][2] += incr[p][2];
+       | 0E0A  301E                           MOVE.W      (A6)+,D0
+       | 0E0C  D159                           ADD.W       D0,(A1)+
+       | 0E0E  301E                           MOVE.W      (A6)+,D0
+       | 0E10  D159                           ADD.W       D0,(A1)+
+       | 0E12  5244                           ADDQ.W      #1,D4
+       | 0E14  B847                           CMP.W       D7,D4
+       | 0E16  6DD0                           BLT.B       0DE8
+; 627:     }
+; 628: 
+; 629:     WaitTOF();
+       | 0E18  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0E1E  4EAE FEF2                      JSR         FEF2(A6)
+; 630:     disp_fade_setpalette(pal_len);
+       | 0E22  3007                           MOVE.W      D7,D0
+       | 0E24  48C0                           EXT.L       D0
+       | 0E26  2F00                           MOVE.L      D0,-(A7)
+       | 0E28  4EB9  0000 0F9A-00             JSR         00.00000F9A
+; 631: 
+; 632:     sys_check_abort();
+       | 0E2E  6100 F552                      BSR.W       0382
+       | 0E32  584F                           ADDQ.W      #4,A7
+       | 0E34  5242                           ADDQ.W      #1,D2
+       | 0E36  7010                           MOVEQ       #10,D0
+       | 0E38  B440                           CMP.W       D0,D2
+       | 0E3A  6DA8                           BLT.B       0DE4
+; 633:   }
+; 634: 
+; 635:   WaitTOF();
+       | 0E3C  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0E42  4EAE FEF2                      JSR         FEF2(A6)
+; 636: 
+; 637:   LoadRGB4(mainVP, fadeto, pal_len);
+       | 0E46  3007                           MOVE.W      D7,D0
+       | 0E48  48C0                           EXT.L       D0
+       | 0E4A  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 0E50  224D                           MOVEA.L     A5,A1
+       | 0E52  4EAE FF40                      JSR         FF40(A6)
+; 638: }
+       | 0E56  4CDF 60FC                      MOVEM.L     (A7)+,D2-D7/A5-A6
+       | 0E5A  4E75                           RTS
+; 639: 
+; 640: /* Fade palette from colors to all black */
+; 641: static void disp_fade_out(UWORD *fadeFrom, SHORT pal_len)
+       | 0E5C  200F                           MOVE.L      A7,D0
+       | 0E5E  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 0E64  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0E6A  6406                           BCC.B       0E72
+       | 0E6C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0E72  48E7 3F06                      MOVEM.L     D2-D7/A5-A6,-(A7)
+       | 0E76  3E2F 002A                      MOVE.W      002A(A7),D7
+       | 0E7A  226F 0024                      MOVEA.L     0024(A7),A1
+; 642: {
+; 643:   UWORD i, p;
+; 644: 
+; 645:   for (i = 0; i < pal_len; i ++)
+       | 0E7E  7C00                           MOVEQ       #00,D6
+       | 0E80  6072                           BRA.B       0EF4
+; 646:   {
+; 647:     col[i][0] = (fadeFrom[i] & 0x0f00) << 4;
+       | 0E82  4846                           SWAP        D6
+       | 0E84  4246                           CLR.W       D6
+       | 0E86  4846                           SWAP        D6
+       | 0E88  2006                           MOVE.L      D6,D0
+       | 0E8A  D080                           ADD.L       D0,D0
+       | 0E8C  4846                           SWAP        D6
+       | 0E8E  4246                           CLR.W       D6
+       | 0E90  4846                           SWAP        D6
+       | 0E92  2206                           MOVE.L      D6,D1
+       | 0E94  E581                           ASL.L       #2,D1
+       | 0E96  9286                           SUB.L       D6,D1
+       | 0E98  D281                           ADD.L       D1,D1
+       | 0E9A  41F9  0000 00F8-02             LEA         02.000000F8,A0
+       | 0EA0  343C 0F00                      MOVE.W      #0F00,D2
+       | 0EA4  C471 0800                      AND.W       00(A1,D0.L),D2
+       | 0EA8  E942                           ASL.W       #4,D2
+       | 0EAA  4DF0 1800                      LEA         00(A0,D1.L),A6
+; 648:     col[i][1] = (fadeFrom[i] & 0x00f0) << 8;
+       | 0EAE  3CC2                           MOVE.W      D2,(A6)+
+       | 0EB0  363C 00F0                      MOVE.W      #00F0,D3
+       | 0EB4  C671 0800                      AND.W       00(A1,D0.L),D3
+       | 0EB8  E143                           ASL.W       #8,D3
+; 649:     col[i][2] = (fadeFrom[i] & 0x000f) << 12;
+       | 0EBA  3CC3                           MOVE.W      D3,(A6)+
+       | 0EBC  780F                           MOVEQ       #0F,D4
+       | 0EBE  C871 0800                      AND.W       00(A1,D0.L),D4
+       | 0EC2  E144                           ASL.W       #8,D4
+       | 0EC4  E944                           ASL.W       #4,D4
+; 650:     incr[i][0] = col[i][0] / 15;
+       | 0EC6  3CC4                           MOVE.W      D4,(A6)+
+       | 0EC8  41F9  0000 0038-02             LEA         02.00000038,A0
+       | 0ECE  0282 0000 FFFF                 ANDI.L      #0000FFFF,D2
+       | 0ED4  700F                           MOVEQ       #0F,D0
+       | 0ED6  84C0                           DIVU.W      D0,D2
+; 651:     incr[i][1] = col[i][1] / 15;
+       | 0ED8  4DF0 1800                      LEA         00(A0,D1.L),A6
+       | 0EDC  3CC2                           MOVE.W      D2,(A6)+
+       | 0EDE  0283 0000 FFFF                 ANDI.L      #0000FFFF,D3
+; 652:     incr[i][2] = col[i][2] / 15;
+       | 0EE4  86C0                           DIVU.W      D0,D3
+       | 0EE6  3CC3                           MOVE.W      D3,(A6)+
+       | 0EE8  0284 0000 FFFF                 ANDI.L      #0000FFFF,D4
+       | 0EEE  88C0                           DIVU.W      D0,D4
+       | 0EF0  3CC4                           MOVE.W      D4,(A6)+
+       | 0EF2  5246                           ADDQ.W      #1,D6
+       | 0EF4  3007                           MOVE.W      D7,D0
+       | 0EF6  48C0                           EXT.L       D0
+       | 0EF8  7200                           MOVEQ       #00,D1
+       | 0EFA  3206                           MOVE.W      D6,D1
+       | 0EFC  B280                           CMP.L       D0,D1
+       | 0EFE  6D82                           BLT.B       0E82
+; 653:   }
+; 654: 
+; 655:   for (i = 1; i < 16; i ++)
+       | 0F00  7C01                           MOVEQ       #01,D6
+; 656:   {
+; 657:     for (p = 0; p < 16; p ++)
+       | 0F02  7A00                           MOVEQ       #00,D5
+; 658:     {
+; 659:       col[p][0] -= incr[p][0];
+       | 0F04  4845                           SWAP        D5
+       | 0F06  4245                           CLR.W       D5
+       | 0F08  4845                           SWAP        D5
+       | 0F0A  2005                           MOVE.L      D5,D0
+       | 0F0C  E580                           ASL.L       #2,D0
+       | 0F0E  9085                           SUB.L       D5,D0
+       | 0F10  D080                           ADD.L       D0,D0
+       | 0F12  41F9  0000 00F8-02             LEA         02.000000F8,A0
+       | 0F18  D1C0                           ADDA.L      D0,A0
+       | 0F1A  43F9  0000 0038-02             LEA         02.00000038,A1
+       | 0F20  4DF1 0800                      LEA         00(A1,D0.L),A6
+       | 0F24  301E                           MOVE.W      (A6)+,D0
+; 660:       col[p][1] -= incr[p][1];
+       | 0F26  4BD0                           LEA         (A0),A5
+       | 0F28  915D                           SUB.W       D0,(A5)+
+; 661:       col[p][2] -= incr[p][2];
+       | 0F2A  301E                           MOVE.W      (A6)+,D0
+       | 0F2C  915D                           SUB.W       D0,(A5)+
+       | 0F2E  301E                           MOVE.W      (A6)+,D0
+       | 0F30  915D                           SUB.W       D0,(A5)+
+       | 0F32  5245                           ADDQ.W      #1,D5
+       | 0F34  7010                           MOVEQ       #10,D0
+       | 0F36  BA40                           CMP.W       D0,D5
+       | 0F38  65CA                           BCS.B       0F04
+; 662:     }
+; 663:     WaitTOF();
+       | 0F3A  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0F40  4EAE FEF2                      JSR         FEF2(A6)
+; 664:     disp_fade_setpalette(pal_len);
+       | 0F44  3007                           MOVE.W      D7,D0
+       | 0F46  48C0                           EXT.L       D0
+       | 0F48  2F00                           MOVE.L      D0,-(A7)
+       | 0F4A  4EB9  0000 0F9A-00             JSR         00.00000F9A
+; 665: 
+; 666:     sys_check_abort();
+       | 0F50  6100 F430                      BSR.W       0382
+       | 0F54  584F                           ADDQ.W      #4,A7
+       | 0F56  5246                           ADDQ.W      #1,D6
+       | 0F58  7010                           MOVEQ       #10,D0
+       | 0F5A  BC40                           CMP.W       D0,D6
+       | 0F5C  65A4                           BCS.B       0F02
+; 667:   }
+; 668: 
+; 669:   WaitTOF();
+       | 0F5E  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0F64  4EAE FEF2                      JSR         FEF2(A6)
+; 670: 
+; 671:   for (i = 0; i < pal_len; i ++)
+       | 0F68  7C00                           MOVEQ       #00,D6
+       | 0F6A  601C                           BRA.B       0F88
+; 672:     SetRGB4(mainVP, i, 0, 0, 0);
+       | 0F6C  7000                           MOVEQ       #00,D0
+       | 0F6E  3006                           MOVE.W      D6,D0
+       | 0F70  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 0F76  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0F7C  7200                           MOVEQ       #00,D1
+       | 0F7E  2401                           MOVE.L      D1,D2
+       | 0F80  2601                           MOVE.L      D1,D3
+       | 0F82  4EAE FEE0                      JSR         FEE0(A6)
+       | 0F86  5246                           ADDQ.W      #1,D6
+       | 0F88  3007                           MOVE.W      D7,D0
+       | 0F8A  48C0                           EXT.L       D0
+       | 0F8C  7200                           MOVEQ       #00,D1
+       | 0F8E  3206                           MOVE.W      D6,D1
+       | 0F90  B280                           CMP.L       D0,D1
+       | 0F92  6DD8                           BLT.B       0F6C
+; 673: }
+       | 0F94  4CDF 60FC                      MOVEM.L     (A7)+,D2-D7/A5-A6
+       | 0F98  4E75                           RTS
+; 674: 
+; 675: /* Set palette registers to currents colors while fading */
+; 676: static void disp_fade_setpalette(SHORT pal_len)
+       | 0F9A  200F                           MOVE.L      A7,D0
+       | 0F9C  90BC 0000 004C                 SUB.L       #0000004C,D0
+       | 0FA2  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0FA8  6406                           BCC.B       0FB0
+       | 0FAA  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0FB0  9EFC 0040                      SUBA.W      #0040,A7
+       | 0FB4  48E7 3302                      MOVEM.L     D2-D3/D6-D7/A6,-(A7)
+       | 0FB8  3E2F 005A                      MOVE.W      005A(A7),D7
+; 677: {
+; 678:   UWORD i, temp, pal[32];
+; 679: 
+; 680:   for (i = 0; i < pal_len; i ++)
+       | 0FBC  7C00                           MOVEQ       #00,D6
+       | 0FBE  6048                           BRA.B       1008
+; 681:   {
+; 682:     pal[i] = (col[i][0] & 0xf000) >> 4;
+       | 0FC0  4846                           SWAP        D6
+       | 0FC2  4246                           CLR.W       D6
+       | 0FC4  4846                           SWAP        D6
+       | 0FC6  2006                           MOVE.L      D6,D0
+       | 0FC8  E580                           ASL.L       #2,D0
+       | 0FCA  9086                           SUB.L       D6,D0
+       | 0FCC  D080                           ADD.L       D0,D0
+       | 0FCE  41F9  0000 00F8-02             LEA         02.000000F8,A0
+       | 0FD4  D1C0                           ADDA.L      D0,A0
+; 683:     temp = (col[i][1] & 0xf000) >> 8;
+; 684:     pal[i] |= temp;
+; 685:     temp = (col[i][2] & 0xf000) >> 12;
+       | 0FD6  4846                           SWAP        D6
+       | 0FD8  4246                           CLR.W       D6
+       | 0FDA  4846                           SWAP        D6
+       | 0FDC  2006                           MOVE.L      D6,D0
+       | 0FDE  D080                           ADD.L       D0,D0
+       | 0FE0  323C F000                      MOVE.W      #F000,D1
+       | 0FE4  C268 0004                      AND.W       0004(A0),D1
+       | 0FE8  E049                           LSR.W       #8,D1
+       | 0FEA  E849                           LSR.W       #4,D1
+       | 0FEC  343C F000                      MOVE.W      #F000,D2
+       | 0FF0  C468 0002                      AND.W       0002(A0),D2
+       | 0FF4  E04A                           LSR.W       #8,D2
+       | 0FF6  363C F000                      MOVE.W      #F000,D3
+       | 0FFA  C650                           AND.W       (A0),D3
+       | 0FFC  E84B                           LSR.W       #4,D3
+       | 0FFE  8642                           OR.W        D2,D3
+; 686:     pal[i] |= temp;
+       | 1000  8641                           OR.W        D1,D3
+       | 1002  3F83 0814                      MOVE.W      D3,14(A7,D0.L)
+       | 1006  5246                           ADDQ.W      #1,D6
+       | 1008  3007                           MOVE.W      D7,D0
+       | 100A  48C0                           EXT.L       D0
+       | 100C  7200                           MOVEQ       #00,D1
+       | 100E  3206                           MOVE.W      D6,D1
+       | 1010  B280                           CMP.L       D0,D1
+       | 1012  6DAC                           BLT.B       0FC0
+; 687:   }
+; 688:   LoadRGB4(mainVP, pal, pal_len);
+       | 1014  3007                           MOVE.W      D7,D0
+       | 1016  48C0                           EXT.L       D0
+       | 1018  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 101E  43EF 0014                      LEA         0014(A7),A1
+       | 1022  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1028  4EAE FF40                      JSR         FF40(A6)
+; 689: }
+       | 102C  4CDF 40CC                      MOVEM.L     (A7)+,D2-D3/D6-D7/A6
+       | 1030  DEFC 0040                      ADDA.W      #0040,A7
+       | 1034  4E75                           RTS
+; 690: 
+; 691: /***************** DISPLAY SUPPORT ********************/
+; 692: 
+; 693: void disp_clear(struct RastPort *rp)
+       | 1036  200F                           MOVE.L      A7,D0
+       | 1038  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 103E  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 1044  6406                           BCC.B       104C
+       | 1046  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 104C  48E7 3006                      MOVEM.L     D2-D3/A5-A6,-(A7)
+       | 1050  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 694: {
+; 695:   // SetRast(&theRP, 0);
+; 696:   if (rp == NULL)
+       | 1054  200D                           MOVE.L      A5,D0
+       | 1056  6606                           BNE.B       105E
+; 697:     rp = &theRP;
+       | 1058  4BF9  0000 0000-XX             LEA         _theRP,A5
+; 698: 
+; 699:   SetAPen(rp, 0);
+       | 105E  224D                           MOVEA.L     A5,A1
+       | 1060  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1066  7000                           MOVEQ       #00,D0
+       | 1068  4EAE FEAA                      JSR         FEAA(A6)
+; 700:   RectFill(rp, 0, frameOffset, 320, frameOffset + 256);
+       | 106C  7040                           MOVEQ       #40,D0
+       | 106E  E588                           LSL.L       #2,D0
+       | 1070  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 1076  2600                           MOVE.L      D0,D3
+       | 1078  224D                           MOVEA.L     A5,A1
+       | 107A  2239  0000 0006-01             MOVE.L      01.00000006,D1
+       | 1080  7000                           MOVEQ       #00,D0
+       | 1082  7450                           MOVEQ       #50,D2
+       | 1084  E58A                           LSL.L       #2,D2
+       | 1086  4EAE FECE                      JSR         FECE(A6)
+; 701: }
+       | 108A  4CDF 600C                      MOVEM.L     (A7)+,D2-D3/A5-A6
+       | 108E  4E75                           RTS
+; 702: 
+; 703: void init_clear_bb(void)
+       | 1090  BFF9  0000 0000-XX             CMPA.L      ___base,A7
+       | 1096  6406                           BCC.B       109E
+       | 1098  4EF9  0000 0000-XX             JMP         __XCOVF
+; 704: {
+; 705:   drawn_min_x = 512;
+       | 109E  23FC 0000 0200  0000 000A-01   MOVE.L      #00000200,01.0000000A
+; 706:   drawn_min_y = 1024;
+       | 10A8  23FC 0000 0400  0000 000E-01   MOVE.L      #00000400,01.0000000E
+; 707:   drawn_max_x = -1;
+       | 10B2  70FF                           MOVEQ       #FF,D0
+       | 10B4  23C0  0000 0012-01             MOVE.L      D0,01.00000012
+; 708:   drawn_max_y = -1;
+       | 10BA  23C0  0000 0016-01             MOVE.L      D0,01.00000016
+; 709: }
+       | 10C0  4E75                           RTS
+; 710: 
+; 711: void disp_clear_bb_only(struct RastPort *rp)
+       | 10C2  200F                           MOVE.L      A7,D0
+       | 10C4  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 10CA  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 10D0  6406                           BCC.B       10D8
+       | 10D2  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 10D8  48E7 3006                      MOVEM.L     D2-D3/A5-A6,-(A7)
+       | 10DC  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 712: {
+; 713:   // printf("min_x = %d, min_y = %i, max_x = %i, max_y = %i\n", drawn_min_x, drawn_min_y, drawn_max_x, drawn_max_y);
+; 714: 
+; 715:   if (drawn_max_x > 0)
+       | 10E0  2039  0000 0012-01             MOVE.L      01.00000012,D0
+       | 10E6  6F40                           BLE.B       1128
+; 716:   {
+; 717:     if (rp == NULL)
+       | 10E8  200D                           MOVE.L      A5,D0
+       | 10EA  6606                           BNE.B       10F2
+; 718:       rp = &theRP;
+       | 10EC  4BF9  0000 0000-XX             LEA         _theRP,A5
+; 719: 
+; 720:     SetAPen(rp, 0);
+       | 10F2  224D                           MOVEA.L     A5,A1
+       | 10F4  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 10FA  7000                           MOVEQ       #00,D0
+       | 10FC  4EAE FEAA                      JSR         FEAA(A6)
+; 721:     // RectFill(&theRP, 0, frameOffset, 320, frameOffset + 256);
+; 722:     RectFill(rp, drawn_min_x, drawn_min_y + frameOffset, drawn_max_x, drawn_max_y + frameOffset);
+       | 1100  2039  0000 0006-01             MOVE.L      01.00000006,D0
+       | 1106  2239  0000 000E-01             MOVE.L      01.0000000E,D1
+       | 110C  D280                           ADD.L       D0,D1
+       | 110E  2639  0000 0016-01             MOVE.L      01.00000016,D3
+       | 1114  D680                           ADD.L       D0,D3
+       | 1116  224D                           MOVEA.L     A5,A1
+       | 1118  2039  0000 000A-01             MOVE.L      01.0000000A,D0
+       | 111E  2439  0000 0012-01             MOVE.L      01.00000012,D2
+       | 1124  4EAE FECE                      JSR         FECE(A6)
+; 723:   }
+; 724: }
+       | 1128  4CDF 600C                      MOVEM.L     (A7)+,D2-D3/A5-A6
+       | 112C  4E75                           RTS
+; 725: 
+; 726: void full_clear(struct RastPort *rp)
+       | 112E  200F                           MOVE.L      A7,D0
+       | 1130  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 1136  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 113C  6406                           BCC.B       1144
+       | 113E  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 1144  48E7 3006                      MOVEM.L     D2-D3/A5-A6,-(A7)
+       | 1148  2A6F 0014                      MOVEA.L     0014(A7),A5
+; 727: {
+; 728:   if (rp == NULL)
+       | 114C  200D                           MOVE.L      A5,D0
+       | 114E  6606                           BNE.B       1156
+; 729:     rp = &theRP;
+       | 1150  4BF9  0000 0000-XX             LEA         _theRP,A5
+; 730: 
+; 731:   SetAPen(rp, 0);
+       | 1156  224D                           MOVEA.L     A5,A1
+       | 1158  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 115E  7000                           MOVEQ       #00,D0
+       | 1160  4EAE FEAA                      JSR         FEAA(A6)
+; 732:   RectFill(rp, 0, 0, 320, SCR_HEIGHT);
+       | 1164  224D                           MOVEA.L     A5,A1
+       | 1166  7000                           MOVEQ       #00,D0
+       | 1168  2200                           MOVE.L      D0,D1
+       | 116A  7450                           MOVEQ       #50,D2
+       | 116C  E58A                           LSL.L       #2,D2
+       | 116E  7640                           MOVEQ       #40,D3
+       | 1170  E78B                           LSL.L       #3,D3
+       | 1172  4EAE FECE                      JSR         FECE(A6)
+; 733: }
+       | 1176  4CDF 600C                      MOVEM.L     (A7)+,D2-D3/A5-A6
+       | 117A  4E75                           RTS
+; 734: 
+; 735: void reset_disp_swap(void)
+       | 117C  200F                           MOVE.L      A7,D0
+       | 117E  5980                           SUBQ.L      #4,D0
+       | 1180  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 1186  6406                           BCC.B       118E
+       | 1188  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 118E  2F0E                           MOVE.L      A6,-(A7)
+; 736: {
+; 737:   frame = 0;
+       | 1190  42B9  0000 0002-01             CLR.L       01.00000002
+; 738:   frameOffset = 0;
+       | 1196  42B9  0000 0006-01             CLR.L       01.00000006
+; 739:   mainVP->RasInfo->RyOffset = frameOffset;
+       | 119C  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 11A2  2268 0024                      MOVEA.L     0024(A0),A1
+       | 11A6  4269 000A                      CLR.W       000A(A1)
+; 740:   ScrollVPort(mainVP);
+       | 11AA  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 11B0  4EAE FDB4                      JSR         FDB4(A6)
+; 741: }
+       | 11B4  2C5F                           MOVEA.L     (A7)+,A6
+       | 11B6  4E75                           RTS
+; 742: 
+; 743: void disp_swap(void)
+       | 11B8  200F                           MOVE.L      A7,D0
+       | 11BA  5980                           SUBQ.L      #4,D0
+       | 11BC  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 11C2  6406                           BCC.B       11CA
+       | 11C4  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 11CA  2F0E                           MOVE.L      A6,-(A7)
+; 744: {
+; 745:       mainVP->RasInfo->RyOffset = frameOffset;
+       | 11CC  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 11D2  2268 0024                      MOVEA.L     0024(A0),A1
+       | 11D6  2039  0000 0006-01             MOVE.L      01.00000006,D0
+       | 11DC  3340 000A                      MOVE.W      D0,000A(A1)
+; 746:       ScrollVPort(mainVP);
+       | 11E0  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 11E6  4EAE FDB4                      JSR         FDB4(A6)
+; 747: 
+; 748:       frame ^= 1;
+       | 11EA  0879 0000  0000 0005-01        BCHG        #0000,01.00000005
+; 749:       frameOffset = frame * 256;
+       | 11F2  2239  0000 0002-01             MOVE.L      01.00000002,D1
+       | 11F8  E181                           ASL.L       #8,D1
+       | 11FA  23C1  0000 0006-01             MOVE.L      D1,01.00000006
+; 750: }
+       | 1200  2C5F                           MOVEA.L     (A7)+,A6
+       | 1202  4E75                           RTS
+; 751: 
+; 752: /***************** SHADEDOTS ********************/
+; 753: 
+; 754: void dots_doit(UWORD *pal)
+       | 1204  200F                           MOVE.L      A7,D0
+       | 1206  90BC 0000 0064                 SUB.L       #00000064,D0
+       | 120C  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 1212  6406                           BCC.B       121A
+       | 1214  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 121A  9EFC 0058                      SUBA.W      #0058,A7
+       | 121E  48E7 0F16                      MOVEM.L     D4-D7/A3/A5-A6,-(A7)
+; 755: {
+; 756:   WORD x[20], y[20];
+; 757:   WORD i, j, h, c;
+; 758: 
+; 759:   LoadRGB4(mainVP, pal, 16);
+       | 1222  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 1228  226F 0078                      MOVEA.L     0078(A7),A1
+       | 122C  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1232  7010                           MOVEQ       #10,D0
+       | 1234  4EAE FF40                      JSR         FF40(A6)
+; 760:   for (i = 0; i < 20; i ++)
+       | 1238  7C00                           MOVEQ       #00,D6
+; 761:   {
+; 762:     x[i] = rand() % 320;
+       | 123A  4EB9  0000 0000-XX             JSR         _rand
+       | 1240  48C6                           EXT.L       D6
+       | 1242  2206                           MOVE.L      D6,D1
+       | 1244  D281                           ADD.L       D1,D1
+       | 1246  2F41 0020                      MOVE.L      D1,0020(A7)
+       | 124A  7250                           MOVEQ       #50,D1
+       | 124C  E589                           LSL.L       #2,D1
+       | 124E  4EB9  0000 0000-XX             JSR         __CXD33
+       | 1254  202F 0020                      MOVE.L      0020(A7),D0
+       | 1258  3F81 084C                      MOVE.W      D1,4C(A7,D0.L)
+; 763:     y[i] = rand() % 256;
+       | 125C  4EB9  0000 0000-XX             JSR         _rand
+       | 1262  48C6                           EXT.L       D6
+       | 1264  2206                           MOVE.L      D6,D1
+       | 1266  D281                           ADD.L       D1,D1
+       | 1268  2F41 0020                      MOVE.L      D1,0020(A7)
+       | 126C  7240                           MOVEQ       #40,D1
+       | 126E  E589                           LSL.L       #2,D1
+       | 1270  4EB9  0000 0000-XX             JSR         __CXD33
+       | 1276  202F 0020                      MOVE.L      0020(A7),D0
+       | 127A  3F81 0824                      MOVE.W      D1,24(A7,D0.L)
+       | 127E  5246                           ADDQ.W      #1,D6
+       | 1280  7014                           MOVEQ       #14,D0
+       | 1282  BC40                           CMP.W       D0,D6
+       | 1284  6DB4                           BLT.B       123A
+; 764:   }
+; 765: 
+; 766:   for (j = 0; j < 1500; j ++)
+       | 1286  7A00                           MOVEQ       #00,D5
+; 767:   {
+; 768:     for (i = 0; i < 15; i ++)
+       | 1288  7C00                           MOVEQ       #00,D6
+; 769:     {
+; 770:       h = rand() % 6;
+       | 128A  4EB9  0000 0000-XX             JSR         _rand
+       | 1290  7206                           MOVEQ       #06,D1
+       | 1292  4EB9  0000 0000-XX             JSR         __CXD33
+; 771:       switch (h)
+       | 1298  48C1                           EXT.L       D1
+       | 129A  0C81 0000 0006                 CMPI.L      #00000006,D1
+       | 12A0  6444                           BCC.B       12E6
+       | 12A2  D241                           ADD.W       D1,D1
+       | 12A4  323B 1006                      MOVE.W      06(PC,D1.W),D1
+       | 12A8  4EFB 1004                      JMP         04(PC,D1.W)
+       | 12AC  000A 0016                      ORI.B       #16,A2
+       | 12B0  0022 002E                      ORI.B       #2E,-(A2)
+       | 12B4  0016 0022                      ORI.B       #22,(A6)
+; 772:       {
+; 773:         case 0:
+; 774:           x[i] ++;
+       | 12B8  48C6                           EXT.L       D6
+       | 12BA  2006                           MOVE.L      D6,D0
+       | 12BC  D080                           ADD.L       D0,D0
+       | 12BE  5277 084C                      ADDQ.W      #1,4C(A7,D0.L)
+; 775:           break;
+       | 12C2  6022                           BRA.B       12E6
+; 776: 
+; 777:         case 1:
+; 778:         case 4:
+; 779:           x[i] --;
+       | 12C4  48C6                           EXT.L       D6
+       | 12C6  2006                           MOVE.L      D6,D0
+       | 12C8  D080                           ADD.L       D0,D0
+       | 12CA  5377 084C                      SUBQ.W      #1,4C(A7,D0.L)
+; 780:           break;
+       | 12CE  6016                           BRA.B       12E6
+; 781: 
+; 782:         case 2:
+; 783:         case 5:
+; 784:           y[i] ++;
+       | 12D0  48C6                           EXT.L       D6
+       | 12D2  2006                           MOVE.L      D6,D0
+       | 12D4  D080                           ADD.L       D0,D0
+       | 12D6  5277 0824                      ADDQ.W      #1,24(A7,D0.L)
+; 785:           break;
+       | 12DA  600A                           BRA.B       12E6
+; 786: 
+; 787:         case 3:
+; 788:           y[i] --;
+       | 12DC  48C6                           EXT.L       D6
+       | 12DE  2006                           MOVE.L      D6,D0
+       | 12E0  D080                           ADD.L       D0,D0
+       | 12E2  5377 0824                      SUBQ.W      #1,24(A7,D0.L)
+; 789:           break;
+; 790:       }
+; 791:       if (x[i] > 319) x[i] -= 320;
+       | 12E6  48C6                           EXT.L       D6
+       | 12E8  2006                           MOVE.L      D6,D0
+       | 12EA  D080                           ADD.L       D0,D0
+       | 12EC  2E00                           MOVE.L      D0,D7
+       | 12EE  4BEF 004C                      LEA         004C(A7),A5
+       | 12F2  DBC7                           ADDA.L      D7,A5
+       | 12F4  3015                           MOVE.W      (A5),D0
+       | 12F6  0C40 013F                      CMPI.W      #013F,D0
+       | 12FA  6F04                           BLE.B       1300
+       | 12FC  0455 0140                      SUBI.W      #0140,(A5)
+; 792:       if (x[i] < 0) x[i] += 320;
+       | 1300  3015                           MOVE.W      (A5),D0
+       | 1302  6A04                           BPL.B       1308
+       | 1304  0655 0140                      ADDI.W      #0140,(A5)
+; 793:       if (y[i] > 255) y[i] -= 256;
+       | 1308  47EF 0024                      LEA         0024(A7),A3
+       | 130C  D7C7                           ADDA.L      D7,A3
+       | 130E  3013                           MOVE.W      (A3),D0
+       | 1310  0C40 00FF                      CMPI.W      #00FF,D0
+       | 1314  6F04                           BLE.B       131A
+       | 1316  0453 0100                      SUBI.W      #0100,(A3)
+; 794:       if (y[i] < 0) y[i] += 256;
+       | 131A  3013                           MOVE.W      (A3),D0
+       | 131C  6A04                           BPL.B       1322
+       | 131E  0653 0100                      ADDI.W      #0100,(A3)
+; 795: 
+; 796:       c = ReadPixel(&theRP_3bpl, x[i], y[i]);
+       | 1322  3015                           MOVE.W      (A5),D0
+       | 1324  48C0                           EXT.L       D0
+       | 1326  3213                           MOVE.W      (A3),D1
+       | 1328  48C1                           EXT.L       D1
+       | 132A  43F9  0000 0000-XX             LEA         _theRP_3bpl,A1
+       | 1330  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1336  4EAE FEC2                      JSR         FEC2(A6)
+; 797:       c += 1; /* ((rand() % 2) << 1) - 1; */
+       | 133A  3800                           MOVE.W      D0,D4
+       | 133C  5244                           ADDQ.W      #1,D4
+; 798:       if (c > 7) c = 2;
+       | 133E  7007                           MOVEQ       #07,D0
+       | 1340  B840                           CMP.W       D0,D4
+       | 1342  6F02                           BLE.B       1346
+       | 1344  7802                           MOVEQ       #02,D4
+; 799:       SetAPen(&theRP_3bpl, c);
+       | 1346  3004                           MOVE.W      D4,D0
+       | 1348  48C0                           EXT.L       D0
+       | 134A  43F9  0000 0000-XX             LEA         _theRP_3bpl,A1
+       | 1350  4EAE FEAA                      JSR         FEAA(A6)
+; 800:       WritePixel(&theRP_3bpl, x[i], y[i]);
+       | 1354  3015                           MOVE.W      (A5),D0
+       | 1356  48C0                           EXT.L       D0
+       | 1358  3213                           MOVE.W      (A3),D1
+       | 135A  48C1                           EXT.L       D1
+       | 135C  43F9  0000 0000-XX             LEA         _theRP_3bpl,A1
+       | 1362  4EAE FEBC                      JSR         FEBC(A6)
+       | 1366  5246                           ADDQ.W      #1,D6
+       | 1368  700F                           MOVEQ       #0F,D0
+       | 136A  BC40                           CMP.W       D0,D6
+       | 136C  6D00 FF1C                      BLT.W       128A
+; 801:     }
+; 802:     DispatchFX();
+       | 1370  6100 EDD2                      BSR.W       0144
+; 803:     sys_check_abort();
+       | 1374  6100 F00C                      BSR.W       0382
+       | 1378  5245                           ADDQ.W      #1,D5
+       | 137A  0C45 05DC                      CMPI.W      #05DC,D5
+       | 137E  6D00 FF08                      BLT.W       1288
+; 804:   }
+; 805: }
+       | 1382  4CDF 68F0                      MOVEM.L     (A7)+,D4-D7/A3/A5-A6
+       | 1386  DEFC 0058                      ADDA.W      #0058,A7
+       | 138A  4E75                           RTS
+; 806: 
+; 807: /**************** WRITER *******************/
+; 808: 
+; 809: void writer_doit(UBYTE *wrText)
+       | 138C  200F                           MOVE.L      A7,D0
+       | 138E  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 1394  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 139A  6406                           BCC.B       13A2
+       | 139C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 13A2  48E7 0336                      MOVEM.L     D6-D7/A2-A3/A5-A6,-(A7)
+; 810: {
+; 811:   UBYTE *currChar;
+; 812:   UWORD y_base = 32;
+; 813:   UWORD x = 0, y = y_base;
+       | 13A6  7E00                           MOVEQ       #00,D7
+       | 13A8  7C20                           MOVEQ       #20,D6
+       | 13AA  266F 001C                      MOVEA.L     001C(A7),A3
+; 814:   UWORD y_line_h = 32;
+; 815: 
+; 816:   currChar = wrText;
+; 817:   SetDrMd(&theRP_2bpl, JAM1);
+       | 13AE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 13B4  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 13BA  7000                           MOVEQ       #00,D0
+       | 13BC  4EAE FE9E                      JSR         FE9E(A6)
+; 818:   while(*currChar)
+       | 13C0  607A                           BRA.B       143C
+; 819:   {
+; 820:     while(*currChar != '#')
+; 821:     {
+; 822:       SetAPen(&theRP_2bpl, 2);
+       | 13C2  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 13C8  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 13CE  7002                           MOVEQ       #02,D0
+       | 13D0  4EAE FEAA                      JSR         FEAA(A6)
+; 823:       Move(&theRP_2bpl, x - 1, y);
+       | 13D4  7000                           MOVEQ       #00,D0
+       | 13D6  3007                           MOVE.W      D7,D0
+       | 13D8  5380                           SUBQ.L      #1,D0
+       | 13DA  7200                           MOVEQ       #00,D1
+       | 13DC  3206                           MOVE.W      D6,D1
+       | 13DE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 13E4  4EAE FF10                      JSR         FF10(A6)
+; 824:       Text(&theRP_2bpl, currChar, 1);
+       | 13E8  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 13EE  204B                           MOVEA.L     A3,A0
+       | 13F0  7001                           MOVEQ       #01,D0
+       | 13F2  4EAE FFC4                      JSR         FFC4(A6)
+; 825:       Move(&theRP_2bpl, x + 1, y);
+       | 13F6  7000                           MOVEQ       #00,D0
+       | 13F8  3007                           MOVE.W      D7,D0
+       | 13FA  5280                           ADDQ.L      #1,D0
+       | 13FC  7200                           MOVEQ       #00,D1
+       | 13FE  3206                           MOVE.W      D6,D1
+       | 1400  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1406  4EAE FF10                      JSR         FF10(A6)
+; 826:       Text(&theRP_2bpl, currChar, 1);
+       | 140A  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1410  204B                           MOVEA.L     A3,A0
+       | 1412  7001                           MOVEQ       #01,D0
+       | 1414  4EAE FFC4                      JSR         FFC4(A6)
+; 827:       x += TextLength(&theRP_2bpl, currChar, 1);
+       | 1418  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 141E  204B                           MOVEA.L     A3,A0
+       | 1420  7001                           MOVEQ       #01,D0
+       | 1422  4EAE FFCA                      JSR         FFCA(A6)
+       | 1426  DE40                           ADD.W       D0,D7
+; 828:       currChar ++;
+       | 1428  264A                           MOVEA.L     A2,A3
+; 829:     }
+       | 142A  45EB 0001                      LEA         0001(A3),A2
+       | 142E  7023                           MOVEQ       #23,D0
+       | 1430  B013                           CMP.B       (A3),D0
+       | 1432  668E                           BNE.B       13C2
+; 830:     currChar ++;
+       | 1434  264A                           MOVEA.L     A2,A3
+; 831:     y += y_line_h;
+       | 1436  0646 0020                      ADDI.W      #0020,D6
+; 832:     x = 0;
+       | 143A  7E00                           MOVEQ       #00,D7
+; 833:   }
+       | 143C  4A13                           TST.B       (A3)
+       | 143E  66EA                           BNE.B       142A
+; 834: 
+; 835:   x = 0;
+       | 1440  7E00                           MOVEQ       #00,D7
+; 836:   y = y_base;
+       | 1442  7C20                           MOVEQ       #20,D6
+; 837: 
+; 838:   currChar = wrText;
+       | 1444  266F 001C                      MOVEA.L     001C(A7),A3
+; 839:   SetDrMd(&theRP_2bpl, JAM1);
+       | 1448  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 144E  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1454  7000                           MOVEQ       #00,D0
+       | 1456  4EAE FE9E                      JSR         FE9E(A6)
+; 840:   while(*currChar)
+       | 145A  6056                           BRA.B       14B2
+; 841:   {
+; 842:     while(*currChar != '#')
+; 843:     {
+; 844:       // SetAPen(&theRP_2bpl, 2);
+; 845:       // Move(&theRP_2bpl, x - 4, y);
+; 846:       // Text(&theRP_2bpl, currChar, 1);
+; 847:       SetAPen(&theRP_2bpl, 1);
+       | 145C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1462  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1468  7001                           MOVEQ       #01,D0
+       | 146A  4EAE FEAA                      JSR         FEAA(A6)
+; 848:       Move(&theRP_2bpl, x, y);
+       | 146E  7000                           MOVEQ       #00,D0
+       | 1470  3007                           MOVE.W      D7,D0
+       | 1472  7200                           MOVEQ       #00,D1
+       | 1474  3206                           MOVE.W      D6,D1
+       | 1476  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 147C  4EAE FF10                      JSR         FF10(A6)
+; 849:       Text(&theRP_2bpl, currChar, 1);
+       | 1480  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1486  204B                           MOVEA.L     A3,A0
+       | 1488  7001                           MOVEQ       #01,D0
+       | 148A  4EAE FFC4                      JSR         FFC4(A6)
+; 850:       x += TextLength(&theRP_2bpl, currChar, 1);
+       | 148E  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1494  204B                           MOVEA.L     A3,A0
+       | 1496  7001                           MOVEQ       #01,D0
+       | 1498  4EAE FFCA                      JSR         FFCA(A6)
+       | 149C  DE40                           ADD.W       D0,D7
+; 851:       currChar ++;
+       | 149E  264D                           MOVEA.L     A5,A3
+; 852:     }
+       | 14A0  4BEB 0001                      LEA         0001(A3),A5
+       | 14A4  7023                           MOVEQ       #23,D0
+       | 14A6  B013                           CMP.B       (A3),D0
+       | 14A8  66B2                           BNE.B       145C
+; 853:     currChar ++;
+       | 14AA  264D                           MOVEA.L     A5,A3
+; 854:     y += y_line_h;
+       | 14AC  0646 0020                      ADDI.W      #0020,D6
+; 855:     x = 0;
+       | 14B0  7E00                           MOVEQ       #00,D7
+; 856:   }
+       | 14B2  4A13                           TST.B       (A3)
+       | 14B4  66EA                           BNE.B       14A0
+; 857: 
+; 858:   disp_fade_in(pal1, 16);
+       | 14B6  4878 0010                      PEA         0010
+       | 14BA  4879  0000 0000-XX             PEA         _pal1
+       | 14C0  6100 F85A                      BSR.W       0D1C
+; 859:   fVBLDelay(400);
+       | 14C4  4878 0190                      PEA         0190
+       | 14C8  6100 EF1E                      BSR.W       03E8
+; 860:   disp_fade_out(pal1, 16);
+       | 14CC  4878 0010                      PEA         0010
+       | 14D0  4879  0000 0000-XX             PEA         _pal1
+       | 14D6  6100 F984                      BSR.W       0E5C
+; 861: }
+       | 14DA  4FEF 0014                      LEA         0014(A7),A7
+       | 14DE  4CDF 6CC0                      MOVEM.L     (A7)+,D6-D7/A2-A3/A5-A6
+       | 14E2  4E75                           RTS
+; 862: 
+; 863: /**************** SCROLLTEXT *********************/
+; 864: 
+; 865: void scroll_doit(void)
+       | 14E4  200F                           MOVE.L      A7,D0
+       | 14E6  90BC 0000 002C                 SUB.L       #0000002C,D0
+       | 14EC  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 14F2  6406                           BCC.B       14FA
+       | 14F4  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 14FA  48E7 3F36                      MOVEM.L     D2-D7/A2-A3/A5-A6,-(A7)
+; 866: {
+; 867:   PLANEPTR font, pic;
+; 868:   UBYTE *currChar;
+; 869:   static struct BitMap fontMap;
+; 870:   static UWORD offs[] =
+; 871:   { 192, 192, 192, 192, 192, 192, 192, 192,
+; 872:     192, 192, 192, 192, 192, 192, 192, 192,
+; 873:     192, 192, 192, 192, 192, 192, 192, 192,
+; 874:     192, 192, 192, 192, 192, 192, 192, 192,
+; 875:     192, 192, 192, 192, 192, 192, 192, 192,
+; 876:     192, 192, 192, 192, 192, 192, 192, 192,
+; 877:     192, 192, 192, 192, 192, 192, 192, 192,
+; 878:     192, 192, 192, 192, 192, 192, 192, 192,
+; 879:     192, 192, 128, 192, 192, 192, 192, 192,
+; 880:     192, 192, 192, 192, 192, 192, 64, 192,
+; 881:     288, 144, 256, 192, 192, 192, 192, 192,
+; 882:     32, 192, 192, 192, 224, 96, 192, 192,
+; 883:     256, 96, 0, 144, 32, 144, 64, 144,
+; 884:     96, 144, 128, 144, 160, 144, 192, 144,
+; 885:     224, 144, 256, 144, 96, 192, 0, 192,
+; 886:     192, 192, 192, 192, 192, 192, 160, 192,
+; 887:     192, 192, 0, 0, 32, 0, 64, 0,
+; 888:     96, 0, 128, 0, 160, 0, 192, 0,
+; 889:     224, 0, 256, 0, 0, 48, 32, 48,
+; 890:     64, 48, 96, 48, 128, 48, 160, 48,
+; 891:     192, 48, 224, 48, 256, 48, 0, 96,
+; 892:     32, 96, 64, 96, 96, 96, 224, 192,
+; 893:     128, 96, 160, 96, 192, 96, 192, 192,
+; 894:     192, 192, 192, 192, 192, 192, 192, 192,
+; 895:     192, 192, 0, 0, 32, 0, 64, 0,
+; 896:     96, 0, 128, 0, 160, 0, 192, 0,
+; 897:     224, 0, 256, 0, 0, 48, 32, 48,
+; 898:     64, 48, 96, 48, 128, 48, 160, 48,
+; 899:     192, 48, 224, 48, 256, 48, 0, 96,
+; 900:     32, 96, 64, 96, 96, 96, 224, 192,
+; 901:     128, 96, 160, 96, 192, 96, 192, 192,
+; 902:     192, 192, 192, 192, 192, 192, 192, 192 };
+; 903:   static UBYTE scrText[] = "welcome to the little scrollthingy... "
+; 904:   // "first the serious stuff :       "
+; 905:   // "q: what's another name for the 'intel inside' sticker they put on pentiums?          "
+; 906:   // "a: the warning label.         "
+; 907:   // "now we'll greet some people:       tcc, chaos pm, lcg, exceed, inventors of coca cola, "
+; 908:   // "the staff at this great party, kyrcman's microwave oven (and the man ;), " 
+; 909:   "motorola inc. (wod else ;) and the snubbe...   stay tuned for more pentium fun...                      ";
+; 910: 
+; 911:   font = load_getmem((UBYTE *)"assets/scrollfont.bin", 80 * 256);
+       | 14FE  4878 5000                      PEA         5000
+       | 1502  4879  0000 040E-01.2           PEA         01.0000040E
+       | 1508  4EB9  0000 0000-XX             JSR         _load_getmem
+       | 150E  2440                           MOVEA.L     D0,A2
+; 912:   InitBitMap(&fontMap, 2, 320, 256);
+       | 1510  41F9  0000 0000-02             LEA         02.00000000,A0
+       | 1516  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 151C  7002                           MOVEQ       #02,D0
+       | 151E  7250                           MOVEQ       #50,D1
+       | 1520  E589                           LSL.L       #2,D1
+       | 1522  7440                           MOVEQ       #40,D2
+       | 1524  E58A                           LSL.L       #2,D2
+       | 1526  4EAE FE7A                      JSR         FE7A(A6)
+; 913:   fontMap.Planes[0] = font;
+       | 152A  23CA  0000 0008-02             MOVE.L      A2,02.00000008
+; 914:   fontMap.Planes[1] = font + 40 * 256;
+       | 1530  41EA 2800                      LEA         2800(A2),A0
+       | 1534  23C8  0000 000C-02             MOVE.L      A0,02.0000000C
+; 915:   pic = load_getmem((UBYTE *)"assets/gradient.bin", 40 * 256 * 4); // load_getmem((UBYTE *)"assets/panther.bin", 34 * 167 * 4);
+       | 153A  2EBC 0000 A000                 MOVE.L      #0000A000,(A7)
+       | 1540  4879  0000 0424-01.2           PEA         01.00000424
+       | 1546  4EB9  0000 0000-XX             JSR         _load_getmem
+; 916:   // disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
+; 917:   currChar = scrText;
+       | 154C  4BF9  0000 0380-01             LEA         01.00000380,A5
+; 918: 
+; 919:   disp_fade_in(gradientPaletteRGB4, 16); //pal5);
+       | 1552  4878 0010                      PEA         0010
+       | 1556  4879  0000 0000-XX             PEA         _gradientPaletteRGB4
+       | 155C  6100 F7BE                      BSR.W       0D1C
+; 920:   fVBLDelay(100);
+       | 1560  4878 0064                      PEA         0064
+       | 1564  6100 EE82                      BSR.W       03E8
+       | 1568  4FEF 0018                      LEA         0018(A7),A7
+       | 156C  97CB                           SUBA.L      A3,A3
+; 921:   
+; 922:   while (*currChar)
+       | 156E  6000 00A2                      BRA.W       1612
+; 923:   {
+; 924:     BltBitMap(&fontMap, offs[(*currChar) << 1], offs[((*currChar) << 1) + 1],
+       | 1572  7000                           MOVEQ       #00,D0
+       | 1574  101D                           MOVE.B      (A5)+,D0
+       | 1576  D080                           ADD.L       D0,D0
+       | 1578  D080                           ADD.L       D0,D0
+       | 157A  41F9  0000 0180-01             LEA         01.00000180,A0
+       | 1580  D1C0                           ADDA.L      D0,A0
+       | 1582  7000                           MOVEQ       #00,D0
+       | 1584  3010                           MOVE.W      (A0),D0
+       | 1586  7200                           MOVEQ       #00,D1
+       | 1588  3228 0002                      MOVE.W      0002(A0),D1
+; 925:     &theBitMap_3bpl, 320, 208, 32, 48, 0xc0, 0xff, NULL);
+       | 158C  41F9  0000 0000-02             LEA         02.00000000,A0
+       | 1592  43F9  0000 0000-XX             LEA         _theBitMap_3bpl,A1
+       | 1598  244B                           MOVEA.L     A3,A2
+       | 159A  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 15A0  7450                           MOVEQ       #50,D2
+       | 15A2  E58A                           LSL.L       #2,D2
+       | 15A4  7668                           MOVEQ       #68,D3
+       | 15A6  D683                           ADD.L       D3,D3
+       | 15A8  7820                           MOVEQ       #20,D4
+       | 15AA  7A30                           MOVEQ       #30,D5
+       | 15AC  7C60                           MOVEQ       #60,D6
+       | 15AE  DC86                           ADD.L       D6,D6
+       | 15B0  7E00                           MOVEQ       #00,D7
+       | 15B2  4607                           NOT.B       D7
+       | 15B4  4EAE FFE2                      JSR         FFE2(A6)
+; 926:     currChar ++;
+; 927: 
+; 928:     WaitTOF();
+       | 15B8  4EAE FEF2                      JSR         FEF2(A6)
+; 929:     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
+       | 15BC  2A07                           MOVE.L      D7,D5
+       | 15BE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 15C4  7008                           MOVEQ       #08,D0
+       | 15C6  7200                           MOVEQ       #00,D1
+       | 15C8  2401                           MOVE.L      D1,D2
+       | 15CA  283C 0000 017F                 MOVE.L      #0000017F,D4
+       | 15D0  4EAE FE74                      JSR         FE74(A6)
+; 930:     WaitTOF();
+       | 15D4  4EAE FEF2                      JSR         FEF2(A6)
+; 931:     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
+       | 15D8  2202                           MOVE.L      D2,D1
+       | 15DA  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 15E0  7008                           MOVEQ       #08,D0
+       | 15E2  4EAE FE74                      JSR         FE74(A6)
+; 932:     WaitTOF();
+       | 15E6  4EAE FEF2                      JSR         FEF2(A6)
+; 933:     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
+       | 15EA  2202                           MOVE.L      D2,D1
+       | 15EC  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 15F2  7008                           MOVEQ       #08,D0
+       | 15F4  4EAE FE74                      JSR         FE74(A6)
+; 934:     WaitTOF();
+       | 15F8  4EAE FEF2                      JSR         FEF2(A6)
+; 935:     ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
+       | 15FC  2202                           MOVE.L      D2,D1
+       | 15FE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 1604  7008                           MOVEQ       #08,D0
+       | 1606  4EAE FE74                      JSR         FE74(A6)
+; 936: 
+; 937:     DispatchFX();
+       | 160A  6100 EB38                      BSR.W       0144
+; 938:     sys_check_abort();
+       | 160E  6100 ED72                      BSR.W       0382
+; 939:   }
+       | 1612  4A15                           TST.B       (A5)
+       | 1614  6600 FF5C                      BNE.W       1572
+; 940: 
+; 941:   disp_fade_out(gradientPaletteRGB4, 16); //pal5);  
+       | 1618  4878 0010                      PEA         0010
+       | 161C  4879  0000 0000-XX             PEA         _gradientPaletteRGB4
+       | 1622  6100 F838                      BSR.W       0E5C
+       | 1626  504F                           ADDQ.W      #8,A7
+; 942:   // FreeMem(font, 80 * 256);
+; 943:   // FreeMem(pic, 40 * 256 * 4);
+; 944: }
+       | 1628  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
+       | 162C  4E75                           RTS
+; 945: 
+; 946: void Sequence3DRotation(int duration_sec)
+       | 162E  200F                           MOVE.L      A7,D0
+       | 1630  90BC 0000 0018                 SUB.L       #00000018,D0
+       | 1636  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 163C  6406                           BCC.B       1644
+       | 163E  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 1644  514F                           SUBQ.W      #8,A7
+       | 1646  48E7 2F02                      MOVEM.L     D2/D4-D7/A6,-(A7)
+; 947: {
+; 948:   int abs_frame_idx = 0,
+       | 164A  7E00                           MOVEQ       #00,D7
+; 949:       m_scale_x;
+; 950: 
+; 951:   ULONG seq_start_clock, elapsed_clock = 0;
+       | 164C  7C00                           MOVEQ       #00,D6
+; 952:   duration_sec <<= 8;
+       | 164E  2A2F 0024                      MOVE.L      0024(A7),D5
+       | 1652  E185                           ASL.L       #8,D5
+; 953: 
+; 954:   seq_start_clock = TimeGetGClock();
+       | 1654  6100 EAAA                      BSR.W       0100
+       | 1658  2F40 001C                      MOVE.L      D0,001C(A7)
+; 955: 
+; 956:   while(elapsed_clock <= duration_sec)
+       | 165C  6000 00A8                      BRA.W       1706
+; 957:   {
+; 958:     elapsed_clock = TimeGetGClock() - seq_start_clock;
+       | 1660  6100 EA9E                      BSR.W       0100
+       | 1664  90AF 001C                      SUB.L       001C(A7),D0
+       | 1668  2C00                           MOVE.L      D0,D6
+; 959: 
+; 960:     if (elapsed_clock < (1 << 7))
+       | 166A  7040                           MOVEQ       #40,D0
+       | 166C  D080                           ADD.L       D0,D0
+       | 166E  BC80                           CMP.L       D0,D6
+       | 1670  6418                           BCC.B       168A
+; 961:       m_scale_x = (24 * QMAX(((1 << 7) - elapsed_clock), 0)) >> 8;
+       | 1672  2200                           MOVE.L      D0,D1
+       | 1674  9286                           SUB.L       D6,D1
+       | 1676  7000                           MOVEQ       #00,D0
+       | 1678  B280                           CMP.L       D0,D1
+       | 167A  6202                           BHI.B       167E
+       | 167C  2200                           MOVE.L      D0,D1
+       | 167E  2801                           MOVE.L      D1,D4
+       | 1680  E584                           ASL.L       #2,D4
+       | 1682  9881                           SUB.L       D1,D4
+       | 1684  E784                           ASL.L       #3,D4
+       | 1686  E08C                           LSR.L       #8,D4
+       | 1688  6028                           BRA.B       16B2
+; 962:     else
+; 963:     {
+; 964:       if (elapsed_clock > duration_sec - (1 << 7))
+       | 168A  2205                           MOVE.L      D5,D1
+       | 168C  7440                           MOVEQ       #40,D2
+       | 168E  D482                           ADD.L       D2,D2
+       | 1690  9282                           SUB.L       D2,D1
+       | 1692  BC81                           CMP.L       D1,D6
+       | 1694  631A                           BLS.B       16B0
+; 965:         m_scale_x = (24 * QMAX(elapsed_clock - (duration_sec - (1 << 7)), 0)) >> 8;
+       | 1696  2206                           MOVE.L      D6,D1
+       | 1698  9285                           SUB.L       D5,D1
+       | 169A  D280                           ADD.L       D0,D1
+       | 169C  7000                           MOVEQ       #00,D0
+       | 169E  B280                           CMP.L       D0,D1
+       | 16A0  6202                           BHI.B       16A4
+       | 16A2  2200                           MOVE.L      D0,D1
+       | 16A4  2801                           MOVE.L      D1,D4
+       | 16A6  E584                           ASL.L       #2,D4
+       | 16A8  9881                           SUB.L       D1,D4
+       | 16AA  E784                           ASL.L       #3,D4
+       | 16AC  E08C                           LSR.L       #8,D4
+       | 16AE  0C40 7800                      CMPI.W      #7800,D0
+; 966:       else
+; 967:         m_scale_x = 0;
+       | 16B2  DEB9  0000 001E-01             ADD.L       01.0000001E,D7
+; 968:     }
+; 969: 
+; 970:     abs_frame_idx += dt_time;
+       | 16B8  6100 E9DC                      BSR.W       0096
+; 971:     GetDeltaTime();
+       | 16BC  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+; 972:     WaitTOF();           
+       | 16C2  4EAE FEF2                      JSR         FEF2(A6)
+; 973:     disp_swap();
+       | 16C6  6100 FAF0                      BSR.W       11B8
+; 974:     disp_clear(&theRP_2bpl);
+       | 16CA  4879  0000 0000-XX             PEA         _theRP_2bpl
+       | 16D0  6100 F964                      BSR.W       1036
+; 975:     // disp_clear_bb_only(&theRP_2bpl);
+; 976:     // init_clear_bb();
+; 977:     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
+       | 16D4  2007                           MOVE.L      D7,D0
+       | 16D6  E880                           ASR.L       #4,D0
+       | 16D8  C0BC 0000 01FF                 AND.L       #000001FF,D0
+       | 16DE  2207                           MOVE.L      D7,D1
+       | 16E0  E681                           ASR.L       #3,D1
+       | 16E2  0281 0000 01FF                 ANDI.L      #000001FF,D1
+       | 16E8  2E84                           MOVE.L      D4,(A7)
+       | 16EA  2F39  0000 0006-01             MOVE.L      01.00000006,-(A7)
+       | 16F0  2F01                           MOVE.L      D1,-(A7)
+       | 16F2  2F00                           MOVE.L      D0,-(A7)
+       | 16F4  4EB9  0000 0000-XX             JSR         _Draw3DMesh
+; 978:     sys_check_abort();
+       | 16FA  6100 EC86                      BSR.W       0382
+; 979:     ModuleGetSyncValue();
+       | 16FE  6100 EA56                      BSR.W       0156
+       | 1702  4FEF 0010                      LEA         0010(A7),A7
+; 980:   }
+       | 1706  BC85                           CMP.L       D5,D6
+       | 1708  6300 FF56                      BLS.W       1660
+; 981: }
+       | 170C  4CDF 40F4                      MOVEM.L     (A7)+,D2/D4-D7/A6
+       | 1710  504F                           ADDQ.W      #8,A7
+       | 1712  4E75                           RTS
+; 982: 
+; 983: void SequenceDisplaySuspectProfile(int suspect_index)
+       | 1714  200F                           MOVE.L      A7,D0
+       | 1716  90BC 0000 003C                 SUB.L       #0000003C,D0
+       | 171C  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 1722  6406                           BCC.B       172A
+       | 1724  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 172A  9EFC 0010                      SUBA.W      #0010,A7
+       | 172E  48E7 3F36                      MOVEM.L     D2-D7/A2-A3/A5-A6,-(A7)
+; 984: {
+; 985:   int i;
+; 986:   /*  Text dispatch */
+; 987:   UBYTE *c_desc_str;
+; 988:   UBYTE *c_face;
+; 989:   UWORD *c_pal;
+; 990: 
+; 991:   switch(suspect_index)
+       | 1732  202F 003C                      MOVE.L      003C(A7),D0
+       | 1736  0C80 0000 0010                 CMPI.L      #00000010,D0
+       | 173C  6400 0180                      BCC.W       18BE
+       | 1740  D040                           ADD.W       D0,D0
+       | 1742  303B 0006                      MOVE.W      06(PC,D0.W),D0
+       | 1746  4EFB 0004                      JMP         04(PC,D0.W)
+       | 174A  001E 0034                      ORI.B       #34,(A6)+
+       | 174E  004A 0060                      ORI.W       #0060,A2
+       | 1752  0076 008C 00A2                 ORI.W       #008C,A2(A6,D0.W)
+       | 1758  00B8 00CE 00E4 00FA            ORI.L       #00CE00E4,00FA
+       | 1760  010E 0122                      MOVEP.W     0122(A6),D0
+       | 1764  0136 014A 015E                 BTST.B      D0,([A6],015E)
+; 992:   {
+; 993:     case 0: c_desc_str = (UBYTE *)DESC_CHAR_STR(0); c_face = (UBYTE *)"assets/face_02.bin"; c_pal = face_01PaletteRGB4; break;
+       | 176A  2A79  0000 0000-XX             MOVEA.L     _desc_char_0,A5
+       | 1770  47F9  0000 0438-01.2           LEA         01.00000438,A3
+       | 1776  45F9  0000 0000-XX             LEA         _face_01PaletteRGB4,A2
+       | 177C  6000 014E                      BRA.W       18CC
+; 994:     case 1: c_desc_str = (UBYTE *)DESC_CHAR_STR(1); c_face = (UBYTE *)"assets/face_03.bin"; c_pal = face_02PaletteRGB4; break;
+       | 1780  2A79  0000 0000-XX             MOVEA.L     _desc_char_1,A5
+       | 1786  47F9  0000 044C-01.2           LEA         01.0000044C,A3
+       | 178C  45F9  0000 0000-XX             LEA         _face_02PaletteRGB4,A2
+       | 1792  6000 0138                      BRA.W       18CC
+; 995:     case 2: c_desc_str = (UBYTE *)DESC_CHAR_STR(2); c_face = (UBYTE *)"assets/face_04.bin"; c_pal = face_03PaletteRGB4; break;
+       | 1796  2A79  0000 0000-XX             MOVEA.L     _desc_char_2,A5
+       | 179C  47F9  0000 0460-01.2           LEA         01.00000460,A3
+       | 17A2  45F9  0000 0000-XX             LEA         _face_03PaletteRGB4,A2
+       | 17A8  6000 0122                      BRA.W       18CC
+; 996:     case 3: c_desc_str = (UBYTE *)DESC_CHAR_STR(3); c_face = (UBYTE *)"assets/face_05.bin"; c_pal = face_04PaletteRGB4; break;
+       | 17AC  2A79  0000 0000-XX             MOVEA.L     _desc_char_3,A5
+       | 17B2  47F9  0000 0474-01.2           LEA         01.00000474,A3
+       | 17B8  45F9  0000 0000-XX             LEA         _face_04PaletteRGB4,A2
+       | 17BE  6000 010C                      BRA.W       18CC
+; 997:     case 4: c_desc_str = (UBYTE *)DESC_CHAR_STR(4); c_face = (UBYTE *)"assets/face_06.bin"; c_pal = face_05PaletteRGB4; break;
+       | 17C2  2A79  0000 0000-XX             MOVEA.L     _desc_char_4,A5
+       | 17C8  47F9  0000 0488-01.2           LEA         01.00000488,A3
+       | 17CE  45F9  0000 0000-XX             LEA         _face_05PaletteRGB4,A2
+       | 17D4  6000 00F6                      BRA.W       18CC
+; 998:     case 5: c_desc_str = (UBYTE *)DESC_CHAR_STR(5); c_face = (UBYTE *)"assets/face_07.bin"; c_pal = face_06PaletteRGB4; break;
+       | 17D8  2A79  0000 0000-XX             MOVEA.L     _desc_char_5,A5
+       | 17DE  47F9  0000 049C-01.2           LEA         01.0000049C,A3
+       | 17E4  45F9  0000 0000-XX             LEA         _face_06PaletteRGB4,A2
+       | 17EA  6000 00E0                      BRA.W       18CC
+; 999:     case 6: c_desc_str = (UBYTE *)DESC_CHAR_STR(6); c_face = (UBYTE *)"assets/face_08.bin"; c_pal = face_07PaletteRGB4; break;
+       | 17EE  2A79  0000 0000-XX             MOVEA.L     _desc_char_6,A5
+       | 17F4  47F9  0000 04B0-01.2           LEA         01.000004B0,A3
+       | 17FA  45F9  0000 0000-XX             LEA         _face_07PaletteRGB4,A2
+       | 1800  6000 00CA                      BRA.W       18CC
+;1000:     case 7: c_desc_str = (UBYTE *)DESC_CHAR_STR(7); c_face = (UBYTE *)"assets/face_09.bin"; c_pal = face_08PaletteRGB4; break;
+       | 1804  2A79  0000 0000-XX             MOVEA.L     _desc_char_7,A5
+       | 180A  47F9  0000 04C4-01.2           LEA         01.000004C4,A3
+       | 1810  45F9  0000 0000-XX             LEA         _face_08PaletteRGB4,A2
+       | 1816  6000 00B4                      BRA.W       18CC
+;1001:     case 8: c_desc_str = (UBYTE *)DESC_CHAR_STR(8); c_face = (UBYTE *)"assets/face_10.bin"; c_pal = face_09PaletteRGB4; break;
+       | 181A  2A79  0000 0000-XX             MOVEA.L     _desc_char_8,A5
+       | 1820  47F9  0000 04D8-01.2           LEA         01.000004D8,A3
+       | 1826  45F9  0000 0000-XX             LEA         _face_09PaletteRGB4,A2
+       | 182C  6000 009E                      BRA.W       18CC
+;1002:     case 9: c_desc_str = (UBYTE *)DESC_CHAR_STR(9); c_face = (UBYTE *)"assets/face_17.bin"; c_pal = face_10PaletteRGB4; break;
+       | 1830  2A79  0000 0000-XX             MOVEA.L     _desc_char_9,A5
+       | 1836  47F9  0000 04EC-01.2           LEA         01.000004EC,A3
+       | 183C  45F9  0000 0000-XX             LEA         _face_10PaletteRGB4,A2
+       | 1842  6000 0088                      BRA.W       18CC
+;1003:     case 10: c_desc_str = (UBYTE *)DESC_CHAR_STR(16); c_face = (UBYTE *)"assets/face_11.bin"; c_pal = face_17PaletteRGB4; break;
+       | 1846  2A79  0000 0000-XX             MOVEA.L     _desc_char_16,A5
+       | 184C  47F9  0000 0500-01.2           LEA         01.00000500,A3
+       | 1852  45F9  0000 0000-XX             LEA         _face_17PaletteRGB4,A2
+       | 1858  6072                           BRA.B       18CC
+;1004:     case 11: c_desc_str = (UBYTE *)DESC_CHAR_STR(10); c_face = (UBYTE *)"assets/face_12.bin"; c_pal = face_11PaletteRGB4; break;
+       | 185A  2A79  0000 0000-XX             MOVEA.L     _desc_char_10,A5
+       | 1860  47F9  0000 0514-01.2           LEA         01.00000514,A3
+       | 1866  45F9  0000 0000-XX             LEA         _face_11PaletteRGB4,A2
+       | 186C  605E                           BRA.B       18CC
+;1005:     case 12: c_desc_str = (UBYTE *)DESC_CHAR_STR(11); c_face = (UBYTE *)"assets/face_13.bin"; c_pal = face_12PaletteRGB4; break;
+       | 186E  2A79  0000 0000-XX             MOVEA.L     _desc_char_11,A5
+       | 1874  47F9  0000 0528-01.2           LEA         01.00000528,A3
+       | 187A  45F9  0000 0000-XX             LEA         _face_12PaletteRGB4,A2
+       | 1880  604A                           BRA.B       18CC
+;1006:     case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_13PaletteRGB4; break;
+       | 1882  2A79  0000 0000-XX             MOVEA.L     _desc_char_12,A5
+       | 1888  47F9  0000 053C-01.2           LEA         01.0000053C,A3
+       | 188E  45F9  0000 0000-XX             LEA         _face_13PaletteRGB4,A2
+       | 1894  6036                           BRA.B       18CC
+;1007:     case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_14PaletteRGB4; break;
+       | 1896  2A79  0000 0000-XX             MOVEA.L     _desc_char_13,A5
+       | 189C  47F9  0000 0550-01.2           LEA         01.00000550,A3
+       | 18A2  45F9  0000 0000-XX             LEA         _face_14PaletteRGB4,A2
+       | 18A8  6022                           BRA.B       18CC
+;1008:     case 15: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_15PaletteRGB4; break;
+       | 18AA  2A79  0000 0000-XX             MOVEA.L     _desc_char_14,A5
+       | 18B0  47F9  0000 0564-01.2           LEA         01.00000564,A3
+       | 18B6  45F9  0000 0000-XX             LEA         _face_15PaletteRGB4,A2
+       | 18BC  600E                           BRA.B       18CC
+;1009:     default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = NULL; c_pal = face_16PaletteRGB4; break;
+       | 18BE  2A79  0000 0000-XX             MOVEA.L     _desc_char_15,A5
+       | 18C4  97CB                           SUBA.L      A3,A3
+       | 18C6  45F9  0000 0000-XX             LEA         _face_16PaletteRGB4,A2
+;1010:   }
+;1011: 
+;1012:   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
+       | 18CC  2F4B 0028                      MOVE.L      A3,0028(A7)
+       | 18D0  2F0A                           MOVE.L      A2,-(A7)
+       | 18D2  2079  0000 01C6-02             MOVEA.L     02.000001C6,A0
+       | 18D8  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 18DE  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 18E4  7000                           MOVEQ       #00,D0
+       | 18E6  2200                           MOVE.L      D0,D1
+       | 18E8  2400                           MOVE.L      D0,D2
+       | 18EA  2600                           MOVE.L      D0,D3
+       | 18EC  7850                           MOVEQ       #50,D4
+       | 18EE  E58C                           LSL.L       #2,D4
+       | 18F0  7A40                           MOVEQ       #40,D5
+       | 18F2  E58D                           LSL.L       #2,D5
+       | 18F4  7C60                           MOVEQ       #60,D6
+       | 18F6  DC86                           ADD.L       D6,D6
+       | 18F8  7E00                           MOVEQ       #00,D7
+       | 18FA  4607                           NOT.B       D7
+       | 18FC  95CA                           SUBA.L      A2,A2
+       | 18FE  4EAE FFE2                      JSR         FFE2(A6)
+       | 1902  4CDF 0400                      MOVEM.L     (A7)+,A2
+;1013:   LoadRGB4(mainVP, background1PaletteRGB4, 32);
+       | 1906  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 190C  43F9  0000 0000-XX             LEA         _background1PaletteRGB4,A1
+       | 1912  7020                           MOVEQ       #20,D0
+       | 1914  4EAE FF40                      JSR         FF40(A6)
+;1014:   fVBLDelay(10);
+       | 1918  4878 000A                      PEA         000A
+       | 191C  6100 EACA                      BSR.W       03E8
+       | 1920  584F                           ADDQ.W      #4,A7
+;1015: 
+;1016:   /*  Clear the portrait area */
+;1017:   SetAPen(&theRP, 0);
+       | 1922  2002                           MOVE.L      D2,D0
+       | 1924  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 192A  4EAE FEAA                      JSR         FEAA(A6)
+;1018:   WaitTOF();
+       | 192E  4EAE FEF2                      JSR         FEF2(A6)
+;1019:   RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
+       | 1932  7037                           MOVEQ       #37,D0
+       | 1934  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 193A  2200                           MOVE.L      D0,D1
+       | 193C  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1942  702A                           MOVEQ       #2A,D0
+       | 1944  7472                           MOVEQ       #72,D2
+       | 1946  7647                           MOVEQ       #47,D3
+       | 1948  D683                           ADD.L       D3,D3
+       | 194A  4EAE FECE                      JSR         FECE(A6)
+;1020: 
+;1021:   LoadRGB4(mainVP, videoPaletteRGB4, 16);
+       | 194E  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 1954  43F9  0000 0000-XX             LEA         _videoPaletteRGB4,A1
+       | 195A  7010                           MOVEQ       #10,D0
+       | 195C  4EAE FF40                      JSR         FF40(A6)
+;1022: 
+;1023:   /*  Switched on tube FX */
+;1024: 
+;1025:   SetAPen(&theRP, 15);
+       | 1960  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1966  700F                           MOVEQ       #0F,D0
+       | 1968  4EAE FEAA                      JSR         FEAA(A6)
+;1026:   WaitTOF();
+       | 196C  4EAE FEF2                      JSR         FEF2(A6)
+;1027:   RectFill(&theRP, 42, frameOffset + 55 + 40, 42 + 72, 55 + 87 - 40);
+       | 1970  705F                           MOVEQ       #5F,D0
+       | 1972  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 1978  2200                           MOVE.L      D0,D1
+       | 197A  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1980  702A                           MOVEQ       #2A,D0
+       | 1982  7666                           MOVEQ       #66,D3
+       | 1984  4EAE FECE                      JSR         FECE(A6)
+;1028:   WaitTOF();
+       | 1988  4EAE FEF2                      JSR         FEF2(A6)
+;1029:   RectFill(&theRP, 42, frameOffset + 55 + 32, 42 + 72, 55 + 87 - 32);
+       | 198C  7057                           MOVEQ       #57,D0
+       | 198E  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 1994  2200                           MOVE.L      D0,D1
+       | 1996  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 199C  702A                           MOVEQ       #2A,D0
+       | 199E  766E                           MOVEQ       #6E,D3
+       | 19A0  4EAE FECE                      JSR         FECE(A6)
+;1030: 
+;1031:   for (i = 0; i < 5; i++)
+       | 19A4  7E00                           MOVEQ       #00,D7
+       | 19A6  97CB                           SUBA.L      A3,A3
+       | 19A8  6000 0080                      BRA.W       1A2A
+;1032:   {
+;1033:     WaitTOF();
+       | 19AC  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 19B2  4EAE FEF2                      JSR         FEF2(A6)
+;1034:     BltBitMap(bitmap_video_noise, 0, (i << 2) + ((8 - i) << 1), &theBitMap, 43, 56 + ((8 - i) << 2), 71, 86 - ((8 - i) << 3), 0xC0, 0xFF, NULL);
+       | 19B6  7008                           MOVEQ       #08,D0
+       | 19B8  9087                           SUB.L       D7,D0
+       | 19BA  2200                           MOVE.L      D0,D1
+       | 19BC  D281                           ADD.L       D1,D1
+       | 19BE  2407                           MOVE.L      D7,D2
+       | 19C0  E582                           ASL.L       #2,D2
+       | 19C2  D481                           ADD.L       D1,D2
+       | 19C4  2200                           MOVE.L      D0,D1
+       | 19C6  E581                           ASL.L       #2,D1
+       | 19C8  7638                           MOVEQ       #38,D3
+       | 19CA  D283                           ADD.L       D3,D1
+       | 19CC  E780                           ASL.L       #3,D0
+       | 19CE  7656                           MOVEQ       #56,D3
+       | 19D0  9680                           SUB.L       D0,D3
+       | 19D2  2F41 0034                      MOVE.L      D1,0034(A7)
+       | 19D6  48E7 0120                      MOVEM.L     D7/A2,-(A7)
+       | 19DA  2202                           MOVE.L      D2,D1
+       | 19DC  2A03                           MOVE.L      D3,D5
+       | 19DE  2079  0000 01D6-02             MOVEA.L     02.000001D6,A0
+       | 19E4  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 19EA  262F 003C                      MOVE.L      003C(A7),D3
+       | 19EE  244B                           MOVEA.L     A3,A2
+       | 19F0  7000                           MOVEQ       #00,D0
+       | 19F2  742B                           MOVEQ       #2B,D2
+       | 19F4  7847                           MOVEQ       #47,D4
+       | 19F6  7C60                           MOVEQ       #60,D6
+       | 19F8  DC86                           ADD.L       D6,D6
+       | 19FA  7E00                           MOVEQ       #00,D7
+       | 19FC  4607                           NOT.B       D7
+       | 19FE  4EAE FFE2                      JSR         FFE2(A6)
+       | 1A02  4CDF 0480                      MOVEM.L     (A7)+,D7/A2
+;1035:     if (i == 0)   RectFill(&theRP, 42, frameOffset + 55 + 40, 42 + 72, 55 + 87 - 40);
+       | 1A06  4A87                           TST.L       D7
+       | 1A08  661A                           BNE.B       1A24
+       | 1A0A  705F                           MOVEQ       #5F,D0
+       | 1A0C  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 1A12  2200                           MOVE.L      D0,D1
+       | 1A14  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1A1A  702A                           MOVEQ       #2A,D0
+       | 1A1C  7472                           MOVEQ       #72,D2
+       | 1A1E  7666                           MOVEQ       #66,D3
+       | 1A20  4EAE FECE                      JSR         FECE(A6)
+;1036: 
+;1037:     ModuleGetSyncValue();
+       | 1A24  6100 E730                      BSR.W       0156
+       | 1A28  5287                           ADDQ.L      #1,D7
+       | 1A2A  7005                           MOVEQ       #05,D0
+       | 1A2C  BE80                           CMP.L       D0,D7
+       | 1A2E  6D00 FF7C                      BLT.W       19AC
+;1038:   }
+;1039: 
+;1040:   WaitTOF();
+       | 1A32  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1A38  4EAE FEF2                      JSR         FEF2(A6)
+;1041:   BltBitMap(bitmap_video_noise, 0, 128 - 90, &theBitMap, 43, 56, 71, 86, 0xC0, 0xFF, NULL);
+       | 1A3C  2F0A                           MOVE.L      A2,-(A7)
+       | 1A3E  2079  0000 01D6-02             MOVEA.L     02.000001D6,A0
+       | 1A44  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 1A4A  244B                           MOVEA.L     A3,A2
+       | 1A4C  7000                           MOVEQ       #00,D0
+       | 1A4E  7226                           MOVEQ       #26,D1
+       | 1A50  742B                           MOVEQ       #2B,D2
+       | 1A52  7638                           MOVEQ       #38,D3
+       | 1A54  7847                           MOVEQ       #47,D4
+       | 1A56  7A56                           MOVEQ       #56,D5
+       | 1A58  7C60                           MOVEQ       #60,D6
+       | 1A5A  DC86                           ADD.L       D6,D6
+       | 1A5C  7E00                           MOVEQ       #00,D7
+       | 1A5E  4607                           NOT.B       D7
+       | 1A60  4EAE FFE2                      JSR         FFE2(A6)
+       | 1A64  4CDF 0400                      MOVEM.L     (A7)+,A2
+;1042: 
+;1043:   SetAPen(&theRP, 0);
+       | 1A68  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1A6E  7000                           MOVEQ       #00,D0
+       | 1A70  4EAE FEAA                      JSR         FEAA(A6)
+;1044:   WaitTOF();
+       | 1A74  4EAE FEF2                      JSR         FEF2(A6)
+;1045:   RectFill(&theRP, 42, frameOffset + 55, 42 + 72, 55 + 87);
+       | 1A78  7037                           MOVEQ       #37,D0
+       | 1A7A  D0B9  0000 0006-01             ADD.L       01.00000006,D0
+       | 1A80  2200                           MOVE.L      D0,D1
+       | 1A82  43F9  0000 0000-XX             LEA         _theRP,A1
+       | 1A88  702A                           MOVEQ       #2A,D0
+       | 1A8A  7472                           MOVEQ       #72,D2
+       | 1A8C  7647                           MOVEQ       #47,D3
+       | 1A8E  D683                           ADD.L       D3,D3
+       | 1A90  4EAE FECE                      JSR         FECE(A6)
+;1046: 
+;1047:   /*  Load the portrait's palette */
+;1048:   LoadRGB4(mainVP, c_pal, 16);
+       | 1A94  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
+       | 1A9A  224A                           MOVEA.L     A2,A1
+       | 1A9C  7010                           MOVEQ       #10,D0
+       | 1A9E  4EAE FF40                      JSR         FF40(A6)
+;1049: 
+;1050:   /*  Draw the portrait */
+;1051:   BLIT_BITMAP_S(bitmap_next_face, &theBitMap, 71, 86, 43, 56);
+       | 1AA2  2079  0000 01DA-02             MOVEA.L     02.000001DA,A0
+       | 1AA8  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 1AAE  244B                           MOVEA.L     A3,A2
+       | 1AB0  7000                           MOVEQ       #00,D0
+       | 1AB2  2200                           MOVE.L      D0,D1
+       | 1AB4  742B                           MOVEQ       #2B,D2
+       | 1AB6  7638                           MOVEQ       #38,D3
+       | 1AB8  7E00                           MOVEQ       #00,D7
+       | 1ABA  4607                           NOT.B       D7
+       | 1ABC  4EAE FFE2                      JSR         FFE2(A6)
+;1052:   BltBitMap(bitmap_background, 36, 140, &theBitMap, 36, 140, 9, 8, 0xC0, 0xFF, NULL);
+       | 1AC0  2079  0000 01C6-02             MOVEA.L     02.000001C6,A0
+       | 1AC6  43F9  0000 0000-XX             LEA         _theBitMap,A1
+       | 1ACC  244B                           MOVEA.L     A3,A2
+       | 1ACE  7024                           MOVEQ       #24,D0
+       | 1AD0  7246                           MOVEQ       #46,D1
+       | 1AD2  D281                           ADD.L       D1,D1
+       | 1AD4  2400                           MOVE.L      D0,D2
+       | 1AD6  2601                           MOVE.L      D1,D3
+       | 1AD8  7809                           MOVEQ       #09,D4
+       | 1ADA  7A08                           MOVEQ       #08,D5
+       | 1ADC  7E00                           MOVEQ       #00,D7
+       | 1ADE  4607                           NOT.B       D7
+       | 1AE0  4EAE FFE2                      JSR         FFE2(A6)
+;1053: 
+;1054:   fVBLDelay(10);
+       | 1AE4  4878 000A                      PEA         000A
+       | 1AE8  6100 E8FE                      BSR.W       03E8
+;1055: 
+;1056:   /*  Write the profile description */
+;1057:   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
+       | 1AEC  2E8D                           MOVE.L      A5,(A7)
+       | 1AEE  4878 003F                      PEA         003F
+       | 1AF2  4878 007C                      PEA         007C
+       | 1AF6  4879  0000 0000-XX.2           PEA         _future_font_x_pos_array
+       | 1AFC  4879  0000 0000-XX.2           PEA         _future_font_glyph_array
+       | 1B02  4879  0000 0000-XX             PEA         _theBitMap
+       | 1B08  2F39  0000 01D2-02             MOVE.L      02.000001D2,-(A7)
+       | 1B0E  2F39  0000 01CE-02             MOVE.L      02.000001CE,-(A7)
+       | 1B14  4EB9  0000 0000-XX             JSR         _font_writer_blit
+       | 1B1A  4FEF 0020                      LEA         0020(A7),A7
+;1058: 
+;1059:   FREE_BITMAP(bitmap_tmp);
+       | 1B1E  2039  0000 01CA-02             MOVE.L      02.000001CA,D0
+       | 1B24  6706                           BEQ.B       1B2C
+       | 1B26  2040                           MOVEA.L     D0,A0
+       | 1B28  4EAE FC64                      JSR         FC64(A6)
+       | 1B2C  42B9  0000 01CA-02             CLR.L       02.000001CA
+;1060: 
+;1061:   if (c_face != NULL)
+       | 1B32  206F 0028                      MOVEA.L     0028(A7),A0
+       | 1B36  2008                           MOVE.L      A0,D0
+       | 1B38  6722                           BEQ.B       1B5C
+;1062:     bitmap_next_face = load_as_bitmap(c_face, 3440, 80, 86, 4);
+       | 1B3A  4878 0004                      PEA         0004
+       | 1B3E  4878 0056                      PEA         0056
+       | 1B42  4878 0050                      PEA         0050
+       | 1B46  4878 0D70                      PEA         0D70
+       | 1B4A  2F08                           MOVE.L      A0,-(A7)
+       | 1B4C  4EB9  0000 0000-XX             JSR         _load_as_bitmap
+       | 1B52  4FEF 0014                      LEA         0014(A7),A7
+       | 1B56  23C0  0000 01DA-02             MOVE.L      D0,02.000001DA
+;1063: 
+;1064:   for(i = 0; i < 250; i++)
+       | 1B5C  7E00                           MOVEQ       #00,D7
+;1065:   {
+;1066:     WaitTOF();
+       | 1B5E  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 1B64  4EAE FEF2                      JSR         FEF2(A6)
+;1067:     ModuleGetSyncValue();
+       | 1B68  6100 E5EC                      BSR.W       0156
+       | 1B6C  5287                           ADDQ.L      #1,D7
+       | 1B6E  707D                           MOVEQ       #7D,D0
+       | 1B70  D080                           ADD.L       D0,D0
+       | 1B72  BE80                           CMP.L       D0,D7
+       | 1B74  6DE8                           BLT.B       1B5E
+;1068:   }
+;1069: 
+;1070:   disp_clear(NULL);
+       | 1B76  7000                           MOVEQ       #00,D0
+       | 1B78  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 1B7C  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
+       | 1B80  DEFC 0010                      ADDA.W      #0010,A7
+       | 1B84  6000 F4B0                      BRA.W       1036
+
+SECTION 01 "data" 00000578 BYTES
+0000 00 00 00 00 00 00 00 00 00 00 00 00 02 00 00 00 ................
+0010 02 00 FF FF FF FF FF FF FF FF 00 00 00 00 00 00 ................
+0020 00 00 00 00 00 00 00 00 00 00 74 69 6D 65 72 2E ..........timer.
+0030 64 65 76 69 63 65 00 00 55 6E 61 62 6C 65 20 74 device..Unable t
+0040 6F 20 6F 70 65 6E 20 54 69 6D 65 72 2E 64 65 76 o open Timer.dev
+0050 69 63 65 00 6B 65 79 62 6F 61 72 64 2E 64 65 76 ice.keyboard.dev
+0060 69 63 65 00 6B 65 79 62 6F 61 72 64 2E 64 65 76 ice.keyboard.dev
+0070 69 63 65 20 64 69 64 20 6E 6F 74 20 6F 70 65 6E ice did not open
+0080 0A 00 43 61 6E 6E 6F 74 20 61 6C 6C 6F 63 61 74 ..Cannot allocat
+0090 65 20 6B 65 79 62 6F 61 72 64 20 62 75 66 66 65 e keyboard buffe
+00A0 72 0A 00 00 41 6D 69 67 61 20 43 20 64 65 6D 6F r...Amiga C demo
+00B0 5E 4D 61 6E 64 61 72 69 6E 65 2F 4D 61 6E 6B 69 ^Mandarine/Manki
+00C0 6E 64 20 32 30 31 34 2E 0A 00 61 73 73 65 74 73 nd 2014...assets
+00D0 2F 64 65 6D 6F 2D 74 69 74 6C 65 2E 62 69 6E 00 /demo-title.bin.
+00E0 61 73 73 65 74 73 2F 6D 6F 64 75 6C 65 2E 62 69 assets/module.bi
+00F0 6E 00 61 73 73 65 74 73 2F 62 61 63 6B 67 72 6F n.assets/backgro
+0100 75 6E 64 31 2E 62 69 6E 00 00 61 73 73 65 74 73 und1.bin..assets
+0110 2F 66 75 74 75 72 65 5F 66 6F 6E 74 2E 62 69 6E /future_font.bin
+0120 00 00 61 73 73 65 74 73 2F 66 75 74 75 72 65 5F ..assets/future_
+0130 66 6F 6E 74 2D 64 61 72 6B 2E 62 69 6E 00 61 73 font-dark.bin.as
+0140 73 65 74 73 2F 76 69 64 65 6F 2D 6E 6F 69 73 65 sets/video-noise
+0150 2E 62 69 6E 00 00 61 73 73 65 74 73 2F 66 61 63 .bin..assets/fac
+0160 65 5F 30 31 2E 62 69 6E 00 00 61 73 73 65 74 73 e_01.bin..assets
+0170 2F 66 61 63 65 73 5F 61 6C 6C 2E 62 69 6E 00 00 /faces_all.bin..
+0180 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+0190 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01A0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01B0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01D0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01E0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+01F0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+0200 00 C0 00 C0 00 80 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@...@.@.@.@.@
+0210 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 40 00 C0 .@.@.@.@.@.@.@.@
+0220 01 20 00 90 01 00 00 C0 00 C0 00 C0 00 C0 00 C0 . .....@.@.@.@.@
+0230 00 20 00 C0 00 C0 00 C0 00 E0 00 60 00 C0 00 C0 . .@.@.@.`.`.@.@
+0240 01 00 00 60 00 00 00 90 00 20 00 90 00 40 00 90 ...`..... ...@..
+0250 00 60 00 90 00 80 00 90 00 A0 00 90 00 C0 00 90 .`....... ...@..
+0260 00 E0 00 90 01 00 00 90 00 60 00 C0 00 00 00 C0 .`.......`.@...@
+0270 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 A0 00 C0 .@.@.@.@.@.@. .@
+0280 00 C0 00 C0 00 00 00 00 00 20 00 00 00 40 00 00 .@.@..... ...@..
+0290 00 60 00 00 00 80 00 00 00 A0 00 00 00 C0 00 00 .`....... ...@..
+02A0 00 E0 00 00 01 00 00 00 00 00 00 30 00 20 00 30 .`.........0. .0
+02B0 00 40 00 30 00 60 00 30 00 80 00 30 00 A0 00 30 .@.0.`.0...0. .0
+02C0 00 C0 00 30 00 E0 00 30 01 00 00 30 00 00 00 60 .@.0.`.0...0...`
+02D0 00 20 00 60 00 40 00 60 00 60 00 60 00 E0 00 C0 . .`.@.`.`.`.`.@
+02E0 00 80 00 60 00 A0 00 60 00 C0 00 60 00 C0 00 C0 ...`. .`.@.`.@.@
+02F0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+0300 00 C0 00 C0 00 00 00 00 00 20 00 00 00 40 00 00 .@.@..... ...@..
+0310 00 60 00 00 00 80 00 00 00 A0 00 00 00 C0 00 00 .`....... ...@..
+0320 00 E0 00 00 01 00 00 00 00 00 00 30 00 20 00 30 .`.........0. .0
+0330 00 40 00 30 00 60 00 30 00 80 00 30 00 A0 00 30 .@.0.`.0...0. .0
+0340 00 C0 00 30 00 E0 00 30 01 00 00 30 00 00 00 60 .@.0.`.0...0...`
+0350 00 20 00 60 00 40 00 60 00 60 00 60 00 E0 00 C0 . .`.@.`.`.`.`.@
+0360 00 80 00 60 00 A0 00 60 00 C0 00 60 00 C0 00 C0 ...`. .`.@.`.@.@
+0370 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 00 C0 .@.@.@.@.@.@.@.@
+0380 77 65 6C 63 6F 6D 65 20 74 6F 20 74 68 65 20 6C welcome to the l
+0390 69 74 74 6C 65 20 73 63 72 6F 6C 6C 74 68 69 6E ittle scrollthin
+03A0 67 79 2E 2E 2E 20 6D 6F 74 6F 72 6F 6C 61 20 69 gy... motorola i
+03B0 6E 63 2E 20 28 77 6F 64 20 65 6C 73 65 20 3B 29 nc. (wod else ;)
+03C0 20 61 6E 64 20 74 68 65 20 73 6E 75 62 62 65 2E  and the snubbe.
+03D0 2E 2E 20 20 20 73 74 61 79 20 74 75 6E 65 64 20 ..   stay tuned 
+03E0 66 6F 72 20 6D 6F 72 65 20 70 65 6E 74 69 75 6D for more pentium
+03F0 20 66 75 6E 2E 2E 2E 20 20 20 20 20 20 20 20 20  fun...         
+0400 20 20 20 20 20 20 20 20 20 20 20 20 20 00 61 73              .as
+0410 73 65 74 73 2F 73 63 72 6F 6C 6C 66 6F 6E 74 2E sets/scrollfont.
+0420 62 69 6E 00 61 73 73 65 74 73 2F 67 72 61 64 69 bin.assets/gradi
+0430 65 6E 74 2E 62 69 6E 00 61 73 73 65 74 73 2F 66 ent.bin.assets/f
+0440 61 63 65 5F 30 32 2E 62 69 6E 00 00 61 73 73 65 ace_02.bin..asse
+0450 74 73 2F 66 61 63 65 5F 30 33 2E 62 69 6E 00 00 ts/face_03.bin..
+0460 61 73 73 65 74 73 2F 66 61 63 65 5F 30 34 2E 62 assets/face_04.b
+0470 69 6E 00 00 61 73 73 65 74 73 2F 66 61 63 65 5F in..assets/face_
+0480 30 35 2E 62 69 6E 00 00 61 73 73 65 74 73 2F 66 05.bin..assets/f
+0490 61 63 65 5F 30 36 2E 62 69 6E 00 00 61 73 73 65 ace_06.bin..asse
+04A0 74 73 2F 66 61 63 65 5F 30 37 2E 62 69 6E 00 00 ts/face_07.bin..
+04B0 61 73 73 65 74 73 2F 66 61 63 65 5F 30 38 2E 62 assets/face_08.b
+04C0 69 6E 00 00 61 73 73 65 74 73 2F 66 61 63 65 5F in..assets/face_
+04D0 30 39 2E 62 69 6E 00 00 61 73 73 65 74 73 2F 66 09.bin..assets/f
+04E0 61 63 65 5F 31 30 2E 62 69 6E 00 00 61 73 73 65 ace_10.bin..asse
+04F0 74 73 2F 66 61 63 65 5F 31 37 2E 62 69 6E 00 00 ts/face_17.bin..
+0500 61 73 73 65 74 73 2F 66 61 63 65 5F 31 31 2E 62 assets/face_11.b
+0510 69 6E 00 00 61 73 73 65 74 73 2F 66 61 63 65 5F in..assets/face_
+0520 31 32 2E 62 69 6E 00 00 61 73 73 65 74 73 2F 66 12.bin..assets/f
+0530 61 63 65 5F 31 33 2E 62 69 6E 00 00 61 73 73 65 ace_13.bin..asse
+0540 74 73 2F 66 61 63 65 5F 31 34 2E 62 69 6E 00 00 ts/face_14.bin..
+0550 61 73 73 65 74 73 2F 66 61 63 65 5F 31 35 2E 62 assets/face_15.b
+0560 69 6E 00 00 61 73 73 65 74 73 2F 66 61 63 65 5F in..assets/face_
+0570 31 36 2E 62 69 6E 00 00 16.bin..
+
+SECTION 02 "udata" 00000210 BYTES

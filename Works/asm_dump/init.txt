@@ -1,0 +1,1016 @@
+SAS AMIGA 680x0OBJ Module Disassembler 6.57
+Copyright © 1995 SAS Institute, Inc.
+
+
+Amiga Object File Loader V1.00
+68000 Instruction Set
+
+EXTERNAL DEFINITIONS
+
+_init_open_libs 0000-00    _Init16ColorsScreen 0118-00    
+_Init32ColorsScreen 033E-00    _InitEHBScreen 055E-00    
+_init_close_video 07AC-00    _init_close_libs 0808-00    _theScreenEHB 0000-01
+_theScreen32 0020-01    _theScreen16 0040-01    _current_screen_depth 0060-01
+_prev_screen_depth 0064-01    _writerAttr 0076-01    _GfxBase 0000-02    
+_IntuitionBase 0004-02    _DiskfontBase 0008-02    _PTReplayBase 000C-02    
+_theRaster 0010-02    _theRP 0014-02    _theRP_5bpl 0078-02    
+_theRP_4bpl 00DC-02    _theRP_3bpl 0140-02    _theRP_2bpl 01A4-02    
+_theRP_1bpl 0208-02    _theBitMap 026C-02    _theBitMap_5bpl 0294-02    
+_theBitMap_4bpl 02BC-02    _theBitMap_3bpl 02E4-02    _theBitMap_2bpl 030C-02
+_theBitMap_1bpl 0334-02    _mainScreen 035C-02    _mainVP 0360-02    
+_writerFont 0364-02
+
+SECTION 00 "text" 000008D0 BYTES
+;   1: /*  Unusual Suspects 
+;   2:     Main program initialization */
+;   3: 
+;   4: #include "includes.prl"
+;   5: 
+;   6: #include "common.h"
+;   7: #include "protos.h"
+;   8: 
+;   9: /***** Static function declarations *****/
+;  10: 
+;  11: static void init_conerr(UBYTE *str);
+;  12: 
+;  13: /***** External variables *****/
+;  14: 
+;  15: /* Library pointers */
+;  16: extern struct ExecBase *SysBase;
+;  17: extern struct DosLibrary *DOSBase;
+;  18: struct GfxBase *GfxBase;
+;  19: struct IntuitionBase *IntuitionBase;
+;  20: struct Library *DiskfontBase;
+;  21: struct Library *PTReplayBase;
+;  22: 
+;  23: PLANEPTR theRaster;
+;  24: struct RastPort theRP;
+;  25: struct RastPort theRP_5bpl;
+;  26: struct RastPort theRP_4bpl;
+;  27: struct RastPort theRP_3bpl;
+;  28: struct RastPort theRP_2bpl;
+;  29: struct RastPort theRP_1bpl;
+;  30: struct BitMap theBitMap;
+;  31: struct BitMap theBitMap_5bpl;
+;  32: struct BitMap theBitMap_4bpl;
+;  33: struct BitMap theBitMap_3bpl;
+;  34: struct BitMap theBitMap_2bpl;
+;  35: struct BitMap theBitMap_1bpl;
+;  36: struct NewScreen theScreenEHB =
+;  37: {
+;  38:   0, 0, 320, SCR_HEIGHT, 6, 0, 1, 0 | EXTRA_HALFBRITE,
+;  39:   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
+;  40: };
+;  41: 
+;  42: struct NewScreen theScreen32 =
+;  43: {
+;  44:   0, 0, 320, SCR_HEIGHT, 5, 0, 1, 0,
+;  45:   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
+;  46: };
+;  47: 
+;  48: struct NewScreen theScreen16 =
+;  49: {
+;  50:   0, 0, 320, SCR_HEIGHT, 4, 0, 1, 0,
+;  51:   CUSTOMSCREEN | CUSTOMBITMAP | SCREENQUIET, NULL, NULL, NULL, &theBitMap
+;  52: };
+;  53: 
+;  54: int current_screen_depth = 0,
+;  55:     prev_screen_depth = 0;
+;  56: 
+;  57: struct Screen *mainScreen;
+;  58: struct ViewPort *mainVP;
+;  59: struct TextFont *writerFont;
+;  60: struct TextAttr writerAttr =
+;  61: { (STRPTR)"futuraB.font", 32, 0, 0 };
+;  62: 
+;  63: /***** Global functions *****/
+;  64: 
+;  65: /* Open all needed global resources */
+;  66: BOOL init_open_libs(void)
+       | 0000  200F                           MOVE.L      A7,D0
+       | 0002  5180                           SUBQ.L      #8,D0
+       | 0004  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 000A  6406                           BCC.B       0012
+       | 000C  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0012  48E7 2002                      MOVEM.L     D2/A6,-(A7)
+;  67: {
+;  68:   /* Check for at least release 3.0 */
+;  69:   if (SysBase->LibNode.lib_Version < 33)
+       | 0016  2079  0000 0000-XX             MOVEA.L     _SysBase,A0
+       | 001C  0C68 0021 0014                 CMPI.W      #0021,0014(A0)
+       | 0022  6414                           BCC.B       0038
+;  70:   {
+;  71:     init_conerr((UBYTE *)"This program requires Amiga Kickstart Release 1.2 +\n");
+       | 0024  4879  0000 007E-01.2           PEA         01.0000007E
+       | 002A  4EB9  0000 0868-00             JSR         00.00000868
+       | 0030  584F                           ADDQ.W      #4,A7
+;  72:     return (FALSE);
+       | 0032  7000                           MOVEQ       #00,D0
+       | 0034  6000 00DC                      BRA.W       0112
+;  73:   }
+;  74: 
+;  75:   /* Open needed libraries */
+;  76:   if (!(IntuitionBase = (struct IntuitionBase *)
+;  77:   OpenLibrary((UBYTE *)"intuition.library", _LIB_VERSION)))
+       | 0038  43F9  0000 00B4-01.2           LEA         01.000000B4,A1
+       | 003E  7021                           MOVEQ       #21,D0
+       | 0040  2C78 0004                      MOVEA.L     0004,A6
+       | 0044  4EAE FDD8                      JSR         FDD8(A6)
+       | 0048  23C0  0000 0004-02             MOVE.L      D0,02.00000004
+       | 004E  6614                           BNE.B       0064
+;  78:   {
+;  79:     init_conerr((UBYTE *)"Unable to open intuition.library version 33\n");
+       | 0050  4879  0000 00C6-01.2           PEA         01.000000C6
+       | 0056  4EB9  0000 0868-00             JSR         00.00000868
+       | 005C  584F                           ADDQ.W      #4,A7
+;  80:     return (FALSE);
+       | 005E  7000                           MOVEQ       #00,D0
+       | 0060  6000 00B0                      BRA.W       0112
+;  81:   }
+;  82:   if (!(GfxBase = (struct GfxBase *)
+;  83:   OpenLibrary((UBYTE *)"graphics.library", _LIB_VERSION)))
+       | 0064  43F9  0000 00F4-01.2           LEA         01.000000F4,A1
+       | 006A  7021                           MOVEQ       #21,D0
+       | 006C  2C78 0004                      MOVEA.L     0004,A6
+       | 0070  4EAE FDD8                      JSR         FDD8(A6)
+       | 0074  23C0  0000 0000-02             MOVE.L      D0,02.00000000
+       | 007A  6614                           BNE.B       0090
+;  84:   {
+;  85:     init_conerr((UBYTE *)"Unable to open graphics.library version 33\n");
+       | 007C  4879  0000 0106-01.2           PEA         01.00000106
+       | 0082  4EB9  0000 0868-00             JSR         00.00000868
+       | 0088  584F                           ADDQ.W      #4,A7
+;  86:     return (FALSE);
+       | 008A  7000                           MOVEQ       #00,D0
+       | 008C  6000 0084                      BRA.W       0112
+;  87:   }
+;  88:   if (!(DiskfontBase = OpenLibrary((UBYTE *)"diskfont.library", _LIB_VERSION)))
+       | 0090  43F9  0000 0132-01.2           LEA         01.00000132,A1
+       | 0096  7021                           MOVEQ       #21,D0
+       | 0098  2C78 0004                      MOVEA.L     0004,A6
+       | 009C  4EAE FDD8                      JSR         FDD8(A6)
+       | 00A0  23C0  0000 0008-02             MOVE.L      D0,02.00000008
+       | 00A6  6612                           BNE.B       00BA
+;  89:   {
+;  90:     init_conerr((UBYTE *)"Unable to open diskfont.library version 33\n");
+       | 00A8  4879  0000 0144-01.2           PEA         01.00000144
+       | 00AE  4EB9  0000 0868-00             JSR         00.00000868
+       | 00B4  584F                           ADDQ.W      #4,A7
+;  91:     return (FALSE);
+       | 00B6  7000                           MOVEQ       #00,D0
+       | 00B8  6058                           BRA.B       0112
+;  92:   }
+;  93: 
+;  94:   if (!AssignPath("Libs","Libs"))
+       | 00BA  41F9  0000 0170-01.2           LEA         01.00000170,A0
+       | 00C0  2208                           MOVE.L      A0,D1
+       | 00C2  41F9  0000 0176-01.2           LEA         01.00000176,A0
+       | 00C8  2408                           MOVE.L      A0,D2
+       | 00CA  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 00D0  4EAE FD90                      JSR         FD90(A6)
+       | 00D4  4A40                           TST.W       D0
+       | 00D6  660E                           BNE.B       00E6
+;  95:   {
+;  96:     init_conerr((UBYTE *)"Failed to Assign the local Libs drawer. Please copy ptreplay.library into your Libs: drawer.\n");
+       | 00D8  4879  0000 017C-01.2           PEA         01.0000017C
+       | 00DE  4EB9  0000 0868-00             JSR         00.00000868
+       | 00E4  584F                           ADDQ.W      #4,A7
+;  97:     // return (FALSE);
+;  98:   }
+;  99: 
+; 100:   if (!(PTReplayBase = OpenLibrary((UBYTE *)"ptreplay.library", 0)))
+       | 00E6  43F9  0000 01DA-01.2           LEA         01.000001DA,A1
+       | 00EC  7000                           MOVEQ       #00,D0
+       | 00EE  2C78 0004                      MOVEA.L     0004,A6
+       | 00F2  4EAE FDD8                      JSR         FDD8(A6)
+       | 00F6  23C0  0000 000C-02             MOVE.L      D0,02.0000000C
+       | 00FC  6612                           BNE.B       0110
+; 101:   {
+; 102:     init_conerr((UBYTE *)"Unable to open ptreplay.library\n");
+       | 00FE  4879  0000 01EC-01.2           PEA         01.000001EC
+       | 0104  4EB9  0000 0868-00             JSR         00.00000868
+       | 010A  584F                           ADDQ.W      #4,A7
+; 103:     return (FALSE);
+       | 010C  7000                           MOVEQ       #00,D0
+       | 010E  0C40 7001                      CMPI.W      #7001,D0
+; 104:   }
+; 105: 
+; 106:   // return (FALSE);
+; 107: 
+; 108:   return (TRUE);
+       | 0112  4CDF 4004                      MOVEM.L     (A7)+,D2/A6
+       | 0116  4E75                           RTS
+; 109: }
+; 110: 
+; 111: BOOL Init16ColorsScreen(void)
+       | 0118  200F                           MOVE.L      A7,D0
+       | 011A  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 0120  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0126  6406                           BCC.B       012E
+       | 0128  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 012E  48E7 3116                      MOVEM.L     D2-D3/D7/A3/A5-A6,-(A7)
+; 112: {
+; 113:   PLANEPTR temp;
+; 114:   UWORD i;
+; 115: 
+; 116:   struct Screen *tmp_mainScreen = NULL;
+       | 0132  9BCD                           SUBA.L      A5,A5
+; 117:   PLANEPTR tmp_theRaster = NULL;
+       | 0134  97CB                           SUBA.L      A3,A3
+; 118: 
+; 119:   if (mainScreen) tmp_mainScreen = mainScreen;
+       | 0136  2039  0000 035C-02             MOVE.L      02.0000035C,D0
+       | 013C  6702                           BEQ.B       0140
+       | 013E  2A40                           MOVEA.L     D0,A5
+; 120:   if (theRaster) tmp_theRaster = theRaster;
+       | 0140  2239  0000 0010-02             MOVE.L      02.00000010,D1
+       | 0146  6702                           BEQ.B       014A
+       | 0148  2641                           MOVEA.L     D1,A3
+; 121: 
+; 122:   InitBitMap(&theBitMap, 4, 384, SCR_HEIGHT);
+       | 014A  41F9  0000 026C-02             LEA         02.0000026C,A0
+       | 0150  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 0156  7004                           MOVEQ       #04,D0
+       | 0158  7260                           MOVEQ       #60,D1
+       | 015A  E589                           LSL.L       #2,D1
+       | 015C  7440                           MOVEQ       #40,D2
+       | 015E  E78A                           LSL.L       #3,D2
+       | 0160  4EAE FE7A                      JSR         FE7A(A6)
+; 123:   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
+       | 0164  41F9  0000 02E4-02             LEA         02.000002E4,A0
+       | 016A  7003                           MOVEQ       #03,D0
+       | 016C  7260                           MOVEQ       #60,D1
+       | 016E  E589                           LSL.L       #2,D1
+       | 0170  4EAE FE7A                      JSR         FE7A(A6)
+; 124:   InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
+       | 0174  41F9  0000 030C-02             LEA         02.0000030C,A0
+       | 017A  7002                           MOVEQ       #02,D0
+       | 017C  7260                           MOVEQ       #60,D1
+       | 017E  E589                           LSL.L       #2,D1
+       | 0180  4EAE FE7A                      JSR         FE7A(A6)
+; 125:   InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
+       | 0184  41F9  0000 0334-02             LEA         02.00000334,A0
+       | 018A  7001                           MOVEQ       #01,D0
+       | 018C  7260                           MOVEQ       #60,D1
+       | 018E  E589                           LSL.L       #2,D1
+       | 0190  4EAE FE7A                      JSR         FE7A(A6)
+; 126: 
+; 127:   if (!(theRaster = AllocRaster(384 * 4, SCR_HEIGHT)))
+       | 0194  2202                           MOVE.L      D2,D1
+       | 0196  7060                           MOVEQ       #60,D0
+       | 0198  E988                           LSL.L       #4,D0
+       | 019A  4EAE FE14                      JSR         FE14(A6)
+       | 019E  23C0  0000 0010-02             MOVE.L      D0,02.00000010
+       | 01A4  6614                           BNE.B       01BA
+; 128:   {
+; 129:     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
+       | 01A6  4879  0000 020E-01.2           PEA         01.0000020E
+       | 01AC  4EB9  0000 0868-00             JSR         00.00000868
+       | 01B2  584F                           ADDQ.W      #4,A7
+; 130:     return (FALSE);
+       | 01B4  7000                           MOVEQ       #00,D0
+       | 01B6  6000 0180                      BRA.W       0338
+; 131:   }
+; 132: 
+; 133:   temp = theRaster;
+; 134:   for (i = 0; i < 4; i ++)
+; 135:   {
+; 136:     theBitMap.Planes[i] = temp;
+       | 01BA  23C0  0000 0274-02             MOVE.L      D0,02.00000274
+; 137:     theBitMap_3bpl.Planes[i] = temp;
+       | 01C0  23C0  0000 02EC-02             MOVE.L      D0,02.000002EC
+; 138:     theBitMap_2bpl.Planes[i] = temp;
+       | 01C6  23C0  0000 0314-02             MOVE.L      D0,02.00000314
+; 139:     theBitMap_1bpl.Planes[i] = temp;
+       | 01CC  23C0  0000 033C-02             MOVE.L      D0,02.0000033C
+; 140:     temp += (48 * SCR_HEIGHT);
+       | 01D2  2040                           MOVEA.L     D0,A0
+       | 01D4  2248                           MOVEA.L     A0,A1
+       | 01D6  D2FC 6000                      ADDA.W      #6000,A1
+       | 01DA  23C9  0000 0278-02             MOVE.L      A1,02.00000278
+       | 01E0  23C9  0000 02F0-02             MOVE.L      A1,02.000002F0
+       | 01E6  23C9  0000 0318-02             MOVE.L      A1,02.00000318
+       | 01EC  23C9  0000 0340-02             MOVE.L      A1,02.00000340
+       | 01F2  D1FC 0000 C000                 ADDA.L      #0000C000,A0
+       | 01F8  23C8  0000 027C-02             MOVE.L      A0,02.0000027C
+       | 01FE  23C8  0000 02F4-02             MOVE.L      A0,02.000002F4
+       | 0204  23C8  0000 031C-02             MOVE.L      A0,02.0000031C
+       | 020A  23C8  0000 0344-02             MOVE.L      A0,02.00000344
+       | 0210  2040                           MOVEA.L     D0,A0
+       | 0212  D1FC 0001 2000                 ADDA.L      #00012000,A0
+       | 0218  23C8  0000 0280-02             MOVE.L      A0,02.00000280
+       | 021E  23C8  0000 02F8-02             MOVE.L      A0,02.000002F8
+       | 0224  23C8  0000 0320-02             MOVE.L      A0,02.00000320
+       | 022A  23C8  0000 0348-02             MOVE.L      A0,02.00000348
+; 141:   }
+; 142: 
+; 143:   InitRastPort(&theRP);
+       | 0230  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 0236  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 023C  4EAE FF3A                      JSR         FF3A(A6)
+; 144:   InitRastPort(&theRP_3bpl);
+       | 0240  43F9  0000 0140-02             LEA         02.00000140,A1
+       | 0246  4EAE FF3A                      JSR         FF3A(A6)
+; 145:   InitRastPort(&theRP_2bpl);
+       | 024A  43F9  0000 01A4-02             LEA         02.000001A4,A1
+       | 0250  4EAE FF3A                      JSR         FF3A(A6)
+; 146:   InitRastPort(&theRP_1bpl);
+       | 0254  43F9  0000 0208-02             LEA         02.00000208,A1
+       | 025A  4EAE FF3A                      JSR         FF3A(A6)
+; 147: 
+; 148:   theRP.BitMap = &theBitMap;
+       | 025E  23FC  0000 026C-02   0000 0018-02 MOVE.L   #02.0000026C,02.00000018
+; 149:   theRP_3bpl.BitMap = &theBitMap_3bpl;
+       | 0268  23FC  0000 02E4-02   0000 0144-02 MOVE.L   #02.000002E4,02.00000144
+; 150:   theRP_2bpl.BitMap = &theBitMap_2bpl;
+       | 0272  23FC  0000 030C-02   0000 01A8-02 MOVE.L   #02.0000030C,02.000001A8
+; 151:   theRP_1bpl.BitMap = &theBitMap_1bpl;
+       | 027C  23FC  0000 0334-02   0000 020C-02 MOVE.L   #02.00000334,02.0000020C
+; 152:   SetRast(&theRP, 0);
+       | 0286  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 028C  7000                           MOVEQ       #00,D0
+       | 028E  4EAE FF16                      JSR         FF16(A6)
+; 153: 
+; 154:   if (!(mainScreen = OpenScreen(&theScreen16)))
+       | 0292  41F9  0000 0040-01             LEA         01.00000040,A0
+       | 0298  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 029E  4EAE FF3A                      JSR         FF3A(A6)
+       | 02A2  23C0  0000 035C-02             MOVE.L      D0,02.0000035C
+       | 02A8  6612                           BNE.B       02BC
+; 155:   {
+; 156:     init_conerr((UBYTE *)"Unable to open main screen\n");
+       | 02AA  4879  0000 0230-01.2           PEA         01.00000230
+       | 02B0  4EB9  0000 0868-00             JSR         00.00000868
+       | 02B6  584F                           ADDQ.W      #4,A7
+; 157:     return (FALSE);
+       | 02B8  7000                           MOVEQ       #00,D0
+       | 02BA  607C                           BRA.B       0338
+; 158:   }
+; 159:   mainVP = &mainScreen->ViewPort;
+       | 02BC  2040                           MOVEA.L     D0,A0
+       | 02BE  D0FC 002C                      ADDA.W      #002C,A0
+       | 02C2  23C8  0000 0360-02             MOVE.L      A0,02.00000360
+; 160:   for (i = 0; i < 16; i ++)
+       | 02C8  7E00                           MOVEQ       #00,D7
+; 161:     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
+       | 02CA  2079  0000 035C-02             MOVEA.L     02.0000035C,A0
+       | 02D0  D0FC 002C                      ADDA.W      #002C,A0
+       | 02D4  7000                           MOVEQ       #00,D0
+       | 02D6  3007                           MOVE.W      D7,D0
+       | 02D8  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 02DE  7200                           MOVEQ       #00,D1
+       | 02E0  2401                           MOVE.L      D1,D2
+       | 02E2  2601                           MOVE.L      D1,D3
+       | 02E4  4EAE FEE0                      JSR         FEE0(A6)
+       | 02E8  5247                           ADDQ.W      #1,D7
+       | 02EA  7010                           MOVEQ       #10,D0
+       | 02EC  BE40                           CMP.W       D0,D7
+       | 02EE  65DA                           BCS.B       02CA
+; 162: 
+; 163:   prev_screen_depth = current_screen_depth;
+       | 02F0  23F9  0000 0060-01   0000 0064-01 MOVE.L   01.00000060,01.00000064
+; 164:   current_screen_depth = 4;
+       | 02FA  7004                           MOVEQ       #04,D0
+       | 02FC  23C0  0000 0060-01             MOVE.L      D0,01.00000060
+; 165: 
+; 166:   /* Close screen */
+; 167:   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
+       | 0302  200D                           MOVE.L      A5,D0
+       | 0304  670C                           BEQ.B       0312
+       | 0306  204D                           MOVEA.L     A5,A0
+       | 0308  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 030E  4EAE FFBE                      JSR         FFBE(A6)
+; 168:   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+       | 0312  200B                           MOVE.L      A3,D0
+       | 0314  6720                           BEQ.B       0336
+       | 0316  2039  0000 0064-01             MOVE.L      01.00000064,D0
+       | 031C  2200                           MOVE.L      D0,D1
+       | 031E  D281                           ADD.L       D1,D1
+       | 0320  D280                           ADD.L       D0,D1
+       | 0322  EF81                           ASL.L       #7,D1
+       | 0324  2001                           MOVE.L      D1,D0
+       | 0326  204B                           MOVEA.L     A3,A0
+       | 0328  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 032E  7240                           MOVEQ       #40,D1
+       | 0330  E789                           LSL.L       #3,D1
+       | 0332  4EAE FE0E                      JSR         FE0E(A6)
+; 169: 
+; 170:   return (TRUE);
+       | 0336  7001                           MOVEQ       #01,D0
+       | 0338  4CDF 688C                      MOVEM.L     (A7)+,D2-D3/D7/A3/A5-A6
+       | 033C  4E75                           RTS
+; 171: }
+; 172: 
+; 173: BOOL Init32ColorsScreen(void)
+       | 033E  200F                           MOVE.L      A7,D0
+       | 0340  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 0346  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 034C  6406                           BCC.B       0354
+       | 034E  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0354  48E7 3116                      MOVEM.L     D2-D3/D7/A3/A5-A6,-(A7)
+; 174: {
+; 175:   PLANEPTR temp;
+; 176:   UWORD i;
+; 177: 
+; 178:   struct Screen *tmp_mainScreen = NULL;
+       | 0358  9BCD                           SUBA.L      A5,A5
+; 179:   PLANEPTR tmp_theRaster = NULL;
+       | 035A  97CB                           SUBA.L      A3,A3
+; 180: 
+; 181:   if (mainScreen) tmp_mainScreen = mainScreen;
+       | 035C  2039  0000 035C-02             MOVE.L      02.0000035C,D0
+       | 0362  6702                           BEQ.B       0366
+       | 0364  2A40                           MOVEA.L     D0,A5
+; 182:   if (theRaster) tmp_theRaster = theRaster;
+       | 0366  2039  0000 0010-02             MOVE.L      02.00000010,D0
+       | 036C  6702                           BEQ.B       0370
+       | 036E  2640                           MOVEA.L     D0,A3
+; 183: 
+; 184:   InitBitMap(&theBitMap, 5, 384, SCR_HEIGHT);
+       | 0370  41F9  0000 026C-02             LEA         02.0000026C,A0
+       | 0376  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 037C  7005                           MOVEQ       #05,D0
+       | 037E  7260                           MOVEQ       #60,D1
+       | 0380  E589                           LSL.L       #2,D1
+       | 0382  7440                           MOVEQ       #40,D2
+       | 0384  E78A                           LSL.L       #3,D2
+       | 0386  4EAE FE7A                      JSR         FE7A(A6)
+; 185:   InitBitMap(&theBitMap_4bpl, 4, 384, SCR_HEIGHT);
+       | 038A  41F9  0000 02BC-02             LEA         02.000002BC,A0
+       | 0390  7004                           MOVEQ       #04,D0
+       | 0392  7260                           MOVEQ       #60,D1
+       | 0394  E589                           LSL.L       #2,D1
+       | 0396  4EAE FE7A                      JSR         FE7A(A6)
+; 186:   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
+       | 039A  41F9  0000 02E4-02             LEA         02.000002E4,A0
+       | 03A0  7003                           MOVEQ       #03,D0
+       | 03A2  7260                           MOVEQ       #60,D1
+       | 03A4  E589                           LSL.L       #2,D1
+       | 03A6  4EAE FE7A                      JSR         FE7A(A6)
+; 187:   InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
+       | 03AA  41F9  0000 030C-02             LEA         02.0000030C,A0
+       | 03B0  7002                           MOVEQ       #02,D0
+       | 03B2  7260                           MOVEQ       #60,D1
+       | 03B4  E589                           LSL.L       #2,D1
+       | 03B6  4EAE FE7A                      JSR         FE7A(A6)
+; 188:   InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
+       | 03BA  41F9  0000 0334-02             LEA         02.00000334,A0
+       | 03C0  7001                           MOVEQ       #01,D0
+       | 03C2  7260                           MOVEQ       #60,D1
+       | 03C4  E589                           LSL.L       #2,D1
+       | 03C6  4EAE FE7A                      JSR         FE7A(A6)
+; 189: 
+; 190:   if (!(theRaster = AllocRaster(384 * 5, SCR_HEIGHT)))
+       | 03CA  2202                           MOVE.L      D2,D1
+       | 03CC  7078                           MOVEQ       #78,D0
+       | 03CE  E988                           LSL.L       #4,D0
+       | 03D0  4EAE FE14                      JSR         FE14(A6)
+       | 03D4  23C0  0000 0010-02             MOVE.L      D0,02.00000010
+       | 03DA  6614                           BNE.B       03F0
+; 191:   {
+; 192:     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
+       | 03DC  4879  0000 024C-01.2           PEA         01.0000024C
+       | 03E2  4EB9  0000 0868-00             JSR         00.00000868
+       | 03E8  584F                           ADDQ.W      #4,A7
+; 193:     return (FALSE);
+       | 03EA  7000                           MOVEQ       #00,D0
+       | 03EC  6000 016A                      BRA.W       0558
+; 194:   }
+; 195: 
+; 196:   temp = theRaster;
+       | 03F0  2240                           MOVEA.L     D0,A1
+; 197:   for (i = 0; i < 5; i ++)
+       | 03F2  7200                           MOVEQ       #00,D1
+; 198:   {
+; 199:     theBitMap.Planes[i] = temp;
+       | 03F4  4841                           SWAP        D1
+       | 03F6  4241                           CLR.W       D1
+       | 03F8  4841                           SWAP        D1
+       | 03FA  2001                           MOVE.L      D1,D0
+       | 03FC  E580                           ASL.L       #2,D0
+       | 03FE  41F9  0000 0274-02             LEA         02.00000274,A0
+       | 0404  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 200:     theBitMap_4bpl.Planes[i] = temp;
+       | 0408  41F9  0000 02C4-02             LEA         02.000002C4,A0
+       | 040E  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 201:     theBitMap_3bpl.Planes[i] = temp;
+       | 0412  41F9  0000 02EC-02             LEA         02.000002EC,A0
+       | 0418  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 202:     theBitMap_2bpl.Planes[i] = temp;
+       | 041C  41F9  0000 0314-02             LEA         02.00000314,A0
+       | 0422  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 203:     theBitMap_1bpl.Planes[i] = temp;
+       | 0426  41F9  0000 033C-02             LEA         02.0000033C,A0
+       | 042C  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 204:     temp += (48 * SCR_HEIGHT);
+       | 0430  D2FC 6000                      ADDA.W      #6000,A1
+       | 0434  5241                           ADDQ.W      #1,D1
+       | 0436  7005                           MOVEQ       #05,D0
+       | 0438  B240                           CMP.W       D0,D1
+       | 043A  65B8                           BCS.B       03F4
+; 205:   }
+; 206: 
+; 207:   InitRastPort(&theRP);
+       | 043C  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 0442  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 0448  4EAE FF3A                      JSR         FF3A(A6)
+; 208:   InitRastPort(&theRP_4bpl);
+       | 044C  43F9  0000 00DC-02             LEA         02.000000DC,A1
+       | 0452  4EAE FF3A                      JSR         FF3A(A6)
+; 209:   InitRastPort(&theRP_3bpl);
+       | 0456  43F9  0000 0140-02             LEA         02.00000140,A1
+       | 045C  4EAE FF3A                      JSR         FF3A(A6)
+; 210:   InitRastPort(&theRP_2bpl);
+       | 0460  43F9  0000 01A4-02             LEA         02.000001A4,A1
+       | 0466  4EAE FF3A                      JSR         FF3A(A6)
+; 211:   InitRastPort(&theRP_1bpl);
+       | 046A  43F9  0000 0208-02             LEA         02.00000208,A1
+       | 0470  4EAE FF3A                      JSR         FF3A(A6)
+; 212: 
+; 213:   theRP.BitMap = &theBitMap;
+       | 0474  23FC  0000 026C-02   0000 0018-02 MOVE.L   #02.0000026C,02.00000018
+; 214:   theRP_4bpl.BitMap = &theBitMap_4bpl;
+       | 047E  23FC  0000 02BC-02   0000 00E0-02 MOVE.L   #02.000002BC,02.000000E0
+; 215:   theRP_3bpl.BitMap = &theBitMap_3bpl;
+       | 0488  23FC  0000 02E4-02   0000 0144-02 MOVE.L   #02.000002E4,02.00000144
+; 216:   theRP_2bpl.BitMap = &theBitMap_2bpl;
+       | 0492  23FC  0000 030C-02   0000 01A8-02 MOVE.L   #02.0000030C,02.000001A8
+; 217:   theRP_1bpl.BitMap = &theBitMap_1bpl;
+       | 049C  23FC  0000 0334-02   0000 020C-02 MOVE.L   #02.00000334,02.0000020C
+; 218:   SetRast(&theRP, 0);
+       | 04A6  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 04AC  7000                           MOVEQ       #00,D0
+       | 04AE  4EAE FF16                      JSR         FF16(A6)
+; 219: 
+; 220:   if (!(mainScreen = OpenScreen(&theScreen32)))
+       | 04B2  41F9  0000 0020-01             LEA         01.00000020,A0
+       | 04B8  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 04BE  4EAE FF3A                      JSR         FF3A(A6)
+       | 04C2  23C0  0000 035C-02             MOVE.L      D0,02.0000035C
+       | 04C8  6612                           BNE.B       04DC
+; 221:   {
+; 222:     init_conerr((UBYTE *)"Unable to open main screen\n");
+       | 04CA  4879  0000 026E-01.2           PEA         01.0000026E
+       | 04D0  4EB9  0000 0868-00             JSR         00.00000868
+       | 04D6  584F                           ADDQ.W      #4,A7
+; 223:     return (FALSE);
+       | 04D8  7000                           MOVEQ       #00,D0
+       | 04DA  607C                           BRA.B       0558
+; 224:   }
+; 225: 
+; 226:   mainVP = &mainScreen->ViewPort;
+       | 04DC  2040                           MOVEA.L     D0,A0
+       | 04DE  D0FC 002C                      ADDA.W      #002C,A0
+       | 04E2  23C8  0000 0360-02             MOVE.L      A0,02.00000360
+; 227:   for (i = 0; i < 32; i ++)
+       | 04E8  7E00                           MOVEQ       #00,D7
+; 228:     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
+       | 04EA  2079  0000 035C-02             MOVEA.L     02.0000035C,A0
+       | 04F0  D0FC 002C                      ADDA.W      #002C,A0
+       | 04F4  7000                           MOVEQ       #00,D0
+       | 04F6  3007                           MOVE.W      D7,D0
+       | 04F8  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 04FE  7200                           MOVEQ       #00,D1
+       | 0500  2401                           MOVE.L      D1,D2
+       | 0502  2601                           MOVE.L      D1,D3
+       | 0504  4EAE FEE0                      JSR         FEE0(A6)
+       | 0508  5247                           ADDQ.W      #1,D7
+       | 050A  7020                           MOVEQ       #20,D0
+       | 050C  BE40                           CMP.W       D0,D7
+       | 050E  65DA                           BCS.B       04EA
+; 229: 
+; 230:   prev_screen_depth = current_screen_depth;
+       | 0510  23F9  0000 0060-01   0000 0064-01 MOVE.L   01.00000060,01.00000064
+; 231:   current_screen_depth = 5;
+       | 051A  7005                           MOVEQ       #05,D0
+       | 051C  23C0  0000 0060-01             MOVE.L      D0,01.00000060
+; 232: 
+; 233:   /* Close screen */
+; 234:   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
+       | 0522  200D                           MOVE.L      A5,D0
+       | 0524  670C                           BEQ.B       0532
+       | 0526  204D                           MOVEA.L     A5,A0
+       | 0528  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 052E  4EAE FFBE                      JSR         FFBE(A6)
+; 235:   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+       | 0532  200B                           MOVE.L      A3,D0
+       | 0534  6720                           BEQ.B       0556
+       | 0536  2039  0000 0064-01             MOVE.L      01.00000064,D0
+       | 053C  2200                           MOVE.L      D0,D1
+       | 053E  D281                           ADD.L       D1,D1
+       | 0540  D280                           ADD.L       D0,D1
+       | 0542  EF81                           ASL.L       #7,D1
+       | 0544  2001                           MOVE.L      D1,D0
+       | 0546  204B                           MOVEA.L     A3,A0
+       | 0548  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 054E  7240                           MOVEQ       #40,D1
+       | 0550  E789                           LSL.L       #3,D1
+       | 0552  4EAE FE0E                      JSR         FE0E(A6)
+; 236: 
+; 237:   return (TRUE);
+       | 0556  7001                           MOVEQ       #01,D0
+       | 0558  4CDF 688C                      MOVEM.L     (A7)+,D2-D3/D7/A3/A5-A6
+       | 055C  4E75                           RTS
+; 238: }
+; 239: 
+; 240: BOOL InitEHBScreen(void)
+       | 055E  200F                           MOVE.L      A7,D0
+       | 0560  90BC 0000 0014                 SUB.L       #00000014,D0
+       | 0566  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 056C  6406                           BCC.B       0574
+       | 056E  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 0574  48E7 3116                      MOVEM.L     D2-D3/D7/A3/A5-A6,-(A7)
+; 241: {
+; 242:   PLANEPTR temp;
+; 243:   UWORD i;
+; 244: 
+; 245:   struct Screen *tmp_mainScreen = NULL;
+       | 0578  9BCD                           SUBA.L      A5,A5
+; 246:   PLANEPTR tmp_theRaster = NULL;
+       | 057A  97CB                           SUBA.L      A3,A3
+; 247: 
+; 248:   if (mainScreen) tmp_mainScreen = mainScreen;
+       | 057C  2039  0000 035C-02             MOVE.L      02.0000035C,D0
+       | 0582  6702                           BEQ.B       0586
+       | 0584  2A40                           MOVEA.L     D0,A5
+; 249:   if (theRaster) tmp_theRaster = theRaster;
+       | 0586  2039  0000 0010-02             MOVE.L      02.00000010,D0
+       | 058C  6702                           BEQ.B       0590
+       | 058E  2640                           MOVEA.L     D0,A3
+; 250: 
+; 251:   InitBitMap(&theBitMap, 6, 384, SCR_HEIGHT);
+       | 0590  41F9  0000 026C-02             LEA         02.0000026C,A0
+       | 0596  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 059C  7006                           MOVEQ       #06,D0
+       | 059E  7260                           MOVEQ       #60,D1
+       | 05A0  E589                           LSL.L       #2,D1
+       | 05A2  7440                           MOVEQ       #40,D2
+       | 05A4  E78A                           LSL.L       #3,D2
+       | 05A6  4EAE FE7A                      JSR         FE7A(A6)
+; 252:   InitBitMap(&theBitMap_5bpl, 5, 384, SCR_HEIGHT);
+       | 05AA  41F9  0000 0294-02             LEA         02.00000294,A0
+       | 05B0  7005                           MOVEQ       #05,D0
+       | 05B2  7260                           MOVEQ       #60,D1
+       | 05B4  E589                           LSL.L       #2,D1
+       | 05B6  4EAE FE7A                      JSR         FE7A(A6)
+; 253:   InitBitMap(&theBitMap_4bpl, 4, 384, SCR_HEIGHT);
+       | 05BA  41F9  0000 02BC-02             LEA         02.000002BC,A0
+       | 05C0  7004                           MOVEQ       #04,D0
+       | 05C2  7260                           MOVEQ       #60,D1
+       | 05C4  E589                           LSL.L       #2,D1
+       | 05C6  4EAE FE7A                      JSR         FE7A(A6)
+; 254:   InitBitMap(&theBitMap_3bpl, 3, 384, SCR_HEIGHT);
+       | 05CA  41F9  0000 02E4-02             LEA         02.000002E4,A0
+       | 05D0  7003                           MOVEQ       #03,D0
+       | 05D2  7260                           MOVEQ       #60,D1
+       | 05D4  E589                           LSL.L       #2,D1
+       | 05D6  4EAE FE7A                      JSR         FE7A(A6)
+; 255:   InitBitMap(&theBitMap_2bpl, 2, 384, SCR_HEIGHT);
+       | 05DA  41F9  0000 030C-02             LEA         02.0000030C,A0
+       | 05E0  7002                           MOVEQ       #02,D0
+       | 05E2  7260                           MOVEQ       #60,D1
+       | 05E4  E589                           LSL.L       #2,D1
+       | 05E6  4EAE FE7A                      JSR         FE7A(A6)
+; 256:   InitBitMap(&theBitMap_1bpl, 1, 384, SCR_HEIGHT);
+       | 05EA  41F9  0000 0334-02             LEA         02.00000334,A0
+       | 05F0  7001                           MOVEQ       #01,D0
+       | 05F2  7260                           MOVEQ       #60,D1
+       | 05F4  E589                           LSL.L       #2,D1
+       | 05F6  4EAE FE7A                      JSR         FE7A(A6)
+; 257: 
+; 258:   if (!(theRaster = AllocRaster(384 * 6, SCR_HEIGHT)))
+       | 05FA  2202                           MOVE.L      D2,D1
+       | 05FC  7048                           MOVEQ       #48,D0
+       | 05FE  EB88                           LSL.L       #5,D0
+       | 0600  4EAE FE14                      JSR         FE14(A6)
+       | 0604  23C0  0000 0010-02             MOVE.L      D0,02.00000010
+       | 060A  6614                           BNE.B       0620
+; 259:   {
+; 260:     init_conerr((UBYTE *)"Unable to allocate screen memory\n");
+       | 060C  4879  0000 028A-01.2           PEA         01.0000028A
+       | 0612  4EB9  0000 0868-00             JSR         00.00000868
+       | 0618  584F                           ADDQ.W      #4,A7
+; 261:     return (FALSE);
+       | 061A  7000                           MOVEQ       #00,D0
+       | 061C  6000 0188                      BRA.W       07A6
+; 262:   }
+; 263: 
+; 264:   temp = theRaster;
+       | 0620  2240                           MOVEA.L     D0,A1
+; 265:   for (i = 0; i < 6; i ++)
+       | 0622  7200                           MOVEQ       #00,D1
+; 266:   {
+; 267:     theBitMap.Planes[i] = temp;
+       | 0624  4841                           SWAP        D1
+       | 0626  4241                           CLR.W       D1
+       | 0628  4841                           SWAP        D1
+       | 062A  2001                           MOVE.L      D1,D0
+       | 062C  E580                           ASL.L       #2,D0
+       | 062E  41F9  0000 0274-02             LEA         02.00000274,A0
+       | 0634  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 268:     theBitMap_5bpl.Planes[i] = temp;
+       | 0638  41F9  0000 029C-02             LEA         02.0000029C,A0
+       | 063E  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 269:     theBitMap_4bpl.Planes[i] = temp;
+       | 0642  41F9  0000 02C4-02             LEA         02.000002C4,A0
+       | 0648  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 270:     theBitMap_3bpl.Planes[i] = temp;
+       | 064C  41F9  0000 02EC-02             LEA         02.000002EC,A0
+       | 0652  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 271:     theBitMap_2bpl.Planes[i] = temp;
+       | 0656  41F9  0000 0314-02             LEA         02.00000314,A0
+       | 065C  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 272:     theBitMap_1bpl.Planes[i] = temp;
+       | 0660  41F9  0000 033C-02             LEA         02.0000033C,A0
+       | 0666  2189 0800                      MOVE.L      A1,00(A0,D0.L)
+; 273:     temp += (48 * SCR_HEIGHT);
+       | 066A  D2FC 6000                      ADDA.W      #6000,A1
+       | 066E  5241                           ADDQ.W      #1,D1
+       | 0670  7006                           MOVEQ       #06,D0
+       | 0672  B240                           CMP.W       D0,D1
+       | 0674  65AE                           BCS.B       0624
+; 274:   }
+; 275: 
+; 276:   InitRastPort(&theRP);
+       | 0676  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 067C  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 0682  4EAE FF3A                      JSR         FF3A(A6)
+; 277:   InitRastPort(&theRP_5bpl);
+       | 0686  43F9  0000 0078-02             LEA         02.00000078,A1
+       | 068C  4EAE FF3A                      JSR         FF3A(A6)
+; 278:   InitRastPort(&theRP_4bpl);  
+       | 0690  43F9  0000 00DC-02             LEA         02.000000DC,A1
+       | 0696  4EAE FF3A                      JSR         FF3A(A6)
+; 279:   InitRastPort(&theRP_3bpl);
+       | 069A  43F9  0000 0140-02             LEA         02.00000140,A1
+       | 06A0  4EAE FF3A                      JSR         FF3A(A6)
+; 280:   InitRastPort(&theRP_2bpl);
+       | 06A4  43F9  0000 01A4-02             LEA         02.000001A4,A1
+       | 06AA  4EAE FF3A                      JSR         FF3A(A6)
+; 281:   InitRastPort(&theRP_1bpl);
+       | 06AE  43F9  0000 0208-02             LEA         02.00000208,A1
+       | 06B4  4EAE FF3A                      JSR         FF3A(A6)
+; 282: 
+; 283:   theRP.BitMap = &theBitMap;
+       | 06B8  23FC  0000 026C-02   0000 0018-02 MOVE.L   #02.0000026C,02.00000018
+; 284:   theRP_5bpl.BitMap = &theBitMap_5bpl;
+       | 06C2  23FC  0000 0294-02   0000 007C-02 MOVE.L   #02.00000294,02.0000007C
+; 285:   theRP_4bpl.BitMap = &theBitMap_4bpl;  
+       | 06CC  23FC  0000 02BC-02   0000 00E0-02 MOVE.L   #02.000002BC,02.000000E0
+; 286:   theRP_3bpl.BitMap = &theBitMap_3bpl;
+       | 06D6  23FC  0000 02E4-02   0000 0144-02 MOVE.L   #02.000002E4,02.00000144
+; 287:   theRP_2bpl.BitMap = &theBitMap_2bpl;
+       | 06E0  23FC  0000 030C-02   0000 01A8-02 MOVE.L   #02.0000030C,02.000001A8
+; 288:   theRP_1bpl.BitMap = &theBitMap_1bpl;
+       | 06EA  23FC  0000 0334-02   0000 020C-02 MOVE.L   #02.00000334,02.0000020C
+; 289:   SetRast(&theRP, 0);
+       | 06F4  43F9  0000 0014-02             LEA         02.00000014,A1
+       | 06FA  7000                           MOVEQ       #00,D0
+       | 06FC  4EAE FF16                      JSR         FF16(A6)
+; 290: 
+; 291:   if (!(mainScreen = OpenScreen(&theScreenEHB)))
+       | 0700  41F9  0000 0000-01             LEA         01.00000000,A0
+       | 0706  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 070C  4EAE FF3A                      JSR         FF3A(A6)
+       | 0710  23C0  0000 035C-02             MOVE.L      D0,02.0000035C
+       | 0716  6612                           BNE.B       072A
+; 292:   {
+; 293:     init_conerr((UBYTE *)"Unable to open main screen\n");
+       | 0718  4879  0000 02AC-01.2           PEA         01.000002AC
+       | 071E  4EB9  0000 0868-00             JSR         00.00000868
+       | 0724  584F                           ADDQ.W      #4,A7
+; 294:     return (FALSE);
+       | 0726  7000                           MOVEQ       #00,D0
+       | 0728  607C                           BRA.B       07A6
+; 295:   }
+; 296:   mainVP = &mainScreen->ViewPort;
+       | 072A  2040                           MOVEA.L     D0,A0
+       | 072C  D0FC 002C                      ADDA.W      #002C,A0
+       | 0730  23C8  0000 0360-02             MOVE.L      A0,02.00000360
+; 297:   for (i = 0; i < 32; i ++)
+       | 0736  7E00                           MOVEQ       #00,D7
+; 298:     SetRGB4(&mainScreen->ViewPort, i, 0, 0, 0);
+       | 0738  2079  0000 035C-02             MOVEA.L     02.0000035C,A0
+       | 073E  D0FC 002C                      ADDA.W      #002C,A0
+       | 0742  7000                           MOVEQ       #00,D0
+       | 0744  3007                           MOVE.W      D7,D0
+       | 0746  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 074C  7200                           MOVEQ       #00,D1
+       | 074E  2401                           MOVE.L      D1,D2
+       | 0750  2601                           MOVE.L      D1,D3
+       | 0752  4EAE FEE0                      JSR         FEE0(A6)
+       | 0756  5247                           ADDQ.W      #1,D7
+       | 0758  7020                           MOVEQ       #20,D0
+       | 075A  BE40                           CMP.W       D0,D7
+       | 075C  65DA                           BCS.B       0738
+; 299: 
+; 300:   prev_screen_depth = current_screen_depth;
+       | 075E  23F9  0000 0060-01   0000 0064-01 MOVE.L   01.00000060,01.00000064
+; 301:   current_screen_depth = 6;
+       | 0768  7006                           MOVEQ       #06,D0
+       | 076A  23C0  0000 0060-01             MOVE.L      D0,01.00000060
+; 302: 
+; 303:   /* Close previous screen */
+; 304:   if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
+       | 0770  200D                           MOVE.L      A5,D0
+       | 0772  670C                           BEQ.B       0780
+       | 0774  204D                           MOVEA.L     A5,A0
+       | 0776  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 077C  4EAE FFBE                      JSR         FFBE(A6)
+; 305:   if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+       | 0780  200B                           MOVE.L      A3,D0
+       | 0782  6720                           BEQ.B       07A4
+       | 0784  2039  0000 0064-01             MOVE.L      01.00000064,D0
+       | 078A  2200                           MOVE.L      D0,D1
+       | 078C  D281                           ADD.L       D1,D1
+       | 078E  D280                           ADD.L       D0,D1
+       | 0790  EF81                           ASL.L       #7,D1
+       | 0792  2001                           MOVE.L      D1,D0
+       | 0794  204B                           MOVEA.L     A3,A0
+       | 0796  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 079C  7240                           MOVEQ       #40,D1
+       | 079E  E789                           LSL.L       #3,D1
+       | 07A0  4EAE FE0E                      JSR         FE0E(A6)
+; 306: 
+; 307:   return (TRUE);
+       | 07A4  7001                           MOVEQ       #01,D0
+       | 07A6  4CDF 688C                      MOVEM.L     (A7)+,D2-D3/D7/A3/A5-A6
+       | 07AA  4E75                           RTS
+; 308: }
+; 309: 
+; 310: void init_close_video(void)
+       | 07AC  200F                           MOVE.L      A7,D0
+       | 07AE  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 07B4  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 07BA  6406                           BCC.B       07C2
+       | 07BC  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 07C2  48E7 2002                      MOVEM.L     D2/A6,-(A7)
+; 311: {
+; 312:   /* Close screen */
+; 313:   if (mainScreen) CloseScreen(mainScreen);
+       | 07C6  2039  0000 035C-02             MOVE.L      02.0000035C,D0
+       | 07CC  670C                           BEQ.B       07DA
+       | 07CE  2040                           MOVEA.L     D0,A0
+       | 07D0  2C79  0000 0004-02             MOVEA.L     02.00000004,A6
+       | 07D6  4EAE FFBE                      JSR         FFBE(A6)
+; 314:   if (theRaster) FreeRaster(theRaster, current_screen_depth * 384, SCR_HEIGHT);
+       | 07DA  2039  0000 0010-02             MOVE.L      02.00000010,D0
+       | 07E0  6720                           BEQ.B       0802
+       | 07E2  2239  0000 0060-01             MOVE.L      01.00000060,D1
+       | 07E8  2401                           MOVE.L      D1,D2
+       | 07EA  D482                           ADD.L       D2,D2
+       | 07EC  D481                           ADD.L       D1,D2
+       | 07EE  EF82                           ASL.L       #7,D2
+       | 07F0  2040                           MOVEA.L     D0,A0
+       | 07F2  2002                           MOVE.L      D2,D0
+       | 07F4  2C79  0000 0000-02             MOVEA.L     02.00000000,A6
+       | 07FA  7240                           MOVEQ       #40,D1
+       | 07FC  E789                           LSL.L       #3,D1
+       | 07FE  4EAE FE0E                      JSR         FE0E(A6)
+; 315: }
+       | 0802  4CDF 4004                      MOVEM.L     (A7)+,D2/A6
+       | 0806  4E75                           RTS
+; 316: 
+; 317: /* Close all global resources opened */
+; 318: void init_close_libs(void)
+       | 0808  200F                           MOVE.L      A7,D0
+       | 080A  5980                           SUBQ.L      #4,D0
+       | 080C  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0812  6406                           BCC.B       081A
+       | 0814  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 081A  2F0E                           MOVE.L      A6,-(A7)
+; 319: {
+; 320:   /* Close opened libraries */
+; 321:   if (PTReplayBase) CloseLibrary(PTReplayBase);
+       | 081C  2039  0000 000C-02             MOVE.L      02.0000000C,D0
+       | 0822  670A                           BEQ.B       082E
+       | 0824  2240                           MOVEA.L     D0,A1
+       | 0826  2C78 0004                      MOVEA.L     0004,A6
+       | 082A  4EAE FE62                      JSR         FE62(A6)
+; 322:   if (DiskfontBase) CloseLibrary(DiskfontBase);
+       | 082E  2039  0000 0008-02             MOVE.L      02.00000008,D0
+       | 0834  670A                           BEQ.B       0840
+       | 0836  2240                           MOVEA.L     D0,A1
+       | 0838  2C78 0004                      MOVEA.L     0004,A6
+       | 083C  4EAE FE62                      JSR         FE62(A6)
+; 323:   if (GfxBase) CloseLibrary((struct Library *)GfxBase);
+       | 0840  2039  0000 0000-02             MOVE.L      02.00000000,D0
+       | 0846  670A                           BEQ.B       0852
+       | 0848  2240                           MOVEA.L     D0,A1
+       | 084A  2C78 0004                      MOVEA.L     0004,A6
+       | 084E  4EAE FE62                      JSR         FE62(A6)
+; 324:   if (IntuitionBase) CloseLibrary((struct Library *)IntuitionBase);
+       | 0852  2039  0000 0004-02             MOVE.L      02.00000004,D0
+       | 0858  670A                           BEQ.B       0864
+       | 085A  2240                           MOVEA.L     D0,A1
+       | 085C  2C78 0004                      MOVEA.L     0004,A6
+       | 0860  4EAE FE62                      JSR         FE62(A6)
+; 325: }
+       | 0864  2C5F                           MOVEA.L     (A7)+,A6
+       | 0866  4E75                           RTS
+; 326: 
+; 327: /***** Static functions *****/
+; 328: 
+; 329: /* Display an error message in a small console window */
+; 330: static void init_conerr(UBYTE *str)
+       | 0868  200F                           MOVE.L      A7,D0
+       | 086A  90BC 0000 000C                 SUB.L       #0000000C,D0
+       | 0870  B0B9  0000 0000-XX             CMP.L       ___base,D0
+       | 0876  6406                           BCC.B       087E
+       | 0878  4EF9  0000 0000-XX             JMP         __XCOVF
+       | 087E  48E7 3106                      MOVEM.L     D2-D3/D7/A5-A6,-(A7)
+       | 0882  2A6F 0018                      MOVEA.L     0018(A7),A5
+; 331: {
+; 332:   BPTR fileHandle;		/* Console window filehandle */
+; 333: 
+; 334:   /* Open small console window */
+; 335:   if (!(fileHandle = Open((UBYTE *)"CON:50/50/500/100/Picnic Editor error",
+; 336:   MODE_OLDFILE)))
+       | 0886  41F9  0000 02C8-01.2           LEA         01.000002C8,A0
+       | 088C  2208                           MOVE.L      A0,D1
+       | 088E  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 0894  243C 0000 03ED                 MOVE.L      #000003ED,D2
+       | 089A  4EAE FFE2                      JSR         FFE2(A6)
+       | 089E  2E00                           MOVE.L      D0,D7
+       | 08A0  6728                           BEQ.B       08CA
+; 337:     return;
+; 338:   /* Write message in window */
+; 339:   Write(fileHandle, str, strlen((char *)str));
+       | 08A2  204D                           MOVEA.L     A5,A0
+       | 08A4  4A18                           TST.B       (A0)+
+       | 08A6  66FC                           BNE.B       08A4
+       | 08A8  5388                           SUBQ.L      #1,A0
+       | 08AA  91CD                           SUBA.L      A5,A0
+       | 08AC  2608                           MOVE.L      A0,D3
+       | 08AE  2207                           MOVE.L      D7,D1
+       | 08B0  240D                           MOVE.L      A5,D2
+       | 08B2  2C79  0000 0000-XX             MOVEA.L     _DOSBase,A6
+       | 08B8  4EAE FFD0                      JSR         FFD0(A6)
+; 340:   /* Wait for 3 seconds */
+; 341:   Delay(150);
+       | 08BC  724B                           MOVEQ       #4B,D1
+       | 08BE  D281                           ADD.L       D1,D1
+       | 08C0  4EAE FF3A                      JSR         FF3A(A6)
+; 342:   /* Close window */
+; 343:   Close(fileHandle);
+       | 08C4  2207                           MOVE.L      D7,D1
+       | 08C6  4EAE FFDC                      JSR         FFDC(A6)
+; 344: }
+       | 08CA  4CDF 608C                      MOVEM.L     (A7)+,D2-D3/D7/A5-A6
+       | 08CE  4E75                           RTS
+
+SECTION 01 "data" 000002F0 BYTES
+0000 00 00 00 00 01 40 02 00 00 06 00 01 00 80 01 4F .....@.........O
+OFFSETS 0010 THROUGH 001B CONTAIN ZERO
+001C 0000026C-02 02.0000026C
+0020 00 00 00 00 01 40 02 00 00 05 00 01 00 00 01 4F .....@.........O
+OFFSETS 0030 THROUGH 003B CONTAIN ZERO
+003C 0000026C-02 02.0000026C
+0040 00 00 00 00 01 40 02 00 00 04 00 01 00 00 01 4F .....@.........O
+OFFSETS 0050 THROUGH 005B CONTAIN ZERO
+005C 0000026C-02 02.0000026C
+0060 00 00 00 00 00 00 00 00 66 75 74 75 72 61 42 2E ........futuraB.
+0070 66 6F 6E 74 00 00 font..
+0076 00000068-01.2 01.00000068
+007A 00 20 00 00 54 68 . ..Th
+0080 69 73 20 70 72 6F 67 72 61 6D 20 72 65 71 75 69 is program requi
+0090 72 65 73 20 41 6D 69 67 61 20 4B 69 63 6B 73 74 res Amiga Kickst
+00A0 61 72 74 20 52 65 6C 65 61 73 65 20 31 2E 32 20 art Release 1.2 
+00B0 2B 0A 00 00 69 6E 74 75 69 74 69 6F 6E 2E 6C 69 +...intuition.li
+00C0 62 72 61 72 79 00 55 6E 61 62 6C 65 20 74 6F 20 brary.Unable to 
+00D0 6F 70 65 6E 20 69 6E 74 75 69 74 69 6F 6E 2E 6C open intuition.l
+00E0 69 62 72 61 72 79 20 76 65 72 73 69 6F 6E 20 33 ibrary version 3
+00F0 33 0A 00 00 67 72 61 70 68 69 63 73 2E 6C 69 62 3...graphics.lib
+0100 72 61 72 79 00 00 55 6E 61 62 6C 65 20 74 6F 20 rary..Unable to 
+0110 6F 70 65 6E 20 67 72 61 70 68 69 63 73 2E 6C 69 open graphics.li
+0120 62 72 61 72 79 20 76 65 72 73 69 6F 6E 20 33 33 brary version 33
+0130 0A 00 64 69 73 6B 66 6F 6E 74 2E 6C 69 62 72 61 ..diskfont.libra
+0140 72 79 00 00 55 6E 61 62 6C 65 20 74 6F 20 6F 70 ry..Unable to op
+0150 65 6E 20 64 69 73 6B 66 6F 6E 74 2E 6C 69 62 72 en diskfont.libr
+0160 61 72 79 20 76 65 72 73 69 6F 6E 20 33 33 0A 00 ary version 33..
+0170 4C 69 62 73 00 00 4C 69 62 73 00 00 46 61 69 6C Libs..Libs..Fail
+0180 65 64 20 74 6F 20 41 73 73 69 67 6E 20 74 68 65 ed to Assign the
+0190 20 6C 6F 63 61 6C 20 4C 69 62 73 20 64 72 61 77  local Libs draw
+01A0 65 72 2E 20 50 6C 65 61 73 65 20 63 6F 70 79 20 er. Please copy 
+01B0 70 74 72 65 70 6C 61 79 2E 6C 69 62 72 61 72 79 ptreplay.library
+01C0 20 69 6E 74 6F 20 79 6F 75 72 20 4C 69 62 73 3A  into your Libs:
+01D0 20 64 72 61 77 65 72 2E 0A 00 70 74 72 65 70 6C  drawer...ptrepl
+01E0 61 79 2E 6C 69 62 72 61 72 79 00 00 55 6E 61 62 ay.library..Unab
+01F0 6C 65 20 74 6F 20 6F 70 65 6E 20 70 74 72 65 70 le to open ptrep
+0200 6C 61 79 2E 6C 69 62 72 61 72 79 0A 00 00 55 6E lay.library...Un
+0210 61 62 6C 65 20 74 6F 20 61 6C 6C 6F 63 61 74 65 able to allocate
+0220 20 73 63 72 65 65 6E 20 6D 65 6D 6F 72 79 0A 00  screen memory..
+0230 55 6E 61 62 6C 65 20 74 6F 20 6F 70 65 6E 20 6D Unable to open m
+0240 61 69 6E 20 73 63 72 65 65 6E 0A 00 55 6E 61 62 ain screen..Unab
+0250 6C 65 20 74 6F 20 61 6C 6C 6F 63 61 74 65 20 73 le to allocate s
+0260 63 72 65 65 6E 20 6D 65 6D 6F 72 79 0A 00 55 6E creen memory..Un
+0270 61 62 6C 65 20 74 6F 20 6F 70 65 6E 20 6D 61 69 able to open mai
+0280 6E 20 73 63 72 65 65 6E 0A 00 55 6E 61 62 6C 65 n screen..Unable
+0290 20 74 6F 20 61 6C 6C 6F 63 61 74 65 20 73 63 72  to allocate scr
+02A0 65 65 6E 20 6D 65 6D 6F 72 79 0A 00 55 6E 61 62 een memory..Unab
+02B0 6C 65 20 74 6F 20 6F 70 65 6E 20 6D 61 69 6E 20 le to open main 
+02C0 73 63 72 65 65 6E 0A 00 43 4F 4E 3A 35 30 2F 35 screen..CON:50/5
+02D0 30 2F 35 30 30 2F 31 30 30 2F 50 69 63 6E 69 63 0/500/100/Picnic
+02E0 20 45 64 69 74 6F 72 20 65 72 72 6F 72 00 00 00  Editor error...
+
+SECTION 02 "udata" 00000368 BYTES
