@@ -35,6 +35,7 @@
 #include "Assets/object_amiga.h"
 #include "Assets/object_face_00.h"
 #include "Assets/object_spiroid.h"
+#include "Assets/object_fish.h"
 
 #include "Assets/misc_palettes.h"
 #include "Assets/faces_palettes.h"
@@ -486,6 +487,10 @@ int main(void)
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(4);
   fVBLDelay(10);
+
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_fish_verts, object_fish_faces, 800, 512, 0);
+  Sequence3DRotation(5);  
 
   reset_disp_swap();
   disp_clear(NULL);
