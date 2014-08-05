@@ -18,9 +18,6 @@ extern struct RastPort theRP_1bpl;
 
 extern struct GfxBase *GfxBase;
 
-extern int  drawn_min_x, drawn_min_y,
-            drawn_max_x, drawn_max_y;
-
 struct  obj_3d o;
 int     *verts_tr = NULL;
 
@@ -78,7 +75,7 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
   int cs, ss, cc, sc;
 
   XC = 160;
-  YC = 128;
+  YC = 128 + y_offset;
 
   /*  Transform & project the vertices */
   //  pre-rotations
@@ -104,72 +101,6 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
     verts_tr[vX(i)] = tx;
     verts_tr[vY(i)] = ty;
   }
-
-  /*
-    Draw each face (we assume it's a quad)
-  */
-  for (i = 0; i < o.nfaces; ++i)
-  {
-    x1 = verts_tr[vX(o.faces[Fc0(i)])];
-    y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
-
-    x2 = verts_tr[vX(o.faces[Fc1(i)])];
-    y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-
-    x3 = verts_tr[vX(o.faces[Fc2(i)])];
-    y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-
-    x4 = verts_tr[vX(o.faces[Fc3(i)])];
-    y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-
-    if (m_scale_x > 0)
-    {
-      x1 = x1 >> m_scale_x;
-      x2 = x1 >> m_scale_x;
-      x3 = x1 >> m_scale_x;
-      x4 = x1 >> m_scale_x;
-    }
-
-    x1 += XC;
-    x2 += XC;
-    x3 += XC;
-    x4 += XC;
-
-    //  should we draw the face ?
-    if (o.flag_cull_backfaces)
-      hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-
-    if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden < 0))
-    {           
-      SetAPen(&theRP_2bpl, 1);
-
-      Move(&theRP_2bpl, x1, y1 + y_offset);
-      Draw(&theRP_2bpl, x2, y2 + y_offset);
-      Draw(&theRP_2bpl, x3, y3 + y_offset);
-      Draw(&theRP_2bpl, x4, y4 + y_offset);
-      Draw(&theRP_2bpl, x1, y1 + y_offset);
-
-      // drawn_min_x = QMIN(drawn_min_x, x1);
-      // drawn_min_y = QMIN(drawn_min_y, y1);
-      // drawn_max_x = QMAX(drawn_max_x, x1);
-      // drawn_max_y = QMAX(drawn_max_y, y1);
-
-      // drawn_min_x = QMIN(drawn_min_x, x2);
-      // drawn_min_y = QMIN(drawn_min_y, y2);
-      // drawn_max_x = QMAX(drawn_max_x, x2);
-      // drawn_max_y = QMAX(drawn_max_y, y2);
-
-      // drawn_min_x = QMIN(drawn_min_x, x3);
-      // drawn_min_y = QMIN(drawn_min_y, y3);
-      // drawn_max_x = QMAX(drawn_max_x, x3);
-      // drawn_max_y = QMAX(drawn_max_y, y3);      
-
-      // drawn_min_x = QMIN(drawn_min_x, x4);
-      // drawn_min_y = QMIN(drawn_min_y, y4);
-      // drawn_max_x = QMAX(drawn_max_x, x4);
-      // drawn_max_y = QMAX(drawn_max_y, y4);       
-    }
-  } 
 
   for (i = 0; i < o.nfaces; ++i)
   {
@@ -203,45 +134,28 @@ int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
 
     if (hidden > 0)
     {           
-      SetAPen(&theRP_2bpl, 3);
+      SetAPen(&theRP_2bpl, 2);
 
-      Move(&theRP_2bpl, x1, y1 + y_offset);
-      Draw(&theRP_2bpl, x2, y2 + y_offset);
-      Draw(&theRP_2bpl, x3, y3 + y_offset);
-      Draw(&theRP_2bpl, x4, y4 + y_offset);
-      Draw(&theRP_2bpl, x1, y1 + y_offset);
+      Move(&theRP_2bpl, x1, y1);
+      Draw(&theRP_2bpl, x2, y2);
+      Draw(&theRP_2bpl, x3, y3);
+      Draw(&theRP_2bpl, x4, y4);
+      Draw(&theRP_2bpl, x1, y1);
+    }
+    else
+    {
+      if (!o.flag_cull_backfaces)
+      {
+        SetAPen(&theRP_2bpl, 1);
 
-      // drawn_min_x = QMIN(drawn_min_x, x1);
-      // drawn_min_y = QMIN(drawn_min_y, y1);
-      // drawn_max_x = QMAX(drawn_max_x, x1);
-      // drawn_max_y = QMAX(drawn_max_y, y1);
-
-      // drawn_min_x = QMIN(drawn_min_x, x2);
-      // drawn_min_y = QMIN(drawn_min_y, y2);
-      // drawn_max_x = QMAX(drawn_max_x, x2);
-      // drawn_max_y = QMAX(drawn_max_y, y2);
-
-      // drawn_min_x = QMIN(drawn_min_x, x3);
-      // drawn_min_y = QMIN(drawn_min_y, y3);
-      // drawn_max_x = QMAX(drawn_max_x, x3);
-      // drawn_max_y = QMAX(drawn_max_y, y3);      
-
-      // drawn_min_x = QMIN(drawn_min_x, x4);
-      // drawn_min_y = QMIN(drawn_min_y, y4);
-      // drawn_max_x = QMAX(drawn_max_x, x4);
-      // drawn_max_y = QMAX(drawn_max_y, y4);      
-
-      //  Quantize the min & max x to 8 pixels.
-      // drawn_min_x &= 0xFFF8;
-      // drawn_max_x &= 0xFFF8;
+        Move(&theRP_1bpl, x1, y1);
+        Draw(&theRP_1bpl, x2, y2);
+        Draw(&theRP_1bpl, x3, y3);
+        Draw(&theRP_1bpl, x4, y4);
+        Draw(&theRP_1bpl, x1, y1);        
+      }
     }
   }
-
-  //  Enlarge the bounding box for more safety.
-  // drawn_min_x -= BB_3D_DRAW_OUTLINE;
-  // drawn_min_y -= BB_3D_DRAW_OUTLINE;
-  // // drawn_max_x += BB_3D_DRAW_OUTLINE;
-  // drawn_max_y += BB_3D_DRAW_OUTLINE;
 
   return 0;
 }

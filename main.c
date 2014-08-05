@@ -442,42 +442,43 @@ int main(void)
   fVBLDelay(350);
   full_clear(NULL);
 
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(0);
-  fVBLDelay(100);
+  fVBLDelay(25);
 
-  disp_fade_in(demo_title_PaletteRGB4, 16);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(1);
-  fVBLDelay(100);
+  fVBLDelay(25);
 
-  disp_fade_in(demo_title_PaletteRGB4, 16);
-  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(2);
-  fVBLDelay(100);
+  fVBLDelay(25);
 
-  disp_fade_in(demo_title_PaletteRGB4, 16);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
   Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(3);
-  fVBLDelay(100);
+  fVBLDelay(25);
 
-  disp_fade_in(demo_title_PaletteRGB4, 16);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
   Sequence3DRotation(5);
 
@@ -1032,7 +1033,8 @@ void SequenceDisplaySuspectProfile(int suspect_index)
     case 13: c_desc_str = (UBYTE *)DESC_CHAR_STR(12); c_face = (UBYTE *)"assets/face_14.bin"; c_pal = face_13PaletteRGB4; break;
     case 14: c_desc_str = (UBYTE *)DESC_CHAR_STR(13); c_face = (UBYTE *)"assets/face_15.bin"; c_pal = face_14PaletteRGB4; break;
     case 15: c_desc_str = (UBYTE *)DESC_CHAR_STR(14); c_face = (UBYTE *)"assets/face_16.bin"; c_pal = face_15PaletteRGB4; break;
-    default: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = NULL; c_pal = face_16PaletteRGB4; break;
+    case 16: c_desc_str = (UBYTE *)DESC_CHAR_STR(15); c_face = NULL; c_pal = face_16PaletteRGB4; break;
+    default: return;
   }
 
   BLIT_BITMAP_S(bitmap_background, &theBitMap, 320, 256, 0, 0);
