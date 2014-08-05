@@ -11,49 +11,15 @@ _DrawAALine 0000-00    _Prepare3DVertexList 00EA-00
 _Delete3DVertexList 0110-00    _Draw3DMesh 013C-00    _verts_tr 0000-01    
 _o 0000-02
 
-SECTION 00 "text" 000005F0 BYTES
-;   1: /*  
-;   2:     Unusual Suspects 
-;   3:     3D routines. 
-;   4: */
-;   5: 
-;   6: #include "3d_routines.h"
-;   7: #include "Assets/cosine_table.h"
-;   8: #include "common.h"
-;   9: 
-;  10: extern struct BitMap theBitMap;
-;  11: extern struct BitMap theBitMap_3bpl;
-;  12: extern struct BitMap theBitMap_2bpl;
-;  13: extern struct BitMap theBitMap_1bpl;
-;  14: extern struct RastPort theRP;
-;  15: extern struct RastPort theRP_3bpl;
-;  16: extern struct RastPort theRP_2bpl;
-;  17: extern struct RastPort theRP_1bpl;
-;  18: 
-;  19: extern struct GfxBase *GfxBase;
-;  20: 
-;  21: extern int  drawn_min_x, drawn_min_y,
-;  22:             drawn_max_x, drawn_max_y;
-;  23: 
-;  24: struct  obj_3d o;
-;  25: int     *verts_tr = NULL;
-;  26: 
-;  27: #define BB_3D_DRAW_OUTLINE    8
-;  28: 
-;  29: /********* 3D Code *********/
-;  30: 
-;  31: void DrawAALine(int x1, int y1, int x2, int y2)
+SECTION 00 "text" 000004D0 BYTES
        | 0000  200F                           MOVE.L      A7,D0
        | 0002  90BC 0000 000C                 SUB.L       #0000000C,D0
        | 0008  B0B9  0000 0000-XX             CMP.L       ___base,D0
        | 000E  6406                           BCC.B       0016
        | 0010  4EF9  0000 0000-XX             JMP         __XCOVF
        | 0016  48E7 0F02                      MOVEM.L     D4-D7/A6,-(A7)
-;  32: {
-;  33:   int xo = 0, yo = 0;
        | 001A  7E00                           MOVEQ       #00,D7
        | 001C  7C00                           MOVEQ       #00,D6
-;  34:   if (2 * abs(x1 - x2) > abs(y1 - y2))
        | 001E  2A2F 0018                      MOVE.L      0018(A7),D5
        | 0022  9AAF 0020                      SUB.L       0020(A7),D5
        | 0026  6A06                           BPL.B       002E
@@ -70,14 +36,8 @@ SECTION 00 "text" 000005F0 BYTES
        | 0042  0C40 2004                      CMPI.W      #2004,D0
        | 0046  B280                           CMP.L       D0,D1
        | 0048  6F04                           BLE.B       004E
-;  35:   {
-;  36:     xo = 1;
        | 004A  7E01                           MOVEQ       #01,D7
-;  37:     yo = 0;
        | 004C  7C00                           MOVEQ       #00,D6
-;  38:   }
-;  39: 
-;  40:   if (abs(x1 - x2) < 2 * abs(y1 - y2))
        | 004E  4A85                           TST.L       D5
        | 0050  6A06                           BPL.B       0058
        | 0052  2005                           MOVE.L      D5,D0
@@ -92,25 +52,16 @@ SECTION 00 "text" 000005F0 BYTES
        | 0068  D080                           ADD.L       D0,D0
        | 006A  B280                           CMP.L       D0,D1
        | 006C  6C04                           BGE.B       0072
-;  41:   {
-;  42:     xo = 0;
        | 006E  7E00                           MOVEQ       #00,D7
-;  43:     yo = 1;
        | 0070  7C01                           MOVEQ       #01,D6
-;  44:   }
-;  45: 
-;  46:   if (xo || yo)
        | 0072  4A87                           TST.L       D7
        | 0074  6604                           BNE.B       007A
        | 0076  4A86                           TST.L       D6
        | 0078  676A                           BEQ.B       00E4
-;  47:   {
-;  48:     SetAPen(&theRP_2bpl, 1);
        | 007A  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
        | 0080  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 0086  7001                           MOVEQ       #01,D0
        | 0088  4EAE FEAA                      JSR         FEAA(A6)
-;  49:     Move(&theRP_2bpl, x1 + xo, y1 + yo);
        | 008C  2A2F 0018                      MOVE.L      0018(A7),D5
        | 0090  2005                           MOVE.L      D5,D0
        | 0092  D087                           ADD.L       D7,D0
@@ -119,67 +70,48 @@ SECTION 00 "text" 000005F0 BYTES
        | 009A  D286                           ADD.L       D6,D1
        | 009C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
        | 00A2  4EAE FF10                      JSR         FF10(A6)
-;  50:     Draw(&theRP_2bpl, x2 + xo, y2 + yo);
        | 00A6  202F 0020                      MOVE.L      0020(A7),D0
        | 00AA  D087                           ADD.L       D7,D0
        | 00AC  222F 0024                      MOVE.L      0024(A7),D1
        | 00B0  D286                           ADD.L       D6,D1
        | 00B2  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
        | 00B8  4EAE FF0A                      JSR         FF0A(A6)
-;  51:     Move(&theRP_2bpl, x1 - xo, y1 - yo);
        | 00BC  2005                           MOVE.L      D5,D0
        | 00BE  9087                           SUB.L       D7,D0
        | 00C0  2204                           MOVE.L      D4,D1
        | 00C2  9286                           SUB.L       D6,D1
        | 00C4  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
        | 00CA  4EAE FF10                      JSR         FF10(A6)
-;  52:     Draw(&theRP_2bpl, x2 - xo, y2 - yo);
        | 00CE  202F 0020                      MOVE.L      0020(A7),D0
        | 00D2  9087                           SUB.L       D7,D0
        | 00D4  222F 0024                      MOVE.L      0024(A7),D1
        | 00D8  9286                           SUB.L       D6,D1
        | 00DA  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
        | 00E0  4EAE FF0A                      JSR         FF0A(A6)
-;  53:   }
-;  54: }
        | 00E4  4CDF 40F0                      MOVEM.L     (A7)+,D4-D7/A6
        | 00E8  4E75                           RTS
-;  55: 
-;  56: void Prepare3DVertexList(void)
        | 00EA  200F                           MOVE.L      A7,D0
        | 00EC  5980                           SUBQ.L      #4,D0
        | 00EE  B0B9  0000 0000-XX             CMP.L       ___base,D0
        | 00F4  6406                           BCC.B       00FC
        | 00F6  4EF9  0000 0000-XX             JMP         __XCOVF
-;  57: {  verts_tr = (int *)malloc(sizeof(int) * MAX_VERTICE_COUNT * 3); }
        | 00FC  4878 1800                      PEA         1800
        | 0100  4EB9  0000 0000-XX             JSR         _malloc
        | 0106  584F                           ADDQ.W      #4,A7
        | 0108  23C0  0000 0000-01             MOVE.L      D0,01.00000000
        | 010E  4E75                           RTS
-;  58: 
-;  59: void Delete3DVertexList(void)
        | 0110  200F                           MOVE.L      A7,D0
        | 0112  5980                           SUBQ.L      #4,D0
        | 0114  B0B9  0000 0000-XX             CMP.L       ___base,D0
        | 011A  6406                           BCC.B       0122
        | 011C  4EF9  0000 0000-XX             JMP         __XCOVF
-;  60: {  
-;  61:   if (verts_tr != NULL)
        | 0122  2039  0000 0000-01             MOVE.L      01.00000000,D0
        | 0128  6710                           BEQ.B       013A
-;  62:   {
-;  63:     free(verts_tr);
        | 012A  2F00                           MOVE.L      D0,-(A7)
        | 012C  4EB9  0000 0000-XX             JSR         _free
        | 0132  584F                           ADDQ.W      #4,A7
-;  64:     verts_tr = NULL;
        | 0134  42B9  0000 0000-01             CLR.L       01.00000000
-;  65:   }
-;  66: }
        | 013A  4E75                           RTS
-;  67: 
-;  68: int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
        | 013C  200F                           MOVE.L      A7,D0
        | 013E  90BC 0000 0044                 SUB.L       #00000044,D0
        | 0144  B0B9  0000 0000-XX             CMP.L       ___base,D0
@@ -187,68 +119,47 @@ SECTION 00 "text" 000005F0 BYTES
        | 014C  4EF9  0000 0000-XX             JMP         __XCOVF
        | 0152  9EFC 0038                      SUBA.W      #0038,A7
        | 0156  48E7 3F36                      MOVEM.L     D2-D7/A2-A3/A5-A6,-(A7)
-;  69: {
-;  70: 
-;  71:   int i,tx,ty,
-;  72:   x1,x2,x3,x4, 
-;  73:   y1,y2,y3,y4,
-;  74:   hidden = 0;
-       | 015A  42AF 0058                      CLR.L       0058(A7)
-;  75: 
-;  76:   int XC,YC;
-;  77: 
-;  78:   int cs, ss, cc, sc;
-;  79: 
-;  80:   XC = 160;
-;  81:   YC = 128;
-;  82: 
-;  83:   /*  Transform & project the vertices */
-;  84:   //  pre-rotations
-;  85:   cs = (tcos[rx] * tsin[ry]) >> fixed_pt_shift;
-       | 015E  222F 0068                      MOVE.L      0068(A7),D1
-       | 0162  E581                           ASL.L       #2,D1
-       | 0164  43F9  0000 0000-XX.2           LEA         _tsin,A1
-       | 016A  D3C1                           ADDA.L      D1,A1
-       | 016C  242F 0064                      MOVE.L      0064(A7),D2
-       | 0170  E582                           ASL.L       #2,D2
-       | 0172  41F9  0000 0000-XX.2           LEA         _tcos,A0
-       | 0178  D1C2                           ADDA.L      D2,A0
-       | 017A  2010                           MOVE.L      (A0),D0
-       | 017C  2F41 003C                      MOVE.L      D1,003C(A7)
-       | 0180  2211                           MOVE.L      (A1),D1
-       | 0182  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0188  E080                           ASR.L       #8,D0
-       | 018A  E280                           ASR.L       #1,D0
-       | 018C  2600                           MOVE.L      D0,D3
-;  86:   ss = (tsin[ry] * tsin[rx]) >> fixed_pt_shift;
-       | 018E  45F9  0000 0000-XX.2           LEA         _tsin,A2
-       | 0194  D5C2                           ADDA.L      D2,A2
-       | 0196  2011                           MOVE.L      (A1),D0
-       | 0198  2212                           MOVE.L      (A2),D1
-       | 019A  4EB9  0000 0000-XX             JSR         __CXM33
-       | 01A0  E080                           ASR.L       #8,D0
-       | 01A2  E280                           ASR.L       #1,D0
-       | 01A4  2400                           MOVE.L      D0,D2
-;  87:   cc = (tcos[rx] * tcos[ry]) >> fixed_pt_shift;
-       | 01A6  202F 003C                      MOVE.L      003C(A7),D0
+       | 015A  7040                           MOVEQ       #40,D0
+       | 015C  D080                           ADD.L       D0,D0
+       | 015E  D0AF 006C                      ADD.L       006C(A7),D0
+       | 0162  242F 0068                      MOVE.L      0068(A7),D2
+       | 0166  E582                           ASL.L       #2,D2
+       | 0168  43F9  0000 0000-XX.2           LEA         _tsin,A1
+       | 016E  D3C2                           ADDA.L      D2,A1
+       | 0170  262F 0064                      MOVE.L      0064(A7),D3
+       | 0174  E583                           ASL.L       #2,D3
+       | 0176  41F9  0000 0000-XX.2           LEA         _tcos,A0
+       | 017C  D1C3                           ADDA.L      D3,A0
+       | 017E  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 0182  2010                           MOVE.L      (A0),D0
+       | 0184  2211                           MOVE.L      (A1),D1
+       | 0186  4EB9  0000 0000-XX             JSR         __CXM33
+       | 018C  E080                           ASR.L       #8,D0
+       | 018E  E280                           ASR.L       #1,D0
+       | 0190  2E00                           MOVE.L      D0,D7
+       | 0192  45F9  0000 0000-XX.2           LEA         _tsin,A2
+       | 0198  D5C3                           ADDA.L      D3,A2
+       | 019A  2011                           MOVE.L      (A1),D0
+       | 019C  2212                           MOVE.L      (A2),D1
+       | 019E  4EB9  0000 0000-XX             JSR         __CXM33
+       | 01A4  E080                           ASR.L       #8,D0
+       | 01A6  E280                           ASR.L       #1,D0
+       | 01A8  2600                           MOVE.L      D0,D3
        | 01AA  2F49 0028                      MOVE.L      A1,0028(A7)
        | 01AE  43F9  0000 0000-XX.2           LEA         _tcos,A1
-       | 01B4  D3C0                           ADDA.L      D0,A1
+       | 01B4  D3C2                           ADDA.L      D2,A1
        | 01B6  2010                           MOVE.L      (A0),D0
        | 01B8  2211                           MOVE.L      (A1),D1
        | 01BA  4EB9  0000 0000-XX             JSR         __CXM33
        | 01C0  E080                           ASR.L       #8,D0
        | 01C2  E280                           ASR.L       #1,D0
-;  88:   sc = (tsin[rx] * tcos[ry]) >> fixed_pt_shift;
        | 01C4  2F40 0038                      MOVE.L      D0,0038(A7)
        | 01C8  2012                           MOVE.L      (A2),D0
        | 01CA  2211                           MOVE.L      (A1),D1
        | 01CC  4EB9  0000 0000-XX             JSR         __CXM33
        | 01D2  E080                           ASR.L       #8,D0
        | 01D4  E280                           ASR.L       #1,D0
-;  89: 
-;  90:   for (i = 0; i < o.nverts; ++i)
-       | 01D6  7A00                           MOVEQ       #00,D5
+       | 01D6  7400                           MOVEQ       #00,D2
        | 01D8  2A79  0000 0000-01             MOVEA.L     01.00000000,A5
        | 01DE  2679  0000 0000-02             MOVEA.L     02.00000000,A3
        | 01E4  7800                           MOVEQ       #00,D4
@@ -256,103 +167,80 @@ SECTION 00 "text" 000005F0 BYTES
        | 01EA  2F48 0030                      MOVE.L      A0,0030(A7)
        | 01EE  2F49 002C                      MOVE.L      A1,002C(A7)
        | 01F2  6000 010E                      BRA.W       0302
-;  91:   {
-;  92:     /* 
-;  93:         Rotation on 3 axis of each vertex
-;  94:     */
-;  95:     verts_tr[vX(i)] = (o.verts[vX(i)] * tsin[rx] + o.verts[vY(i)] * tcos[rx]) >> fixed_pt_shift; // / fixed_pt_pre;
        | 01F6  2012                           MOVE.L      (A2),D0
        | 01F8  2233 4800                      MOVE.L      00(A3,D4.L),D1
        | 01FC  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0202  2F40 0040                      MOVE.L      D0,0040(A7)
+       | 0202  2F40 0044                      MOVE.L      D0,0044(A7)
        | 0206  206F 0030                      MOVEA.L     0030(A7),A0
        | 020A  2010                           MOVE.L      (A0),D0
        | 020C  2233 4804                      MOVE.L      04(A3,D4.L),D1
        | 0210  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0216  222F 0040                      MOVE.L      0040(A7),D1
+       | 0216  222F 0044                      MOVE.L      0044(A7),D1
        | 021A  D280                           ADD.L       D0,D1
        | 021C  E081                           ASR.L       #8,D1
        | 021E  E281                           ASR.L       #1,D1
        | 0220  2B81 4800                      MOVE.L      D1,00(A5,D4.L)
-;  96:     verts_tr[vY(i)] = (o.verts[vX(i)] * cs - o.verts[vY(i)] * ss + o.verts[vZ(i)] * tcos[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
        | 0224  206F 002C                      MOVEA.L     002C(A7),A0
        | 0228  2010                           MOVE.L      (A0),D0
-       | 022A  2F41 0040                      MOVE.L      D1,0040(A7)
+       | 022A  2F41 0044                      MOVE.L      D1,0044(A7)
        | 022E  2233 4808                      MOVE.L      08(A3,D4.L),D1
        | 0232  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0238  2F40 0048                      MOVE.L      D0,0048(A7)
-       | 023C  2002                           MOVE.L      D2,D0
+       | 0238  2F40 004C                      MOVE.L      D0,004C(A7)
+       | 023C  2003                           MOVE.L      D3,D0
        | 023E  2233 4804                      MOVE.L      04(A3,D4.L),D1
        | 0242  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0248  2F40 004C                      MOVE.L      D0,004C(A7)
-       | 024C  2003                           MOVE.L      D3,D0
+       | 0248  2F40 0050                      MOVE.L      D0,0050(A7)
+       | 024C  2007                           MOVE.L      D7,D0
        | 024E  2233 4800                      MOVE.L      00(A3,D4.L),D1
        | 0252  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0258  90AF 004C                      SUB.L       004C(A7),D0
-       | 025C  D0AF 0048                      ADD.L       0048(A7),D0
+       | 0258  90AF 0050                      SUB.L       0050(A7),D0
+       | 025C  D0AF 004C                      ADD.L       004C(A7),D0
        | 0260  E080                           ASR.L       #8,D0
        | 0262  E280                           ASR.L       #1,D0
        | 0264  2B80 4804                      MOVE.L      D0,04(A5,D4.L)
-;  97:     verts_tr[vZ(i)] = (o.verts[vX(i)] * cc - o.verts[vY(i)] * sc - o.verts[vZ(i)] * tsin[ry]) >> fixed_pt_shift; // / fixed_pt_pre;
-       | 0268  2F40 0048                      MOVE.L      D0,0048(A7)
+       | 0268  2F40 004C                      MOVE.L      D0,004C(A7)
        | 026C  2033 4808                      MOVE.L      08(A3,D4.L),D0
        | 0270  206F 0028                      MOVEA.L     0028(A7),A0
        | 0274  2210                           MOVE.L      (A0),D1
        | 0276  4EB9  0000 0000-XX             JSR         __CXM33
-       | 027C  2F40 004C                      MOVE.L      D0,004C(A7)
+       | 027C  2F40 0050                      MOVE.L      D0,0050(A7)
        | 0280  2033 4804                      MOVE.L      04(A3,D4.L),D0
        | 0284  222F 0034                      MOVE.L      0034(A7),D1
        | 0288  4EB9  0000 0000-XX             JSR         __CXM33
-       | 028E  2F40 0050                      MOVE.L      D0,0050(A7)
+       | 028E  2F40 0054                      MOVE.L      D0,0054(A7)
        | 0292  2033 4800                      MOVE.L      00(A3,D4.L),D0
        | 0296  222F 0038                      MOVE.L      0038(A7),D1
        | 029A  4EB9  0000 0000-XX             JSR         __CXM33
-       | 02A0  90AF 0050                      SUB.L       0050(A7),D0
-       | 02A4  90AF 004C                      SUB.L       004C(A7),D0
+       | 02A0  90AF 0054                      SUB.L       0054(A7),D0
+       | 02A4  90AF 0050                      SUB.L       0050(A7),D0
        | 02A8  E080                           ASR.L       #8,D0
        | 02AA  E280                           ASR.L       #1,D0
        | 02AC  2B80 4808                      MOVE.L      D0,08(A5,D4.L)
-;  98: 
-;  99:     /*
-; 100:       Classic 3D -> 2D projection
-; 101:     */
-; 102:     tx = (verts_tr[vX(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
-       | 02B0  222F 0040                      MOVE.L      0040(A7),D1
+       | 02B0  222F 0044                      MOVE.L      0044(A7),D1
        | 02B4  2039  0000 0010-02             MOVE.L      02.00000010,D0
        | 02BA  4EB9  0000 0000-XX             JSR         __CXM33
        | 02C0  2235 4808                      MOVE.L      08(A5,D4.L),D1
        | 02C4  D2B9  0000 0014-02             ADD.L       02.00000014,D1
-       | 02CA  2F41 0040                      MOVE.L      D1,0040(A7)
+       | 02CA  2F41 0044                      MOVE.L      D1,0044(A7)
        | 02CE  4EB9  0000 0000-XX             JSR         __CXD33
-; 103:     ty = (verts_tr[vY(i)] * o.zoom) / (verts_tr[vZ(i)] + o.distance);
-       | 02D4  222F 0048                      MOVE.L      0048(A7),D1
-       | 02D8  2F40 003C                      MOVE.L      D0,003C(A7)
+       | 02D4  222F 004C                      MOVE.L      004C(A7),D1
+       | 02D8  2F40 0040                      MOVE.L      D0,0040(A7)
        | 02DC  2039  0000 0010-02             MOVE.L      02.00000010,D0
        | 02E2  4EB9  0000 0000-XX             JSR         __CXM33
-       | 02E8  222F 0040                      MOVE.L      0040(A7),D1
+       | 02E8  222F 0044                      MOVE.L      0044(A7),D1
        | 02EC  4EB9  0000 0000-XX             JSR         __CXD33
-; 104:     verts_tr[vX(i)] = tx;
-       | 02F2  2BAF 003C 4800                 MOVE.L      003C(A7),00(A5,D4.L)
-; 105:     verts_tr[vY(i)] = ty;
+       | 02F2  2BAF 0040 4800                 MOVE.L      0040(A7),00(A5,D4.L)
        | 02F8  2B80 4804                      MOVE.L      D0,04(A5,D4.L)
-       | 02FC  5285                           ADDQ.L      #1,D5
+       | 02FC  5282                           ADDQ.L      #1,D2
        | 02FE  700C                           MOVEQ       #0C,D0
        | 0300  D880                           ADD.L       D0,D4
-       | 0302  BAB9  0000 0004-02             CMP.L       02.00000004,D5
+       | 0302  B4B9  0000 0004-02             CMP.L       02.00000004,D2
        | 0308  6D00 FEEC                      BLT.W       01F6
-; 106:   }
-; 107: 
-; 108:   /*
-; 109:     Draw each face (we assume it's a quad)
-; 110:   */
-; 111:   for (i = 0; i < o.nfaces; ++i)
        | 030C  42AF 005C                      CLR.L       005C(A7)
-       | 0310  42AF 0054                      CLR.L       0054(A7)
-       | 0314  6000 015A                      BRA.W       0470
-; 112:   {
-; 113:     x1 = verts_tr[vX(o.faces[Fc0(i)])];
+       | 0310  42AF 0058                      CLR.L       0058(A7)
+       | 0314  6000 01A0                      BRA.W       04B6
        | 0318  2079  0000 0008-02             MOVEA.L     02.00000008,A0
-       | 031E  D1EF 0054                      ADDA.L      0054(A7),A0
+       | 031E  D1EF 0058                      ADDA.L      0058(A7),A0
        | 0322  4BD0                           LEA         (A0),A5
        | 0324  201D                           MOVE.L      (A5)+,D0
        | 0326  2200                           MOVE.L      D0,D1
@@ -362,375 +250,136 @@ SECTION 00 "text" 000005F0 BYTES
        | 032E  2279  0000 0000-01             MOVEA.L     01.00000000,A1
        | 0334  2C49                           MOVEA.L     A1,A6
        | 0336  DDC1                           ADDA.L      D1,A6
-; 114:     y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
        | 0338  2A16                           MOVE.L      (A6),D5
-       | 033A  7040                           MOVEQ       #40,D0
-       | 033C  D080                           ADD.L       D0,D0
-; 115: 
-; 116:     x2 = verts_tr[vX(o.faces[Fc1(i)])];
-       | 033E  D0AE 0004                      ADD.L       0004(A6),D0
-       | 0342  221D                           MOVE.L      (A5)+,D1
-       | 0344  2401                           MOVE.L      D1,D2
-       | 0346  D482                           ADD.L       D2,D2
-       | 0348  D481                           ADD.L       D1,D2
-       | 034A  E582                           ASL.L       #2,D2
-       | 034C  2C49                           MOVEA.L     A1,A6
-       | 034E  DDC2                           ADDA.L      D2,A6
-; 117:     y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-       | 0350  2816                           MOVE.L      (A6),D4
-       | 0352  7240                           MOVEQ       #40,D1
-       | 0354  D281                           ADD.L       D1,D1
-; 118: 
-; 119:     x3 = verts_tr[vX(o.faces[Fc2(i)])];
-       | 0356  D2AE 0004                      ADD.L       0004(A6),D1
-       | 035A  241D                           MOVE.L      (A5)+,D2
-       | 035C  2602                           MOVE.L      D2,D3
-       | 035E  D683                           ADD.L       D3,D3
-       | 0360  D682                           ADD.L       D2,D3
-       | 0362  E583                           ASL.L       #2,D3
-       | 0364  2C49                           MOVEA.L     A1,A6
-       | 0366  DDC3                           ADDA.L      D3,A6
-; 120:     y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-       | 0368  2E16                           MOVE.L      (A6),D7
-       | 036A  7440                           MOVEQ       #40,D2
-       | 036C  D482                           ADD.L       D2,D2
-; 121: 
-; 122:     x4 = verts_tr[vX(o.faces[Fc3(i)])];
-       | 036E  D4AE 0004                      ADD.L       0004(A6),D2
-       | 0372  261D                           MOVE.L      (A5)+,D3
-       | 0374  2F41 0030                      MOVE.L      D1,0030(A7)
-       | 0378  2203                           MOVE.L      D3,D1
-       | 037A  D281                           ADD.L       D1,D1
-       | 037C  D283                           ADD.L       D3,D1
-       | 037E  E581                           ASL.L       #2,D1
-       | 0380  D3C1                           ADDA.L      D1,A1
-; 123:     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-       | 0382  2C11                           MOVE.L      (A1),D6
-       | 0384  7240                           MOVEQ       #40,D1
-       | 0386  D281                           ADD.L       D1,D1
-; 124: 
-; 125:     if (m_scale_x > 0)
-       | 0388  D2A9 0004                      ADD.L       0004(A1),D1
-       | 038C  2F41 0038                      MOVE.L      D1,0038(A7)
-       | 0390  2F42 0034                      MOVE.L      D2,0034(A7)
-       | 0394  222F 0070                      MOVE.L      0070(A7),D1
-       | 0398  6F0A                           BLE.B       03A4
-; 126:     {
-; 127:       x1 = x1 >> m_scale_x;
-       | 039A  E2A5                           ASR.L       D1,D5
-; 128:       x2 = x1 >> m_scale_x;
-       | 039C  2805                           MOVE.L      D5,D4
-       | 039E  E2A4                           ASR.L       D1,D4
-; 129:       x3 = x1 >> m_scale_x;
-       | 03A0  2E04                           MOVE.L      D4,D7
-; 130:       x4 = x1 >> m_scale_x;
-       | 03A2  2C04                           MOVE.L      D4,D6
-; 131:     }
-; 132: 
-; 133:     x1 += XC;
-       | 03A4  2605                           MOVE.L      D5,D3
-       | 03A6  7250                           MOVEQ       #50,D1
-       | 03A8  D281                           ADD.L       D1,D1
-       | 03AA  D681                           ADD.L       D1,D3
-; 134:     x2 += XC;
-       | 03AC  D881                           ADD.L       D1,D4
-; 135:     x3 += XC;
-       | 03AE  DE81                           ADD.L       D1,D7
-; 136:     x4 += XC;
-       | 03B0  DC81                           ADD.L       D1,D6
-; 137: 
-; 138:     //  should we draw the face ?
-; 139:     if (o.flag_cull_backfaces)
-       | 03B2  2A00                           MOVE.L      D0,D5
-       | 03B4  2039  0000 0018-02             MOVE.L      02.00000018,D0
-       | 03BA  672C                           BEQ.B       03E8
-; 140:       hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-       | 03BC  2202                           MOVE.L      D2,D1
-       | 03BE  9285                           SUB.L       D5,D1
-       | 03C0  2004                           MOVE.L      D4,D0
-       | 03C2  9083                           SUB.L       D3,D0
+       | 033A  47EF 003C                      LEA         003C(A7),A3
+       | 033E  2013                           MOVE.L      (A3),D0
+       | 0340  222E 0004                      MOVE.L      0004(A6),D1
+       | 0344  D280                           ADD.L       D0,D1
+       | 0346  241D                           MOVE.L      (A5)+,D2
+       | 0348  2602                           MOVE.L      D2,D3
+       | 034A  D683                           ADD.L       D3,D3
+       | 034C  D682                           ADD.L       D2,D3
+       | 034E  E583                           ASL.L       #2,D3
+       | 0350  2C49                           MOVEA.L     A1,A6
+       | 0352  DDC3                           ADDA.L      D3,A6
+       | 0354  2816                           MOVE.L      (A6),D4
+       | 0356  242E 0004                      MOVE.L      0004(A6),D2
+       | 035A  D480                           ADD.L       D0,D2
+       | 035C  261D                           MOVE.L      (A5)+,D3
+       | 035E  2003                           MOVE.L      D3,D0
+       | 0360  D080                           ADD.L       D0,D0
+       | 0362  D083                           ADD.L       D3,D0
+       | 0364  E580                           ASL.L       #2,D0
+       | 0366  2C49                           MOVEA.L     A1,A6
+       | 0368  DDC0                           ADDA.L      D0,A6
+       | 036A  2E16                           MOVE.L      (A6),D7
+       | 036C  2013                           MOVE.L      (A3),D0
+       | 036E  262E 0004                      MOVE.L      0004(A6),D3
+       | 0372  D680                           ADD.L       D0,D3
+       | 0374  201D                           MOVE.L      (A5)+,D0
+       | 0376  2F42 002C                      MOVE.L      D2,002C(A7)
+       | 037A  2400                           MOVE.L      D0,D2
+       | 037C  D482                           ADD.L       D2,D2
+       | 037E  D480                           ADD.L       D0,D2
+       | 0380  E582                           ASL.L       #2,D2
+       | 0382  D3C2                           ADDA.L      D2,A1
+       | 0384  2C11                           MOVE.L      (A1),D6
+       | 0386  201B                           MOVE.L      (A3)+,D0
+       | 0388  D0A9 0004                      ADD.L       0004(A1),D0
+       | 038C  2F40 0038                      MOVE.L      D0,0038(A7)
+       | 0390  202F 0070                      MOVE.L      0070(A7),D0
+       | 0394  6F0A                           BLE.B       03A0
+       | 0396  E0A5                           ASR.L       D0,D5
+       | 0398  2805                           MOVE.L      D5,D4
+       | 039A  E0A4                           ASR.L       D0,D4
+       | 039C  2E04                           MOVE.L      D4,D7
+       | 039E  2C04                           MOVE.L      D4,D6
+       | 03A0  2405                           MOVE.L      D5,D2
+       | 03A2  7050                           MOVEQ       #50,D0
+       | 03A4  D080                           ADD.L       D0,D0
+       | 03A6  D480                           ADD.L       D0,D2
+       | 03A8  2A04                           MOVE.L      D4,D5
+       | 03AA  DA80                           ADD.L       D0,D5
+       | 03AC  2807                           MOVE.L      D7,D4
+       | 03AE  D880                           ADD.L       D0,D4
+       | 03B0  DC80                           ADD.L       D0,D6
+       | 03B2  2004                           MOVE.L      D4,D0
+       | 03B4  9082                           SUB.L       D2,D0
+       | 03B6  2F40 0040                      MOVE.L      D0,0040(A7)
+       | 03BA  2005                           MOVE.L      D5,D0
+       | 03BC  9082                           SUB.L       D2,D0
+       | 03BE  2E01                           MOVE.L      D1,D7
+       | 03C0  2203                           MOVE.L      D3,D1
+       | 03C2  9287                           SUB.L       D7,D1
        | 03C4  4EB9  0000 0000-XX             JSR         __CXM33
-       | 03CA  242F 0030                      MOVE.L      0030(A7),D2
-       | 03CE  9485                           SUB.L       D5,D2
-       | 03D0  2207                           MOVE.L      D7,D1
-       | 03D2  9283                           SUB.L       D3,D1
-       | 03D4  2F40 0028                      MOVE.L      D0,0028(A7)
-       | 03D8  2002                           MOVE.L      D2,D0
-       | 03DA  4EB9  0000 0000-XX             JSR         __CXM33
-       | 03E0  90AF 0028                      SUB.L       0028(A7),D0
-       | 03E4  2F40 0058                      MOVE.L      D0,0058(A7)
-; 141: 
-; 142:     if (!o.flag_cull_backfaces || (o.flag_cull_backfaces && hidden < 0))
-       | 03E8  2039  0000 0018-02             MOVE.L      02.00000018,D0
-       | 03EE  6708                           BEQ.B       03F8
-       | 03F0  6774                           BEQ.B       0466
-       | 03F2  202F 0058                      MOVE.L      0058(A7),D0
-       | 03F6  6A6E                           BPL.B       0466
-; 143:     {           
-; 144:       SetAPen(&theRP_2bpl, 1);
-       | 03F8  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 03FE  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
-       | 0404  7001                           MOVEQ       #01,D0
-       | 0406  4EAE FEAA                      JSR         FEAA(A6)
-; 145: 
-; 146:       Move(&theRP_2bpl, x1, y1 + y_offset);
-       | 040A  DAAF 006C                      ADD.L       006C(A7),D5
-       | 040E  2003                           MOVE.L      D3,D0
-       | 0410  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 0416  2205                           MOVE.L      D5,D1
-       | 0418  4EAE FF10                      JSR         FF10(A6)
-; 147:       Draw(&theRP_2bpl, x2, y2 + y_offset);
-       | 041C  222F 0030                      MOVE.L      0030(A7),D1
-       | 0420  D2AF 006C                      ADD.L       006C(A7),D1
-       | 0424  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 042A  2004                           MOVE.L      D4,D0
-       | 042C  4EAE FF0A                      JSR         FF0A(A6)
-; 148:       Draw(&theRP_2bpl, x3, y3 + y_offset);
-       | 0430  242F 006C                      MOVE.L      006C(A7),D2
-       | 0434  222F 0034                      MOVE.L      0034(A7),D1
-       | 0438  D282                           ADD.L       D2,D1
-       | 043A  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 0440  2007                           MOVE.L      D7,D0
-       | 0442  4EAE FF0A                      JSR         FF0A(A6)
-; 149:       Draw(&theRP_2bpl, x4, y4 + y_offset);
-       | 0446  222F 0038                      MOVE.L      0038(A7),D1
-       | 044A  D282                           ADD.L       D2,D1
+       | 03CA  222F 002C                      MOVE.L      002C(A7),D1
+       | 03CE  2F42 0030                      MOVE.L      D2,0030(A7)
+       | 03D2  2401                           MOVE.L      D1,D2
+       | 03D4  9487                           SUB.L       D7,D2
+       | 03D6  222F 0040                      MOVE.L      0040(A7),D1
+       | 03DA  2F40 0028                      MOVE.L      D0,0028(A7)
+       | 03DE  2002                           MOVE.L      D2,D0
+       | 03E0  4EB9  0000 0000-XX             JSR         __CXM33
+       | 03E6  90AF 0028                      SUB.L       0028(A7),D0
+       | 03EA  6F58                           BLE.B       0444
+       | 03EC  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 03F2  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 03F8  7002                           MOVEQ       #02,D0
+       | 03FA  4EAE FEAA                      JSR         FEAA(A6)
+       | 03FE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 0404  202F 0030                      MOVE.L      0030(A7),D0
+       | 0408  2207                           MOVE.L      D7,D1
+       | 040A  4EAE FF10                      JSR         FF10(A6)
+       | 040E  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 0414  2005                           MOVE.L      D5,D0
+       | 0416  222F 002C                      MOVE.L      002C(A7),D1
+       | 041A  4EAE FF0A                      JSR         FF0A(A6)
+       | 041E  2203                           MOVE.L      D3,D1
+       | 0420  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 0426  2004                           MOVE.L      D4,D0
+       | 0428  4EAE FF0A                      JSR         FF0A(A6)
+       | 042C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 0432  2006                           MOVE.L      D6,D0
+       | 0434  222F 0038                      MOVE.L      0038(A7),D1
+       | 0438  4EAE FF0A                      JSR         FF0A(A6)
+       | 043C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
+       | 0442  605E                           BRA.B       04A2
+       | 0444  4AB9  0000 0018-02             TST.L       02.00000018
+       | 044A  6660                           BNE.B       04AC
        | 044C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 0452  2006                           MOVE.L      D6,D0
-       | 0454  4EAE FF0A                      JSR         FF0A(A6)
-; 150:       Draw(&theRP_2bpl, x1, y1 + y_offset);
-       | 0458  2003                           MOVE.L      D3,D0
-       | 045A  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 0460  2205                           MOVE.L      D5,D1
-       | 0462  4EAE FF0A                      JSR         FF0A(A6)
-; 151: 
-; 152:       // drawn_min_x = QMIN(drawn_min_x, x1);
-; 153:       // drawn_min_y = QMIN(drawn_min_y, y1);
-; 154:       // drawn_max_x = QMAX(drawn_max_x, x1);
-; 155:       // drawn_max_y = QMAX(drawn_max_y, y1);
-; 156: 
-; 157:       // drawn_min_x = QMIN(drawn_min_x, x2);
-; 158:       // drawn_min_y = QMIN(drawn_min_y, y2);
-; 159:       // drawn_max_x = QMAX(drawn_max_x, x2);
-; 160:       // drawn_max_y = QMAX(drawn_max_y, y2);
-; 161: 
-; 162:       // drawn_min_x = QMIN(drawn_min_x, x3);
-; 163:       // drawn_min_y = QMIN(drawn_min_y, y3);
-; 164:       // drawn_max_x = QMAX(drawn_max_x, x3);
-; 165:       // drawn_max_y = QMAX(drawn_max_y, y3);      
-; 166: 
-; 167:       // drawn_min_x = QMIN(drawn_min_x, x4);
-; 168:       // drawn_min_y = QMIN(drawn_min_y, y4);
-; 169:       // drawn_max_x = QMAX(drawn_max_x, x4);
-; 170:       // drawn_max_y = QMAX(drawn_max_y, y4);       
-; 171:     }
-       | 0466  52AF 005C                      ADDQ.L      #1,005C(A7)
-       | 046A  7010                           MOVEQ       #10,D0
-       | 046C  D1AF 0054                      ADD.L       D0,0054(A7)
-       | 0470  202F 005C                      MOVE.L      005C(A7),D0
-       | 0474  B0B9  0000 000C-02             CMP.L       02.0000000C,D0
-       | 047A  6D00 FE9C                      BLT.W       0318
-; 172:   } 
-; 173: 
-; 174:   for (i = 0; i < o.nfaces; ++i)
-       | 047E  42AF 005C                      CLR.L       005C(A7)
-       | 0482  42AF 0054                      CLR.L       0054(A7)
-       | 0486  6000 014C                      BRA.W       05D4
-; 175:   {
-; 176:     x1 = verts_tr[vX(o.faces[Fc0(i)])];
-       | 048A  2079  0000 0008-02             MOVEA.L     02.00000008,A0
-       | 0490  D1EF 0054                      ADDA.L      0054(A7),A0
-       | 0494  4BD0                           LEA         (A0),A5
-       | 0496  201D                           MOVE.L      (A5)+,D0
-       | 0498  2200                           MOVE.L      D0,D1
-       | 049A  D281                           ADD.L       D1,D1
-       | 049C  D280                           ADD.L       D0,D1
-       | 049E  E581                           ASL.L       #2,D1
-       | 04A0  2279  0000 0000-01             MOVEA.L     01.00000000,A1
-       | 04A6  2C49                           MOVEA.L     A1,A6
-       | 04A8  DDC1                           ADDA.L      D1,A6
-; 177:     y1 = YC + verts_tr[vY(o.faces[Fc0(i)])];
-       | 04AA  2A16                           MOVE.L      (A6),D5
-       | 04AC  7040                           MOVEQ       #40,D0
-       | 04AE  D080                           ADD.L       D0,D0
-; 178: 
-; 179:     x2 = verts_tr[vX(o.faces[Fc1(i)])];
-       | 04B0  D0AE 0004                      ADD.L       0004(A6),D0
-       | 04B4  221D                           MOVE.L      (A5)+,D1
-       | 04B6  2401                           MOVE.L      D1,D2
-       | 04B8  D482                           ADD.L       D2,D2
-       | 04BA  D481                           ADD.L       D1,D2
-       | 04BC  E582                           ASL.L       #2,D2
-       | 04BE  2C49                           MOVEA.L     A1,A6
-       | 04C0  DDC2                           ADDA.L      D2,A6
-; 180:     y2 = YC + verts_tr[vY(o.faces[Fc1(i)])];
-       | 04C2  2816                           MOVE.L      (A6),D4
-       | 04C4  7240                           MOVEQ       #40,D1
-       | 04C6  D281                           ADD.L       D1,D1
-; 181: 
-; 182:     x3 = verts_tr[vX(o.faces[Fc2(i)])];
-       | 04C8  D2AE 0004                      ADD.L       0004(A6),D1
-       | 04CC  241D                           MOVE.L      (A5)+,D2
-       | 04CE  2602                           MOVE.L      D2,D3
-       | 04D0  D683                           ADD.L       D3,D3
-       | 04D2  D682                           ADD.L       D2,D3
-       | 04D4  E583                           ASL.L       #2,D3
-       | 04D6  2C49                           MOVEA.L     A1,A6
-       | 04D8  DDC3                           ADDA.L      D3,A6
-; 183:     y3 = YC + verts_tr[vY(o.faces[Fc2(i)])];
-       | 04DA  2E16                           MOVE.L      (A6),D7
-       | 04DC  7440                           MOVEQ       #40,D2
-       | 04DE  D482                           ADD.L       D2,D2
-; 184: 
-; 185:     x4 = verts_tr[vX(o.faces[Fc3(i)])];
-       | 04E0  D4AE 0004                      ADD.L       0004(A6),D2
-       | 04E4  261D                           MOVE.L      (A5)+,D3
-       | 04E6  2F41 0030                      MOVE.L      D1,0030(A7)
-       | 04EA  2203                           MOVE.L      D3,D1
-       | 04EC  D281                           ADD.L       D1,D1
-       | 04EE  D283                           ADD.L       D3,D1
-       | 04F0  E581                           ASL.L       #2,D1
-       | 04F2  D3C1                           ADDA.L      D1,A1
-; 186:     y4 = YC + verts_tr[vY(o.faces[Fc3(i)])];
-       | 04F4  2C11                           MOVE.L      (A1),D6
-       | 04F6  7240                           MOVEQ       #40,D1
-       | 04F8  D281                           ADD.L       D1,D1
-; 187: 
-; 188:     if (m_scale_x > 0)
-       | 04FA  D2A9 0004                      ADD.L       0004(A1),D1
-       | 04FE  2F41 0038                      MOVE.L      D1,0038(A7)
-       | 0502  2F42 0034                      MOVE.L      D2,0034(A7)
-       | 0506  222F 0070                      MOVE.L      0070(A7),D1
-       | 050A  6F0A                           BLE.B       0516
-; 189:     {
-; 190:       x1 = x1 >> m_scale_x;
-       | 050C  E2A5                           ASR.L       D1,D5
-; 191:       x2 = x1 >> m_scale_x;
-       | 050E  2805                           MOVE.L      D5,D4
-       | 0510  E2A4                           ASR.L       D1,D4
-; 192:       x3 = x1 >> m_scale_x;
-       | 0512  2E04                           MOVE.L      D4,D7
-; 193:       x4 = x1 >> m_scale_x;
-       | 0514  2C04                           MOVE.L      D4,D6
-; 194:     }
-; 195: 
-; 196:     x1 += XC;
-       | 0516  2605                           MOVE.L      D5,D3
-       | 0518  7250                           MOVEQ       #50,D1
-       | 051A  D281                           ADD.L       D1,D1
-       | 051C  D681                           ADD.L       D1,D3
-; 197:     x2 += XC;
-       | 051E  2A04                           MOVE.L      D4,D5
-       | 0520  DA81                           ADD.L       D1,D5
-; 198:     x3 += XC;
-       | 0522  2807                           MOVE.L      D7,D4
-       | 0524  D881                           ADD.L       D1,D4
-; 199:     x4 += XC;
-       | 0526  DC81                           ADD.L       D1,D6
-; 200: 
-; 201:     //  should we draw the face ?
-; 202:     hidden = (x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1);
-       | 0528  2204                           MOVE.L      D4,D1
-       | 052A  9283                           SUB.L       D3,D1
-       | 052C  2F41 003C                      MOVE.L      D1,003C(A7)
-       | 0530  2205                           MOVE.L      D5,D1
-       | 0532  9283                           SUB.L       D3,D1
-       | 0534  2E00                           MOVE.L      D0,D7
-       | 0536  2002                           MOVE.L      D2,D0
-       | 0538  9087                           SUB.L       D7,D0
-       | 053A  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0540  242F 0030                      MOVE.L      0030(A7),D2
-       | 0544  9487                           SUB.L       D7,D2
-       | 0546  222F 003C                      MOVE.L      003C(A7),D1
-       | 054A  2F40 0028                      MOVE.L      D0,0028(A7)
-       | 054E  2002                           MOVE.L      D2,D0
-       | 0550  4EB9  0000 0000-XX             JSR         __CXM33
-       | 0556  90AF 0028                      SUB.L       0028(A7),D0
-; 203: 
-; 204:     if (hidden > 0)
-       | 055A  6F6E                           BLE.B       05CA
-; 205:     {           
-; 206:       SetAPen(&theRP_2bpl, 3);
-       | 055C  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 0562  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
-       | 0568  7003                           MOVEQ       #03,D0
-       | 056A  4EAE FEAA                      JSR         FEAA(A6)
-; 207: 
-; 208:       Move(&theRP_2bpl, x1, y1 + y_offset);
-       | 056E  DEAF 006C                      ADD.L       006C(A7),D7
-       | 0572  2003                           MOVE.L      D3,D0
-       | 0574  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 057A  2207                           MOVE.L      D7,D1
-       | 057C  4EAE FF10                      JSR         FF10(A6)
-; 209:       Draw(&theRP_2bpl, x2, y2 + y_offset);
-       | 0580  222F 0030                      MOVE.L      0030(A7),D1
-       | 0584  D2AF 006C                      ADD.L       006C(A7),D1
-       | 0588  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 058E  2005                           MOVE.L      D5,D0
-       | 0590  4EAE FF0A                      JSR         FF0A(A6)
-; 210:       Draw(&theRP_2bpl, x3, y3 + y_offset);
-       | 0594  242F 006C                      MOVE.L      006C(A7),D2
-       | 0598  222F 0034                      MOVE.L      0034(A7),D1
-       | 059C  D282                           ADD.L       D2,D1
-       | 059E  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 05A4  2004                           MOVE.L      D4,D0
-       | 05A6  4EAE FF0A                      JSR         FF0A(A6)
-; 211:       Draw(&theRP_2bpl, x4, y4 + y_offset);
-       | 05AA  222F 0038                      MOVE.L      0038(A7),D1
-       | 05AE  D282                           ADD.L       D2,D1
-       | 05B0  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 05B6  2006                           MOVE.L      D6,D0
-       | 05B8  4EAE FF0A                      JSR         FF0A(A6)
-; 212:       Draw(&theRP_2bpl, x1, y1 + y_offset);
-       | 05BC  2003                           MOVE.L      D3,D0
-       | 05BE  43F9  0000 0000-XX             LEA         _theRP_2bpl,A1
-       | 05C4  2207                           MOVE.L      D7,D1
-       | 05C6  4EAE FF0A                      JSR         FF0A(A6)
-; 213: 
-; 214:       // drawn_min_x = QMIN(drawn_min_x, x1);
-; 215:       // drawn_min_y = QMIN(drawn_min_y, y1);
-; 216:       // drawn_max_x = QMAX(drawn_max_x, x1);
-; 217:       // drawn_max_y = QMAX(drawn_max_y, y1);
-; 218: 
-; 219:       // drawn_min_x = QMIN(drawn_min_x, x2);
-; 220:       // drawn_min_y = QMIN(drawn_min_y, y2);
-; 221:       // drawn_max_x = QMAX(drawn_max_x, x2);
-; 222:       // drawn_max_y = QMAX(drawn_max_y, y2);
-; 223: 
-; 224:       // drawn_min_x = QMIN(drawn_min_x, x3);
-; 225:       // drawn_min_y = QMIN(drawn_min_y, y3);
-; 226:       // drawn_max_x = QMAX(drawn_max_x, x3);
-; 227:       // drawn_max_y = QMAX(drawn_max_y, y3);      
-; 228: 
-; 229:       // drawn_min_x = QMIN(drawn_min_x, x4);
-; 230:       // drawn_min_y = QMIN(drawn_min_y, y4);
-; 231:       // drawn_max_x = QMAX(drawn_max_x, x4);
-; 232:       // drawn_max_y = QMAX(drawn_max_y, y4);      
-; 233: 
-; 234:       //  Quantize the min & max x to 8 pixels.
-; 235:       // drawn_min_x &= 0xFFF8;
-; 236:       // drawn_max_x &= 0xFFF8;
-; 237:     }
-       | 05CA  52AF 005C                      ADDQ.L      #1,005C(A7)
-       | 05CE  7010                           MOVEQ       #10,D0
-       | 05D0  D1AF 0054                      ADD.L       D0,0054(A7)
-       | 05D4  202F 005C                      MOVE.L      005C(A7),D0
-       | 05D8  B0B9  0000 000C-02             CMP.L       02.0000000C,D0
-       | 05DE  6D00 FEAA                      BLT.W       048A
-; 238:   }
-; 239: 
-; 240:   //  Enlarge the bounding box for more safety.
-; 241:   // drawn_min_x -= BB_3D_DRAW_OUTLINE;
-; 242:   // drawn_min_y -= BB_3D_DRAW_OUTLINE;
-; 243:   // // drawn_max_x += BB_3D_DRAW_OUTLINE;
-; 244:   // drawn_max_y += BB_3D_DRAW_OUTLINE;
-; 245: 
-; 246:   return 0;
-       | 05E2  7000                           MOVEQ       #00,D0
-       | 05E4  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
-       | 05E8  DEFC 0038                      ADDA.W      #0038,A7
-       | 05EC  4E75                           RTS
-       | 05EE  4E71                           NOP
+       | 0452  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
+       | 0458  7001                           MOVEQ       #01,D0
+       | 045A  4EAE FEAA                      JSR         FEAA(A6)
+       | 045E  43F9  0000 0000-XX             LEA         _theRP_1bpl,A1
+       | 0464  202F 0030                      MOVE.L      0030(A7),D0
+       | 0468  2207                           MOVE.L      D7,D1
+       | 046A  4EAE FF10                      JSR         FF10(A6)
+       | 046E  43F9  0000 0000-XX             LEA         _theRP_1bpl,A1
+       | 0474  2005                           MOVE.L      D5,D0
+       | 0476  222F 002C                      MOVE.L      002C(A7),D1
+       | 047A  4EAE FF0A                      JSR         FF0A(A6)
+       | 047E  2203                           MOVE.L      D3,D1
+       | 0480  43F9  0000 0000-XX             LEA         _theRP_1bpl,A1
+       | 0486  2004                           MOVE.L      D4,D0
+       | 0488  4EAE FF0A                      JSR         FF0A(A6)
+       | 048C  43F9  0000 0000-XX             LEA         _theRP_1bpl,A1
+       | 0492  2006                           MOVE.L      D6,D0
+       | 0494  222F 0038                      MOVE.L      0038(A7),D1
+       | 0498  4EAE FF0A                      JSR         FF0A(A6)
+       | 049C  43F9  0000 0000-XX             LEA         _theRP_1bpl,A1
+       | 04A2  202F 0030                      MOVE.L      0030(A7),D0
+       | 04A6  2207                           MOVE.L      D7,D1
+       | 04A8  4EAE FF0A                      JSR         FF0A(A6)
+       | 04AC  52AF 005C                      ADDQ.L      #1,005C(A7)
+       | 04B0  7010                           MOVEQ       #10,D0
+       | 04B2  D1AF 0058                      ADD.L       D0,0058(A7)
+       | 04B6  202F 005C                      MOVE.L      005C(A7),D0
+       | 04BA  B0B9  0000 000C-02             CMP.L       02.0000000C,D0
+       | 04C0  6D00 FE56                      BLT.W       0318
+       | 04C4  7000                           MOVEQ       #00,D0
+       | 04C6  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
+       | 04CA  DEFC 0038                      ADDA.W      #0038,A7
+       | 04CE  4E75                           RTS
 
 SECTION 01 "data" 00000004 BYTES
 OFFSETS 0000 THROUGH 0003 CONTAIN ZERO

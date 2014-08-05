@@ -10,42 +10,6 @@ EXTERNAL DEFINITIONS
 _DeleteCopperList 0000-00    _CreateHigheSTColorCopperList 00B0-00
 
 SECTION 00 "text" 000001EC BYTES
-;   1: /*  
-;   2:     Unusual Suspects 
-;   3:     Copper list routines 
-;   4: */
-;   5: 
-;   6: #include "includes.prl"
-;   7: 
-;   8: #include <stdio.h>
-;   9: #include <stdlib.h>
-;  10: 
-;  11: #include <exec/types.h>
-;  12: #include <exec/memory.h>
-;  13: #include <exec/libraries.h>
-;  14: #include <dos/dos.h>
-;  15: #include <devices/keyboard.h>
-;  16: #include <intuition/intuition.h>
-;  17: #include <graphics/gfxmacros.h>
-;  18: #include <graphics/copper.h>
-;  19: #include <graphics/videocontrol.h>
-;  20: #include <clib/timer_protos.h>
-;  21: #include <graphics/sprite.h>
-;  22: #include <hardware/custom.h>
-;  23: #include <hardware/dmabits.h>
-;  24: #include <clib/graphics_protos.h>
-;  25: 
-;  26: #include "common.h"
-;  27: #include "protos.h"
-;  28: 
-;  29: #include "Assets/faces_all_palettes.h"
-;  30: 
-;  31: extern struct GfxBase *GfxBase;
-;  32: extern struct IntuitionBase *IntuitionBase;
-;  33: extern struct ViewPort *mainVP;
-;  34: extern struct Custom custom;
-;  35: 
-;  36: void DeleteCopperList(void)
        | 0000  200F                           MOVE.L      A7,D0
        | 0002  90BC 0000 001C                 SUB.L       #0000001C,D0
        | 0008  B0B9  0000 0000-XX             CMP.L       ___base,D0
@@ -53,28 +17,17 @@ SECTION 00 "text" 000001EC BYTES
        | 0010  4EF9  0000 0000-XX             JMP         __XCOVF
        | 0016  9EFC 0010                      SUBA.W      #0010,A7
        | 001A  48E7 0006                      MOVEM.L     A5-A6,-(A7)
-;  37: {
-;  38:   struct UCopList *cl;
-;  39:   struct TagItem  uCopTags[] =
-;  40:           {
-;  41:                 { VTAG_USERCLIP_SET, NULL },
-;  42:                 { VTAG_END_CM, NULL }
-;  43:           };
        | 001E  41F9  0000 0000-01.2           LEA         01.00000000,A0
        | 0024  43EF 0008                      LEA         0008(A7),A1
        | 0028  22D8                           MOVE.L      (A0)+,(A1)+
        | 002A  22D8                           MOVE.L      (A0)+,(A1)+
        | 002C  22D8                           MOVE.L      (A0)+,(A1)+
        | 002E  22D8                           MOVE.L      (A0)+,(A1)+
-;  44: 
-;  45:   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
        | 0030  700C                           MOVEQ       #0C,D0
        | 0032  223C 0001 0001                 MOVE.L      #00010001,D1
        | 0038  2C78 0004                      MOVEA.L     0004,A6
        | 003C  4EAE FF3A                      JSR         FF3A(A6)
        | 0040  2A40                           MOVEA.L     D0,A5
-;  46: 
-;  47:   CWAIT(cl, 0, 0);
        | 0042  2240                           MOVEA.L     D0,A1
        | 0044  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 004A  7000                           MOVEQ       #00,D0
@@ -82,7 +35,6 @@ SECTION 00 "text" 000001EC BYTES
        | 004E  4EAE FE86                      JSR         FE86(A6)
        | 0052  224D                           MOVEA.L     A5,A1
        | 0054  4EAE FE92                      JSR         FE92(A6)
-;  48:   CEND(cl);
        | 0058  224D                           MOVEA.L     A5,A1
        | 005A  203C 0000 2710                 MOVE.L      #00002710,D0
        | 0060  7200                           MOVEQ       #00,D1
@@ -90,32 +42,21 @@ SECTION 00 "text" 000001EC BYTES
        | 0064  4EAE FE86                      JSR         FE86(A6)
        | 0068  224D                           MOVEA.L     A5,A1
        | 006A  4EAE FE92                      JSR         FE92(A6)
-;  49: 
-;  50:   Forbid();       /*  Forbid task switching while changing the Copper list.  */
        | 006E  2C78 0004                      MOVEA.L     0004,A6
        | 0072  4EAE FF7C                      JSR         FF7C(A6)
-;  51:   mainVP->UCopIns = cl;
        | 0076  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
        | 007C  214D 0014                      MOVE.L      A5,0014(A0)
-;  52:   Permit();       /*  Permit task switching again.  */
        | 0080  4EAE FF76                      JSR         FF76(A6)
-;  53: 
-;  54:   (VOID) VideoControl( mainVP->ColorMap, uCopTags );
        | 0084  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
        | 008A  2068 0004                      MOVEA.L     0004(A0),A0
        | 008E  43EF 0008                      LEA         0008(A7),A1
        | 0092  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 0098  4EAE FD3C                      JSR         FD3C(A6)
-;  55:   // MrgCop();
-;  56:   RethinkDisplay();
        | 009C  2C79  0000 0000-XX             MOVEA.L     _IntuitionBase,A6
        | 00A2  4EAE FE7A                      JSR         FE7A(A6)
-;  57: }
        | 00A6  4CDF 6000                      MOVEM.L     (A7)+,A5-A6
        | 00AA  DEFC 0010                      ADDA.W      #0010,A7
        | 00AE  4E75                           RTS
-;  58: 
-;  59: void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
        | 00B0  200F                           MOVE.L      A7,D0
        | 00B2  90BC 0000 002C                 SUB.L       #0000002C,D0
        | 00B8  B0B9  0000 0000-XX             CMP.L       ___base,D0
@@ -124,30 +65,16 @@ SECTION 00 "text" 000001EC BYTES
        | 00C6  9EFC 0020                      SUBA.W      #0020,A7
        | 00CA  48E7 2F36                      MOVEM.L     D2/D4-D7/A2-A3/A5-A6,-(A7)
        | 00CE  2E2F 004C                      MOVE.L      004C(A7),D7
-;  60: {
-;  61:   struct UCopList *cl;
-;  62:   struct TagItem  uCopTags[] =
-;  63:           {
-;  64:                 { VTAG_USERCLIP_SET, NULL },
-;  65:                 { VTAG_END_CM, NULL }
-;  66:           };
        | 00D2  41F9  0000 0010-01.2           LEA         01.00000010,A0
        | 00D8  43EF 0034                      LEA         0034(A7),A1
        | 00DC  22D8                           MOVE.L      (A0)+,(A1)+
        | 00DE  22D8                           MOVE.L      (A0)+,(A1)+
        | 00E0  22D8                           MOVE.L      (A0)+,(A1)+
        | 00E2  22D8                           MOVE.L      (A0)+,(A1)+
-;  67:   int v, c, color_index = 0;
-;  68: 
-;  69:   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
        | 00E4  700C                           MOVEQ       #0C,D0
        | 00E6  223C 0001 0001                 MOVE.L      #00010001,D1
        | 00EC  2C78 0004                      MOVEA.L     0004,A6
        | 00F0  4EAE FF3A                      JSR         FF3A(A6)
-;  70: 
-;  71:   scanline_offset *= 16;
-;  72: 
-;  73:   for (v = 0; v < 256 - y_offset; v++)
        | 00F4  7C00                           MOVEQ       #00,D6
        | 00F6  7240                           MOVEQ       #40,D1
        | 00F8  E589                           LSL.L       #2,D1
@@ -165,8 +92,6 @@ SECTION 00 "text" 000001EC BYTES
        | 011A  2F40 0024                      MOVE.L      D0,0024(A7)
        | 011E  2F48 0030                      MOVE.L      A0,0030(A7)
        | 0122  6062                           BRA.B       0186
-;  74:   {
-;  75:     CWAIT(cl, v + y_offset + 1, 0);
        | 0124  2006                           MOVE.L      D6,D0
        | 0126  D087                           ADD.L       D7,D0
        | 0128  5280                           ADDQ.L      #1,D0
@@ -176,12 +101,9 @@ SECTION 00 "text" 000001EC BYTES
        | 0134  4EAE FE86                      JSR         FE86(A6)
        | 0138  224A                           MOVEA.L     A2,A1
        | 013A  4EAE FE92                      JSR         FE92(A6)
-;  76:     for (c = 0; c < 16; c++)
        | 013E  7800                           MOVEQ       #00,D4
        | 0140  2A4B                           MOVEA.L     A3,A5
        | 0142  246F 0030                      MOVEA.L     0030(A7),A2
-;  77:     {
-;  78:       CMOVE(cl, custom.color[faces_all_index[color_index + scanline_offset]], faces_all_scanline_PaletteRGB4[color_index + scanline_offset]);
        | 0146  221D                           MOVE.L      (A5)+,D1
        | 0148  D281                           ADD.L       D1,D1
        | 014A  41F9  0000 0180-XX             LEA         _custom+00000180,A0
@@ -206,11 +128,6 @@ SECTION 00 "text" 000001EC BYTES
        | 0186  246F 0024                      MOVEA.L     0024(A7),A2
        | 018A  BC85                           CMP.L       D5,D6
        | 018C  6D96                           BLT.B       0124
-;  79:       color_index++;
-;  80:     }
-;  81:   }
-;  82: 
-;  83:   CEND(cl);
        | 018E  224A                           MOVEA.L     A2,A1
        | 0190  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 0196  203C 0000 2710                 MOVE.L      #00002710,D0
@@ -219,26 +136,18 @@ SECTION 00 "text" 000001EC BYTES
        | 01A0  4EAE FE86                      JSR         FE86(A6)
        | 01A4  224A                           MOVEA.L     A2,A1
        | 01A6  4EAE FE92                      JSR         FE92(A6)
-;  84: 
-;  85:   Forbid();       /*  Forbid task switching while changing the Copper list.  */
        | 01AA  2C78 0004                      MOVEA.L     0004,A6
        | 01AE  4EAE FF7C                      JSR         FF7C(A6)
-;  86:   mainVP->UCopIns = cl;
        | 01B2  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
        | 01B8  214A 0014                      MOVE.L      A2,0014(A0)
-;  87:   Permit();       /*  Permit task switching again.  */
        | 01BC  4EAE FF76                      JSR         FF76(A6)
-;  88: 
-;  89:   (VOID) VideoControl( mainVP->ColorMap, uCopTags );
        | 01C0  2079  0000 0000-XX             MOVEA.L     _mainVP,A0
        | 01C6  2068 0004                      MOVEA.L     0004(A0),A0
        | 01CA  43EF 0034                      LEA         0034(A7),A1
        | 01CE  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 01D4  4EAE FD3C                      JSR         FD3C(A6)
-;  90:   RethinkDisplay();
        | 01D8  2C79  0000 0000-XX             MOVEA.L     _IntuitionBase,A6
        | 01DE  4EAE FE7A                      JSR         FE7A(A6)
-;  91: }**END OF SOURCE FILE
        | 01E2  4CDF 6CF4                      MOVEM.L     (A7)+,D2/D4-D7/A2-A3/A5-A6
        | 01E6  DEFC 0020                      ADDA.W      #0020,A7
        | 01EA  4E75                           RTS

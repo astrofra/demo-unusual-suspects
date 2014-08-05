@@ -10,59 +10,27 @@ EXTERNAL DEFINITIONS
 _font_glyph_find_index 0000-00    _font_writer_blit 003A-00
 
 SECTION 00 "text" 00000168 BYTES
-;   1: /*  
-;   2:     Unusual Suspects 
-;   3:     Fonts routines 
-;   4: */
-;   5: 
-;   6: #include "includes.prl"
-;   7: #include "Assets/fonts.h"
-;   8: 
-;   9: extern struct GfxBase *GfxBase;
-;  10: extern void sys_check_abort(void);
-;  11: extern int ModuleGetSyncValue(void);
-;  12: 
-;  13: int font_glyph_find_index(char glyph, const char *glyph_array)
        | 0000  BFF9  0000 0000-XX             CMPA.L      ___base,A7
        | 0006  6406                           BCC.B       000E
        | 0008  4EF9  0000 0000-XX             JMP         __XCOVF
        | 000E  48E7 0510                      MOVEM.L     D5/D7/A3,-(A7)
        | 0012  1E2F 0013                      MOVE.B      0013(A7),D7
        | 0016  206F 0014                      MOVEA.L     0014(A7),A0
-;  14: {
-;  15: 	int i = 0,
        | 001A  7000                           MOVEQ       #00,D0
-;  16: 		r = -1;
        | 001C  7AFF                           MOVEQ       #FF,D5
-;  17: 
-;  18: 	while(glyph_array[i])
        | 001E  600A                           BRA.B       002A
-;  19: 	{
-;  20: 		if (glyph == glyph_array[i])
        | 0020  BE13                           CMP.B       (A3),D7
        | 0022  6604                           BNE.B       0028
-;  21: 		{
-;  22: 			r = i;
        | 0024  2A00                           MOVE.L      D0,D5
-;  23: 			break;
        | 0026  600A                           BRA.B       0032
-;  24: 		}
-;  25: 
-;  26: 		i++;
        | 0028  5280                           ADDQ.L      #1,D0
-;  27: 	}
        | 002A  2648                           MOVEA.L     A0,A3
        | 002C  D7C0                           ADDA.L      D0,A3
        | 002E  4A13                           TST.B       (A3)
        | 0030  66EE                           BNE.B       0020
-;  28: 
-;  29: 	return(r);
        | 0032  2005                           MOVE.L      D5,D0
        | 0034  4CDF 08A0                      MOVEM.L     (A7)+,D5/D7/A3
        | 0038  4E75                           RTS
-;  30: }
-;  31: 
-;  32: void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *font_BitMap_dark, struct BitMap *dest_BitMap, const char *glyph_array, const int *x_pos_array, int x, int y, UBYTE *text_string)
        | 003A  200F                           MOVE.L      A7,D0
        | 003C  90BC 0000 0038                 SUB.L       #00000038,D0
        | 0042  B0B9  0000 0000-XX             CMP.L       ___base,D0
@@ -72,35 +40,16 @@ SECTION 00 "text" 00000168 BYTES
        | 0054  48E7 3F36                      MOVEM.L     D2-D7/A2-A3/A5-A6,-(A7)
        | 0058  2E2F 0050                      MOVE.L      0050(A7),D7
        | 005C  2A6F 0038                      MOVEA.L     0038(A7),A5
-;  33: {
-;  34: 	// UBYTE *current_char;
-;  35: 	int i = 0, j, glyph_index, cur_x,
        | 0060  7C00                           MOVEQ       #00,D6
-;  36: 		line_feed = 0,
        | 0062  42AF 0030                      CLR.L       0030(A7)
-;  37: 		glyph_w, glyph_h;
-;  38: 
-;  39: 	struct BitMap *default_font;
-;  40: 
-;  41: 	cur_x = x;
        | 0066  2A2F 004C                      MOVE.L      004C(A7),D5
-;  42: 	glyph_h = font_BitMap->Rows;
        | 006A  7000                           MOVEQ       #00,D0
        | 006C  302D 0002                      MOVE.W      0002(A5),D0
-;  43: 	default_font = font_BitMap;
        | 0070  264D                           MOVEA.L     A5,A3
        | 0072  2F40 002C                      MOVE.L      D0,002C(A7)
-;  44: 
-;  45: 	while(text_string[i] != '\0')
        | 0076  6000 00D8                      BRA.W       0150
-;  46: 	{
-;  47: 		sys_check_abort();
        | 007A  4EB9  0000 0000-XX             JSR         _sys_check_abort
-;  48: 		ModuleGetSyncValue();
        | 0080  4EB9  0000 0000-XX             JSR         _ModuleGetSyncValue
-;  49: 
-;  50: 		/*	Space */
-;  51: 		switch(text_string[i])
        | 0086  7000                           MOVEQ       #00,D0
        | 0088  1012                           MOVE.B      (A2),D0
        | 008A  5380                           SUBQ.L      #1,D0
@@ -112,49 +61,23 @@ SECTION 00 "text" 00000168 BYTES
        | 0096  7216                           MOVEQ       #16,D1
        | 0098  9081                           SUB.L       D1,D0
        | 009A  665E                           BNE.B       00FA
-;  52: 		{
-;  53: 			/*	Space	*/
-;  54: 			case ' ':
-;  55: 				cur_x += 4;
        | 009C  5885                           ADDQ.L      #4,D5
-;  56: 				WaitTOF();
        | 009E  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 00A4  4EAE FEF2                      JSR         FEF2(A6)
-;  57: 				WaitTOF();			
        | 00A8  4EAE FEF2                      JSR         FEF2(A6)
-;  58: 				break;
        | 00AC  6000 00A0                      BRA.W       014E
-;  59: 
-;  60: 			/*	Switch to the default font	*/
-;  61: 			case '\1':
-;  62: 				default_font = font_BitMap;
        | 00B0  264D                           MOVEA.L     A5,A3
-;  63: 				break;
        | 00B2  6000 009A                      BRA.W       014E
-;  64: 
-;  65: 			/*	Switch to a darker font	*/
-;  66: 			case '\2':
-;  67: 				default_font = font_BitMap_dark;
        | 00B6  266F 003C                      MOVEA.L     003C(A7),A3
-;  68: 				break;
        | 00BA  6000 0092                      BRA.W       014E
-;  69: 
-;  70: 			/*	Line feed + carriage return	*/
-;  71: 			case '\n':
-;  72: 				for(j = 0; j < 8; j++)
        | 00BE  7800                           MOVEQ       #00,D4
-;  73: 					WaitTOF();
        | 00C0  2C79  0000 0000-XX             MOVEA.L     _GfxBase,A6
        | 00C6  4EAE FEF2                      JSR         FEF2(A6)
        | 00CA  5284                           ADDQ.L      #1,D4
        | 00CC  7008                           MOVEQ       #08,D0
        | 00CE  B880                           CMP.L       D0,D4
        | 00D0  6DEE                           BLT.B       00C0
-;  74: 	
-;  75: 				line_feed++;		
        | 00D2  52AF 0030                      ADDQ.L      #1,0030(A7)
-;  76: 				if (line_feed == 1)
-;  77: 					y += (glyph_h + 5);
        | 00D6  DEAF 002C                      ADD.L       002C(A7),D7
        | 00DA  202F 0030                      MOVE.L      0030(A7),D0
        | 00DE  7201                           MOVEQ       #01,D1
@@ -162,26 +85,13 @@ SECTION 00 "text" 00000168 BYTES
        | 00E2  6604                           BNE.B       00E8
        | 00E4  5A87                           ADDQ.L      #5,D7
        | 00E6  0C40 5287                      CMPI.W      #5287,D0
-;  78: 				else
-;  79: 					y += (glyph_h + 1);
        | 00EA  2A2F 004C                      MOVE.L      004C(A7),D5
-;  80: 
-;  81: 				cur_x = x;
        | 00EE  7204                           MOVEQ       #04,D1
-;  82: 
-;  83: 				if (line_feed > 4)
        | 00F0  B081                           CMP.L       D1,D0
        | 00F2  6F5A                           BLE.B       014E
-;  84: 					cur_x -= 50;
        | 00F4  7032                           MOVEQ       #32,D0
        | 00F6  9A80                           SUB.L       D0,D5
-;  85: 
-;  86: 				break;
        | 00F8  6054                           BRA.B       014E
-;  87: 
-;  88: 			/*	Write glyph */
-;  89: 			default:
-;  90: 				glyph_index = font_glyph_find_index((char)text_string[i], glyph_array);
        | 00FA  1012                           MOVE.B      (A2),D0
        | 00FC  4880                           EXT.W       D0
        | 00FE  48C0                           EXT.L       D0
@@ -189,21 +99,14 @@ SECTION 00 "text" 00000168 BYTES
        | 0104  2F00                           MOVE.L      D0,-(A7)
        | 0106  6100 FEF8                      BSR.W       0000
        | 010A  504F                           ADDQ.W      #8,A7
-;  91: 				if (glyph_index >= 0)
        | 010C  4A80                           TST.L       D0
        | 010E  6B3E                           BMI.B       014E
-;  92: 				{
-;  93: 					glyph_w = x_pos_array[glyph_index + 1] - x_pos_array[glyph_index];
        | 0110  E580                           ASL.L       #2,D0
        | 0112  206F 0048                      MOVEA.L     0048(A7),A0
        | 0116  D1C0                           ADDA.L      D0,A0
        | 0118  2010                           MOVE.L      (A0),D0
        | 011A  2828 0004                      MOVE.L      0004(A0),D4
        | 011E  9880                           SUB.L       D0,D4
-;  94: 					BltBitMap(default_font, x_pos_array[glyph_index], 0,
-;  95: 					            dest_BitMap, cur_x, y,
-;  96: 					            glyph_w, glyph_h,
-;  97: 					            0xC0, 0xFF, NULL);
        | 0120  48E7 0F00                      MOVEM.L     D4-D7,-(A7)
        | 0124  2405                           MOVE.L      D5,D2
        | 0126  2607                           MOVE.L      D7,D3
@@ -219,21 +122,12 @@ SECTION 00 "text" 00000168 BYTES
        | 0142  95CA                           SUBA.L      A2,A2
        | 0144  4EAE FFE2                      JSR         FFE2(A6)
        | 0148  4CDF 00F0                      MOVEM.L     (A7)+,D4-D7
-;  98: 
-;  99: 					cur_x += (glyph_w);
        | 014C  DA84                           ADD.L       D4,D5
-; 100: 				}			
-; 101: 				break;
-; 102: 		};
-; 103: 
-; 104: 		i++;		
        | 014E  5286                           ADDQ.L      #1,D6
-; 105: 	}
        | 0150  246F 0054                      MOVEA.L     0054(A7),A2
        | 0154  D5C6                           ADDA.L      D6,A2
        | 0156  4A12                           TST.B       (A2)
        | 0158  6600 FF20                      BNE.W       007A
-; 106: }**END OF SOURCE FILE
        | 015C  4CDF 6CFC                      MOVEM.L     (A7)+,D2-D7/A2-A3/A5-A6
        | 0160  DEFC 000C                      ADDA.W      #000C,A7
        | 0164  4E75                           RTS
