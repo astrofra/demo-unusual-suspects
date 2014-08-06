@@ -17,7 +17,7 @@ extern struct ExecBase *SysBase;
 extern struct DosLibrary *DOSBase;
 struct GfxBase *GfxBase;
 struct IntuitionBase *IntuitionBase;
-struct Library *DiskfontBase;
+// struct Library *DiskfontBase;
 struct Library *PTReplayBase;
 
 PLANEPTR theRaster;
@@ -56,9 +56,9 @@ int current_screen_depth = 0,
 
 struct Screen *mainScreen;
 struct ViewPort *mainVP;
-struct TextFont *writerFont;
-struct TextAttr writerAttr =
-{ (STRPTR)"futuraB.font", 32, 0, 0 };
+// struct TextFont *writerFont;
+// struct TextAttr writerAttr =
+// { (STRPTR)"futuraB.font", 32, 0, 0 };
 
 /***** Global functions *****/
 
@@ -66,9 +66,9 @@ struct TextAttr writerAttr =
 BOOL init_open_libs(void)
 {
   /* Check for at least release 3.0 */
-  if (SysBase->LibNode.lib_Version < 33)
+  if (SysBase->LibNode.lib_Version < 36)
   {
-    init_conerr((UBYTE *)"This program requires Amiga Kickstart Release 1.2 +\n");
+    init_conerr((UBYTE *)"This program requires Amiga Kickstart Release 2.0+\n");
     return (FALSE);
   }
 
@@ -85,11 +85,11 @@ BOOL init_open_libs(void)
     init_conerr((UBYTE *)"Unable to open graphics.library version 33\n");
     return (FALSE);
   }
-  if (!(DiskfontBase = OpenLibrary((UBYTE *)"diskfont.library", _LIB_VERSION)))
-  {
-    init_conerr((UBYTE *)"Unable to open diskfont.library version 33\n");
-    return (FALSE);
-  }
+  // if (!(DiskfontBase = OpenLibrary((UBYTE *)"diskfont.library", _LIB_VERSION)))
+  // {
+  //   init_conerr((UBYTE *)"Unable to open diskfont.library version 33\n");
+  //   return (FALSE);
+  // }
 
   if (!AssignPath("Libs","Libs"))
   {
@@ -319,7 +319,7 @@ void init_close_libs(void)
 {
   /* Close opened libraries */
   if (PTReplayBase) CloseLibrary(PTReplayBase);
-  if (DiskfontBase) CloseLibrary(DiskfontBase);
+  // if (DiskfontBase) CloseLibrary(DiskfontBase);
   if (GfxBase) CloseLibrary((struct Library *)GfxBase);
   if (IntuitionBase) CloseLibrary((struct Library *)IntuitionBase);
 }

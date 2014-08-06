@@ -216,16 +216,16 @@ int  DispatchFX(void)
 int  ModuleGetSyncValue(void)
 {
   int audio_clock, sync_value;
-  audio_clock = TimeGetGClock();
-  audio_clock *= AUDIO_SYNC_FREQ;
-  audio_clock >>= 8;
+  // audio_clock = TimeGetGClock();
+  // audio_clock *= AUDIO_SYNC_FREQ;
+  // audio_clock >>= 8;
 
-  while (audio_clock > AUDIO_SYNC_REC_COUNT)
-    audio_clock -= AUDIO_SYNC_REC_COUNT;
+  // while (audio_clock > AUDIO_SYNC_REC_COUNT)
+  //   audio_clock -= AUDIO_SYNC_REC_COUNT;
 
-  sync_value = audio_sync[audio_clock];
+  // sync_value = audio_sync[audio_clock];
 
-  SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
+  // SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
 
   return 0;
 }
@@ -733,11 +733,9 @@ void disp_clear_bb_only(struct RastPort *rp)
 void full_clear(struct RastPort *rp)
 {
   if (rp == NULL)
-    rp = &theRP;
-
-  SetRast(rp, 0);
-  // SetAPen(rp, 0);
-  // RectFill(rp, 0, 0, 320 - 1, SCR_HEIGHT - 1);
+    SetRast(&theRP, 0);
+  else
+    SetRast(rp, 0);  
 }
 
 void reset_disp_swap(void)
@@ -816,56 +814,6 @@ void dots_doit(UWORD *pal)
 
 void writer_doit(UBYTE *wrText)
 {
-  UBYTE *currChar;
-  UWORD y_base = 32;
-  UWORD x = 0, y = y_base;
-  UWORD y_line_h = 32;
-
-  currChar = wrText;
-  SetDrMd(&theRP_2bpl, JAM1);
-  while(*currChar)
-  {
-    while(*currChar != '#')
-    {
-      SetAPen(&theRP_2bpl, 2);
-      Move(&theRP_2bpl, x - 1, y);
-      Text(&theRP_2bpl, currChar, 1);
-      Move(&theRP_2bpl, x + 1, y);
-      Text(&theRP_2bpl, currChar, 1);
-      x += TextLength(&theRP_2bpl, currChar, 1);
-      currChar ++;
-    }
-    currChar ++;
-    y += y_line_h;
-    x = 0;
-  }
-
-  x = 0;
-  y = y_base;
-
-  currChar = wrText;
-  SetDrMd(&theRP_2bpl, JAM1);
-  while(*currChar)
-  {
-    while(*currChar != '#')
-    {
-      // SetAPen(&theRP_2bpl, 2);
-      // Move(&theRP_2bpl, x - 4, y);
-      // Text(&theRP_2bpl, currChar, 1);
-      SetAPen(&theRP_2bpl, 1);
-      Move(&theRP_2bpl, x, y);
-      Text(&theRP_2bpl, currChar, 1);
-      x += TextLength(&theRP_2bpl, currChar, 1);
-      currChar ++;
-    }
-    currChar ++;
-    y += y_line_h;
-    x = 0;
-  }
-
-  disp_fade_in(pal1, 16);
-  fVBLDelay(400);
-  disp_fade_out(pal1, 16);
 }
 
 /**************** SCROLLTEXT *********************/
@@ -951,6 +899,9 @@ void scroll_doit(void)
   // FreeMem(pic, 40 * 256 * 4);
 }
 
+/*
+  SequenceDemoTitle
+*/
 void SequenceDemoTitle(void)
 {
   int i, j;
@@ -975,13 +926,21 @@ void SequenceDemoTitle(void)
   FREE_BITMAP(bitmap_tmp);
 }
 
+/*
+  Sequence3DRotation
+*/
 void Sequence3DRotation(int duration_sec)
 {
-  int abs_frame_idx = 0,
+  short abs_frame_idx = 0, i = 1, j = 1,
       m_scale_x;
+
+  short swap_flag = 0; 
 
   ULONG seq_start_clock, elapsed_clock = 0;
   duration_sec <<= 8;
+
+  WaitTOF();
+  full_clear(&theRP);
 
   seq_start_clock = TimeGetGClock();
 
@@ -1004,6 +963,30 @@ void Sequence3DRotation(int duration_sec)
     WaitTOF();           
     disp_swap();
     disp_clear(&theRP_2bpl);
+
+    if (i < 50)
+    {
+      SetAPen(&theRP_3bpl, 4);
+      RectFill(&theRP_3bpl , 0, (128 + 25) - i + frameOffset, 319, (128 + 25) + i + frameOffset);
+
+      if (swap_flag)
+        i += j++;
+
+      swap_flag = !swap_flag;
+    }
+    else
+    {
+      if (elapsed_clock > duration_sec - (1 << 7))
+      {
+        SetAPen(&theRP_3bpl, 0);
+        RectFill(&theRP_3bpl , 0, (128 + 25) - 50 + frameOffset, 319, (128 + 25) + 50 + frameOffset);
+
+        SetAPen(&theRP_3bpl, 4);
+        RectFill(&theRP_3bpl , 0, (128 + 25) - (50 - (m_scale_x << 2)) + frameOffset, 319, (128 + 25) + (50 - (m_scale_x << 2)) + frameOffset);
+        // printf("m_scale_x = %i\n", m_scale_x);
+      }
+    }
+
     // disp_clear_bb_only(&theRP_2bpl);
     // init_clear_bb();
     Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
