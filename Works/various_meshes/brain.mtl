@@ -1,0 +1,8 @@
+# MTL written from D:\apps\winuae\a600files\svn_demo-unusual-suspects\Works\various_meshes\brain.obj
+newmtl default
+Kd 0.631883 0.650667 0.555236
+Ns 256
+d 1
+illum 1
+Ka 0 0 0
+Ks 0.2 0.2 0.2
