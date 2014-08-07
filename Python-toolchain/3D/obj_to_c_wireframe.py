@@ -4,7 +4,10 @@ import codecs
 import ast
 from vector3 import Vector3
 
-filename_list = ["face_00.obj", "amiga.obj", "cube.obj", "spiroid.obj", "fish.obj"]
+filename_list = [	"fish.obj", "bamboo.obj", "bomb.obj", "brain.obj", "communism.obj", 
+					"embryo.obj", "fly.obj", "golem.obj", "gothic.obj", "knife.obj",
+					"station.obj", "toxic_waste.obj", "cube.obj"
+				]
 filename_out = ""
 scale_factor = 100.0
 
@@ -47,6 +50,12 @@ def parse_obj_face(_string):
 	return _face
 
 def main():
+	filename_out = '../../Assets/3d_objects.h'
+	fh = codecs.open(filename_out, 'w')
+
+	filename_out = '../../Assets/3d_objects.c'
+	fc = codecs.open(filename_out, 'w')
+
 	for filename_in in filename_list:
 		face_list = []
 		vertex_list = []
@@ -81,38 +90,33 @@ def main():
 		obj_name = string.replace(obj_name, '-', '_')
 		obj_name = obj_name.lower()
 
-		##  Creates the C file that lists the vertices
-		filename_out = '../../Assets/object_' + string.replace(filename_in, '.obj', '.h')
-		f = codecs.open(filename_out, 'w')
-		f.write('extern const int object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
-		f.write('extern const int object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
+		##  Creates the H file that lists the vertices
 
-		f.close()
+		fh.write('extern const int object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
+		fh.write('extern const int object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
 
 		##  Creates the C file that lists the vertices
-		filename_out = '../../Assets/object_' + string.replace(filename_in, '.obj', '.c')
-		f = codecs.open(filename_out, 'w')
-
-		f.write('/* List of vertices */' + '\n')
-		f.write('int const object_' + obj_name + '_verts[] =\n')
-		f.write('{\n')
+		fc.write('/* ' + filename_in + ' */' + '\n')
+		fc.write('/* List of vertices */' + '\n')
+		fc.write('int const object_' + obj_name + '_verts[] =\n')
+		fc.write('{\n')
 
 		##  Iterate on vertices
 		for _vertex in vertex_list:
 			_str_out = str(int(_vertex.x)) + ',\t' + str(int(_vertex.z)) + ',\t' + str(int(_vertex.y * -1.0)) + ','
-			f.write('\t' + _str_out + '\n')
+			fc.write('\t' + _str_out + '\n')
 
 		_str_out = '};'
-		f.write(_str_out + '\n')
+		fc.write(_str_out + '\n')
 
 		##  Creates the C file that lists the faces
 
 		##  Iterate on faces
-		f.write('\n')
-		f.write('/* List of faces */' + '\n')
+		fc.write('\n')
+		fc.write('/* List of faces */' + '\n')
 
-		f.write('int const object_' + obj_name + '_faces[] =\n')
-		f.write('{\n')
+		fc.write('int const object_' + obj_name + '_faces[] =\n')
+		fc.write('{\n')
 
 		for _face in face_list:
 			_str_out = '\t'
@@ -123,11 +127,14 @@ def main():
 				corner_idx += 1
 				_str_out += ','
 
-			f.write(_str_out + '\n')
+			fc.write(_str_out + '\n')
 
 		_str_out = '};'
-		f.write(_str_out + '\n')
+		fc.write(_str_out + '\n')
+		fc.write('\n')
 
-		f.close()
+	fh.close()
+	fc.close()
+
 
 main()

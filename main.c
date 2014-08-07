@@ -31,11 +31,7 @@
 #include "protos.h"
 
 #include "Assets/cosine_table.h"
-#include "Assets/object_cube.h"
-#include "Assets/object_amiga.h"
-#include "Assets/object_face_00.h"
-#include "Assets/object_spiroid.h"
-#include "Assets/object_fish.h"
+#include "Assets/3d_objects.h"
 
 #include "Assets/misc_palettes.h"
 #include "Assets/faces_palettes.h"
@@ -443,8 +439,9 @@ int main(void)
   fVBLDelay(350);
   full_clear(NULL);
 
+  /*  Nasuhl Sardik */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 256, 256, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -452,8 +449,9 @@ int main(void)
   SequenceDisplaySuspectProfile(0);
   fVBLDelay(25);
 
+  /*  Eggdrop Leonardh */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_spiroid_verts, object_spiroid_faces, 256, 160, 0);
+  PREPARE_3D_MESH(o, object_fish_verts, object_fish_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -461,8 +459,9 @@ int main(void)
   SequenceDisplaySuspectProfile(1);
   fVBLDelay(25);
 
+  /*  Golem Mosenthal */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 0);
+  PREPARE_3D_MESH(o, object_golem_verts, object_golem_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -470,8 +469,9 @@ int main(void)
   SequenceDisplaySuspectProfile(2);
   fVBLDelay(25);
 
+  /*  Bjorn Thorson */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_face_00_verts, object_face_00_faces, 800, 256, 1);
+  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -479,8 +479,9 @@ int main(void)
   SequenceDisplaySuspectProfile(3);
   fVBLDelay(25);
 
+  /*  Claude Bayou */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_amiga_verts, object_amiga_faces, 800, 512, 0);
+  PREPARE_3D_MESH(o, object_fly_verts, object_fly_faces, 256, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -488,8 +489,9 @@ int main(void)
   SequenceDisplaySuspectProfile(4);
   fVBLDelay(10);
 
+  /*  Sandra Nyan */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_fish_verts, object_fish_faces, 800, 512, 0);
+  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 512, 256, 0);
   Sequence3DRotation(5);  
 
   reset_disp_swap();
@@ -497,16 +499,23 @@ int main(void)
   SequenceDisplaySuspectProfile(5);
   fVBLDelay(10);
 
+  /* Neuron X. Boll */
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(6);
   fVBLDelay(10);
+
+  /* Prime Minister Maya */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_communism_verts, object_communism_faces, 256, 128, 0);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(7);
   fVBLDelay(10);
 
+  /* Paul Levion */
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(8);
