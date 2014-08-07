@@ -428,6 +428,13 @@ int main(void)
   Init32ColorsScreen();
   full_clear(NULL);
 
+  /*  space station */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 256, 0);
+  Sequence3DRotation(10); 
+
+  full_clear(NULL);  
+
   SequenceDemoTitle();
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
@@ -441,7 +448,7 @@ int main(void)
 
   /*  Nasuhl Sardik */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 350, 160, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -471,7 +478,7 @@ int main(void)
 
   /*  Bjorn Thorson */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 256, 160, 0);
+  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 200, 256, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -491,7 +498,7 @@ int main(void)
 
   /*  Sandra Nyan */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 512, 256, 0);
+  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
   Sequence3DRotation(5);  
 
   reset_disp_swap();
@@ -507,7 +514,7 @@ int main(void)
 
   /* Prime Minister Maya */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_communism_verts, object_communism_faces, 256, 128, 0);
+  PREPARE_3D_MESH(o, object_communism_verts, object_communism_faces, 256, 200, 0);
   Sequence3DRotation(5);
 
   reset_disp_swap();
@@ -516,46 +523,90 @@ int main(void)
   fVBLDelay(10);
 
   /* Paul Levion */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_bomb_verts, object_bomb_faces, 256, 160, 0);
+  Sequence3DRotation(5);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(8);
   fVBLDelay(10);
+
+  /* Felex Jagger */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_brain_verts, object_brain_faces, 256, 200, 0);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(9);
   fVBLDelay(10);
 
+  /* Lester K. Chaykin */
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_brain_verts, object_brain_faces, 256, 128, 0);
+  // Sequence3DRotation(5);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(10);
   fVBLDelay(10);
+
+  /* U-Head */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_couch_verts, object_couch_faces, 256, 200, 0);
+  Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(11);
   fVBLDelay(10);  
 
+  /* Sweety Cheung */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 256, 256, 0);
+  Sequence3DRotation(5);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(12);
   fVBLDelay(10);
+
+  /* Eckon RC2 */
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 256, 128, 0);
+  // Sequence3DRotation(5);
 
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(13);
   fVBLDelay(10);
 
+  /* Eva #2F4 */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 256, 0);
+  Sequence3DRotation(5);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(14);
   fVBLDelay(10);              
 
+  /* Feather Magnum */
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 128, 0);
+  // Sequence3DRotation(5);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(15);
-  fVBLDelay(10);              
+  fVBLDelay(10); 
 
+  /* Rebecka D. Vulvor */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_embryo_verts, object_embryo_faces, 350, 128, 0);
+  Sequence3DRotation(5);
+    
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(16);

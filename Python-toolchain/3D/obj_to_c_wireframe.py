@@ -6,7 +6,7 @@ from vector3 import Vector3
 
 filename_list = [	"fish.obj", "bamboo.obj", "bomb.obj", "brain.obj", "communism.obj", 
 					"embryo.obj", "fly.obj", "golem.obj", "gothic.obj", "knife.obj",
-					"station.obj", "toxic_waste.obj", "cube.obj"
+					"station.obj", "toxic_waste.obj", "cube.obj", "couch.obj"
 				]
 filename_out = ""
 scale_factor = 100.0
