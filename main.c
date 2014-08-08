@@ -36,6 +36,7 @@
 #include "Assets/misc_palettes.h"
 #include "Assets/faces_palettes.h"
 #include "Assets/faces_all_palettes.h"
+#include "Assets/vert_copper_palettes.h"
 #include "Assets/fonts.h"
 #include "Assets/audio_sync.h"
 
@@ -430,7 +431,7 @@ int main(void)
 
   /*  space station */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 256, 0);
+  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 275, 0);
   Sequence3DRotation(10, 5, 7); 
 
   full_clear(NULL);  
