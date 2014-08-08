@@ -430,7 +430,7 @@ int main(void)
 
   /*  space station */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 220, 0);
+  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 256, 0);
   Sequence3DRotation(10, 5, 7); 
 
   full_clear(NULL);  
