@@ -489,7 +489,7 @@ int main(void)
 
   /*  Claude Bayou */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_fly_verts, object_fly_faces, 256, 160, 0);
+  PREPARE_3D_MESH(o, object_fly_verts, object_fly_faces, 256, 180, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -508,6 +508,10 @@ int main(void)
   fVBLDelay(10);
 
   /* Neuron X. Boll */
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_dvix_verts, object_dvix_faces, 280, 256, 0);
+  Sequence3DRotation(5, 4, 3);
+
   reset_disp_swap();
   disp_clear(NULL);
   SequenceDisplaySuspectProfile(6);
@@ -546,7 +550,7 @@ int main(void)
   /* Lester K. Chaykin */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 256, 0);
-  Sequence3DRotation(5, 6, 7);
+  Sequence3DRotation(5, 3, 7);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -556,7 +560,7 @@ int main(void)
   /* U-Head */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_couch_verts, object_couch_faces, 256, 200, 0);
-  Sequence3DRotation(5, 4, 3);
+  Sequence3DRotation(5, 4, 8);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -565,7 +569,7 @@ int main(void)
 
   /* Sweety Cheung */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 256, 0);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 180, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -575,7 +579,7 @@ int main(void)
 
   /* Eckon RC2 */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 128, 0);
+  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 200, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -967,6 +971,7 @@ void SequenceDemoTitle(void)
 {
   short i, j;
 
+  WaitTOF();
   LoadRGB4(mainVP, whitePaletteRGB4, 32);
 
   SetAPen(&theRP, 15);
@@ -1002,6 +1007,8 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
 
   WaitTOF();
   full_clear(&theRP);
+
+  CreateVerticalCopperList((128 + 25 - 50), vertical_copper_pal_blue_gradient, 50);
 
   seq_start_clock = TimeGetGClock();
 
@@ -1054,6 +1061,10 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
     sys_check_abort();
     ModuleGetSyncValue();
   }
+
+  WaitTOF();
+  DeleteCopperList();
+  WaitTOF();
 }
 
 void SequenceDisplaySuspectProfile(short suspect_index)

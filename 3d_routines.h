@@ -10,7 +10,7 @@
 
 #define VERT_COUNT(n) (sizeof(n)/sizeof(n[0])/3)
 #define FACE_COUNT(n) (sizeof(n)/sizeof(n[0])/4)
-#define MAX_VERTICE_COUNT 1024
+#define MAX_VERTICE_COUNT 2048
 
 #define PREPARE_3D_MESH(OBJECT_HANDLER, OBJECT_VERT_LIST, OBJECT_FACE_LIST, ZOOM_LEVEL, Z_DISTANCE, FLAG_CULL) \
                   OBJECT_HANDLER.verts = (short const *)&OBJECT_VERT_LIST; \

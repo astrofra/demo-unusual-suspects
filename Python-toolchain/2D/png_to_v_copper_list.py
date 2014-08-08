@@ -4,7 +4,7 @@ import png
 import math
 import colorsys
 
-filename_in = ['gradient.png']
+filename_in = ['gradient.png', 'blue_gradient.png']
 filename_out = '../../Assets/vert_copper_palettes'
 global fc, fh
 
@@ -14,14 +14,20 @@ def main():
 	fc = open(filename_out + '.c', 'w')
 	fc.write('/* Vertical copper list palettes */\n')
 	fc.write('\n')
+	fc.write('#include <exec/types.h>\n')
+	fc.write('#include <intuition/intuition.h>\n')
+	fc.write('\n')
 
 	fh = open(filename_out + '.h', 'w')
 	fh.write('/* Vertical copper list palettes (headers) */\n')
-	fh.write('\n')	
+	fh.write('\n')
+	fc.write('#include <exec/types.h>\n')
+	fc.write('#include <intuition/intuition.h>\n')	
+	fc.write('\n')
 
 	for _filename in filename_in:
 		print('Loading bitmap : ' + _filename)
-		fc.write('const int vertical_copper_pal_' + _filename.replace('.png', '') + '[] =\n')
+		fc.write('UWORD vertical_copper_pal_' + _filename.replace('.png', '') + '[] =\n')
 		fc.write('{\n')
 		fc.write('\t')
 
@@ -35,7 +41,7 @@ def main():
 		h = b[1]
 		print('w = ' + str(w) + ', h = ' + str(h))
 
-		fh.write('extern const int vertical_copper_pal_' + _filename.replace('.png', '') + '[' + str(w) + '];\n')
+		fh.write('extern UWORD vertical_copper_pal_' + _filename.replace('.png', '') + '[' + str(w) + '];\n')
 
 		print('bitdepth = ' + str(b[3]['bitdepth']))
 
@@ -59,7 +65,7 @@ def main():
 		for x in range(0,49):
 			color_idx = first_line[x]
 			color_val = original_palette[color_idx]
-			color_hex = ((color_val[0] / 16) << 8) + ((color_val[0] / 16) << 4) + (color_val[0] / 16)
+			color_hex = ((color_val[0] / 16) << 8) + ((color_val[1] / 16) << 4) + (color_val[2] / 16)
 			color_hex = hex(color_hex)
 			print('color index = ' + str(color_idx) + ', color = ' + str(color_val) + ', color_hex = ' + str(color_hex))
 
@@ -69,8 +75,9 @@ def main():
 
 		fc.write('\n')
 		fc.write('};\n')
-		fc.close()
+		fc.write('\n')
 
+	fc.close()
 	return 1
 
 
