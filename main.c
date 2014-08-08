@@ -56,8 +56,8 @@ void reset_disp_swap(void);
 void disp_swap(void);
 
 void SequenceDemoTitle(void);
-void Sequence3DRotation(int duration_sec);
-void SequenceDisplaySuspectProfile(int suspect);
+void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
+void SequenceDisplaySuspectProfile(short suspect);
 void dots_doit(UWORD *pal);
 void writer_doit(UBYTE *wrText);
 void scroll_doit(void);
@@ -85,7 +85,7 @@ extern struct Library *PTReplayBase;
 extern struct ViewPort *mainVP;
 
 extern struct obj_3d o;
-extern int *verts_tr;
+extern short *verts_tr;
 
 #define DEBUG_CONSOLE_ENABLED 0
 
@@ -125,7 +125,7 @@ struct BitMap *bitmap_background,
 /*  2D bounding box
     limits the surface to be cleared
 */
-int   drawn_min_x = 512, drawn_min_y = 512,
+short   drawn_min_x = 512, drawn_min_y = 512,
       drawn_max_x = -1, drawn_max_y = -1;
 
 /*
@@ -194,9 +194,9 @@ ULONG TimeGetGClock(void)
 /*
   Dispatch system
 */
-int (*dispatch_func_ptr)(int);
+short (*dispatch_func_ptr)(short);
 
-int  DispatchFX(void)
+short  DispatchFX(void)
 {
   if (dispatch_func_ptr != dispatch_func_ptr)
   {
@@ -301,9 +301,9 @@ void sys_check_abort(void)
 }
 
 /*  Custom delay function */
-int fVBLDelay(int _sec)
+short fVBLDelay(short _sec)
 {
-  int _count;
+  short _count;
 
   for (_count = 0; _count < _sec; _count++)
   {
@@ -430,8 +430,8 @@ int main(void)
 
   /*  space station */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 256, 0);
-  Sequence3DRotation(10); 
+  PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 220, 0);
+  Sequence3DRotation(10, 5, 7); 
 
   full_clear(NULL);  
 
@@ -449,7 +449,7 @@ int main(void)
   /*  Nasuhl Sardik */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 350, 160, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -459,7 +459,7 @@ int main(void)
   /*  Eggdrop Leonardh */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_fish_verts, object_fish_faces, 256, 160, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -469,7 +469,7 @@ int main(void)
   /*  Golem Mosenthal */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_golem_verts, object_golem_faces, 256, 160, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -478,8 +478,8 @@ int main(void)
 
   /*  Bjorn Thorson */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 200, 256, 0);
-  Sequence3DRotation(5);
+  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 280, 160, 0);
+  Sequence3DRotation(5, 4, 10);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -489,7 +489,7 @@ int main(void)
   /*  Claude Bayou */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_fly_verts, object_fly_faces, 256, 160, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -499,7 +499,7 @@ int main(void)
   /*  Sandra Nyan */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
-  Sequence3DRotation(5);  
+  Sequence3DRotation(5, 4, 3);  
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -514,8 +514,8 @@ int main(void)
 
   /* Prime Minister Maya */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_communism_verts, object_communism_faces, 256, 200, 0);
-  Sequence3DRotation(5);
+  PREPARE_3D_MESH(o, object_communism_verts, object_communism_faces, 280, 200, 0);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -525,7 +525,7 @@ int main(void)
   /* Paul Levion */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_bomb_verts, object_bomb_faces, 256, 160, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -534,8 +534,8 @@ int main(void)
 
   /* Felex Jagger */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_brain_verts, object_brain_faces, 256, 200, 0);
-  Sequence3DRotation(5);
+  PREPARE_3D_MESH(o, object_brain_verts, object_brain_faces, 280, 200, 0);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -543,9 +543,9 @@ int main(void)
   fVBLDelay(10);
 
   /* Lester K. Chaykin */
-  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  // PREPARE_3D_MESH(o, object_brain_verts, object_brain_faces, 256, 128, 0);
-  // Sequence3DRotation(5);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 256, 0);
+  Sequence3DRotation(5, 6, 7);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -555,7 +555,7 @@ int main(void)
   /* U-Head */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_couch_verts, object_couch_faces, 256, 200, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -564,8 +564,8 @@ int main(void)
 
   /* Sweety Cheung */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 256, 256, 0);
-  Sequence3DRotation(5);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 256, 0);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -573,9 +573,9 @@ int main(void)
   fVBLDelay(10);
 
   /* Eckon RC2 */
-  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  // PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 256, 128, 0);
-  // Sequence3DRotation(5);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 128, 0);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -585,7 +585,7 @@ int main(void)
   /* Eva #2F4 */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 256, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -593,9 +593,9 @@ int main(void)
   fVBLDelay(10);              
 
   /* Feather Magnum */
-  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  // PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 128, 0);
-  // Sequence3DRotation(5);
+  LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+  Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -605,7 +605,7 @@ int main(void)
   /* Rebecka D. Vulvor */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_embryo_verts, object_embryo_faces, 350, 128, 0);
-  Sequence3DRotation(5);
+  Sequence3DRotation(5, 4, 3);
     
   reset_disp_swap();
   disp_clear(NULL);
@@ -964,7 +964,7 @@ void scroll_doit(void)
 */
 void SequenceDemoTitle(void)
 {
-  int i, j;
+  short i, j;
 
   LoadRGB4(mainVP, whitePaletteRGB4, 32);
 
@@ -989,7 +989,7 @@ void SequenceDemoTitle(void)
 /*
   Sequence3DRotation
 */
-void Sequence3DRotation(int duration_sec)
+void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift)
 {
   short abs_frame_idx = 0, i = 1, j = 1,
       m_scale_x;
@@ -1049,15 +1049,15 @@ void Sequence3DRotation(int duration_sec)
 
     // disp_clear_bb_only(&theRP_2bpl);
     // init_clear_bb();
-    Draw3DMesh((abs_frame_idx >> 4)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> 3)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
+    Draw3DMesh((abs_frame_idx >> rot_x_shift)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> rot_y_shift)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
     ModuleGetSyncValue();
   }
 }
 
-void SequenceDisplaySuspectProfile(int suspect_index)
+void SequenceDisplaySuspectProfile(short suspect_index)
 {
-  int i;
+  short i;
   /*  Text dispatch */
   UBYTE *c_desc_str;
   UBYTE *c_face;
@@ -1130,7 +1130,7 @@ void SequenceDisplaySuspectProfile(int suspect_index)
   fVBLDelay(10);
 
   /*  Write the profile description */
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const int *)&future_font_x_pos_array, 124, 63, c_desc_str);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
   FREE_BITMAP(bitmap_tmp);
 

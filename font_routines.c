@@ -10,9 +10,9 @@ extern struct GfxBase *GfxBase;
 extern void sys_check_abort(void);
 extern int ModuleGetSyncValue(void);
 
-int font_glyph_find_index(char glyph, const char *glyph_array)
+short font_glyph_find_index(char glyph, const char *glyph_array)
 {
-	int i = 0,
+	short i = 0,
 		r = -1;
 
 	while(glyph_array[i])
@@ -29,10 +29,10 @@ int font_glyph_find_index(char glyph, const char *glyph_array)
 	return(r);
 }
 
-void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *font_BitMap_dark, struct BitMap *dest_BitMap, const char *glyph_array, const int *x_pos_array, int x, int y, UBYTE *text_string)
+void font_writer_blit(struct BitMap *font_BitMap, struct BitMap *font_BitMap_dark, struct BitMap *dest_BitMap, const char *glyph_array, const short *x_pos_array, short x, short y, UBYTE *text_string)
 {
 	// UBYTE *current_char;
-	int i = 0, j, glyph_index, cur_x,
+	short i = 0, j, glyph_index, cur_x,
 		line_feed = 0,
 		glyph_w, glyph_h;
 

@@ -1,4 +1,4 @@
-const int tcos[] =
+const short tcos[] =
 {
 512,
 511,
@@ -514,7 +514,7 @@ const int tcos[] =
 511,
 };
 
-const int tsin[] =
+const short tsin[] =
 {
 0,
 6,

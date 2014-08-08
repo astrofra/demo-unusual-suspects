@@ -6,7 +6,8 @@ from vector3 import Vector3
 
 filename_list = [	"fish.obj", "bamboo.obj", "bomb.obj", "brain.obj", "communism.obj", 
 					"embryo.obj", "fly.obj", "golem.obj", "gothic.obj", "knife.obj",
-					"station.obj", "toxic_waste.obj", "cube.obj", "couch.obj"
+					"station.obj", "toxic_waste.obj", "cube.obj", "couch.obj", "anotherworld.obj",
+					"pyramid.obj", "dvix.obj"
 				]
 filename_out = ""
 scale_factor = 100.0
@@ -92,13 +93,13 @@ def main():
 
 		##  Creates the H file that lists the vertices
 
-		fh.write('extern const int object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
-		fh.write('extern const int object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
+		fh.write('extern const short object_' + obj_name + '_verts[' + str(len(vertex_list) * 3) + '];\n')
+		fh.write('extern const short object_' + obj_name + '_faces[' + str(len(face_list) * 4) + '];\n')
 
 		##  Creates the C file that lists the vertices
 		fc.write('/* ' + filename_in + ' */' + '\n')
 		fc.write('/* List of vertices */' + '\n')
-		fc.write('int const object_' + obj_name + '_verts[] =\n')
+		fc.write('short const object_' + obj_name + '_verts[] =\n')
 		fc.write('{\n')
 
 		##  Iterate on vertices
@@ -115,7 +116,7 @@ def main():
 		fc.write('\n')
 		fc.write('/* List of faces */' + '\n')
 
-		fc.write('int const object_' + obj_name + '_faces[] =\n')
+		fc.write('short const object_' + obj_name + '_faces[] =\n')
 		fc.write('{\n')
 
 		for _face in face_list:

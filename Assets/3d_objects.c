@@ -1,6 +1,6 @@
 /* fish.obj */
 /* List of vertices */
-int const object_fish_verts[] =
+short const object_fish_verts[] =
 {
 	-68,	-2,	-17,
 	-44,	-8,	-38,
@@ -67,7 +67,7 @@ int const object_fish_verts[] =
 };
 
 /* List of faces */
-int const object_fish_faces[] =
+short const object_fish_faces[] =
 {
 	18,7,15,13,
 	17,16,8,3,
@@ -98,7 +98,7 @@ int const object_fish_faces[] =
 
 /* bamboo.obj */
 /* List of vertices */
-int const object_bamboo_verts[] =
+short const object_bamboo_verts[] =
 {
 	-13,	-4,	50,
 	-20,	0,	50,
@@ -247,7 +247,7 @@ int const object_bamboo_verts[] =
 };
 
 /* List of faces */
-int const object_bamboo_faces[] =
+short const object_bamboo_faces[] =
 {
 	4,0,1,5,
 	6,3,2,7,
@@ -337,7 +337,7 @@ int const object_bamboo_faces[] =
 
 /* bomb.obj */
 /* List of vertices */
-int const object_bomb_verts[] =
+short const object_bomb_verts[] =
 {
 	10,	0,	46,
 	7,	-7,	46,
@@ -397,7 +397,7 @@ int const object_bomb_verts[] =
 };
 
 /* List of faces */
-int const object_bomb_faces[] =
+short const object_bomb_faces[] =
 {
 	1,19,43,0,
 	3,17,18,2,
@@ -429,7 +429,7 @@ int const object_bomb_faces[] =
 
 /* brain.obj */
 /* List of vertices */
-int const object_brain_verts[] =
+short const object_brain_verts[] =
 {
 	34,	-5,	-54,
 	12,	-5,	-54,
@@ -512,7 +512,7 @@ int const object_brain_verts[] =
 };
 
 /* List of faces */
-int const object_brain_faces[] =
+short const object_brain_faces[] =
 {
 	12,15,2,0,
 	15,14,1,2,
@@ -558,7 +558,7 @@ int const object_brain_faces[] =
 
 /* communism.obj */
 /* List of vertices */
-int const object_communism_verts[] =
+short const object_communism_verts[] =
 {
 	-44,	0,	36,
 	-27,	0,	19,
@@ -629,7 +629,7 @@ int const object_communism_verts[] =
 };
 
 /* List of faces */
-int const object_communism_faces[] =
+short const object_communism_faces[] =
 {
 	15,14,1,2,
 	17,16,3,4,
@@ -668,7 +668,7 @@ int const object_communism_faces[] =
 
 /* embryo.obj */
 /* List of vertices */
-int const object_embryo_verts[] =
+short const object_embryo_verts[] =
 {
 	10,	-6,	25,
 	-2,	-11,	25,
@@ -734,7 +734,7 @@ int const object_embryo_verts[] =
 };
 
 /* List of faces */
-int const object_embryo_faces[] =
+short const object_embryo_faces[] =
 {
 	5,9,4,0,
 	0,1,6,5,
@@ -773,7 +773,7 @@ int const object_embryo_faces[] =
 
 /* fly.obj */
 /* List of vertices */
-int const object_fly_verts[] =
+short const object_fly_verts[] =
 {
 	-1,	22,	29,
 	-1,	16,	33,
@@ -844,7 +844,7 @@ int const object_fly_verts[] =
 };
 
 /* List of faces */
-int const object_fly_faces[] =
+short const object_fly_faces[] =
 {
 	0,1,11,10,
 	13,12,2,3,
@@ -878,7 +878,7 @@ int const object_fly_faces[] =
 
 /* golem.obj */
 /* List of vertices */
-int const object_golem_verts[] =
+short const object_golem_verts[] =
 {
 	-9,	-16,	16,
 	10,	-16,	16,
@@ -943,7 +943,7 @@ int const object_golem_verts[] =
 };
 
 /* List of faces */
-int const object_golem_faces[] =
+short const object_golem_faces[] =
 {
 	0,2,3,1,
 	0,1,5,4,
@@ -975,7 +975,7 @@ int const object_golem_faces[] =
 
 /* gothic.obj */
 /* List of vertices */
-int const object_gothic_verts[] =
+short const object_gothic_verts[] =
 {
 	8,	13,	-7,
 	8,	13,	35,
@@ -1056,7 +1056,7 @@ int const object_gothic_verts[] =
 };
 
 /* List of faces */
-int const object_gothic_faces[] =
+short const object_gothic_faces[] =
 {
 	33,39,38,34,
 	32,31,41,40,
@@ -1094,56 +1094,56 @@ int const object_gothic_faces[] =
 
 /* knife.obj */
 /* List of vertices */
-int const object_knife_verts[] =
+short const object_knife_verts[] =
 {
-	9,	-4,	-6,
-	9,	-4,	-8,
-	6,	-4,	-9,
-	6,	-2,	-39,
-	8,	-4,	-46,
-	-5,	-4,	-49,
-	-5,	-4,	-8,
-	-9,	-4,	-8,
-	-9,	-4,	-6,
-	9,	4,	-6,
-	9,	4,	-8,
-	6,	4,	-9,
-	4,	2,	-16,
-	7,	4,	-28,
-	8,	4,	-46,
-	-5,	4,	-49,
-	-5,	4,	-8,
-	-9,	4,	-8,
-	-9,	4,	-6,
-	-6,	-1,	20,
-	0,	0,	37,
-	1,	0,	49,
-	9,	0,	34,
-	-6,	1,	20,
-	0,	0,	37,
-	1,	0,	49,
-	9,	0,	34,
-	-6,	-1,	-6,
-	6,	-1,	-6,
-	-6,	1,	-6,
-	6,	1,	-6,
-	4,	-2,	-16,
-	-5,	-4,	-16,
-	-5,	4,	-16,
-	7,	-4,	-28,
-	-5,	-4,	-28,
-	-5,	4,	-28,
-	6,	2,	-39,
-	-5,	-4,	-39,
-	-5,	4,	-39,
-	1,	0,	49,
-	1,	0,	49,
-	7,	1,	17,
-	7,	-1,	17,
+	4,	0,	-11,
+	3,	0,	-12,
+	0,	0,	-12,
+	-17,	10,	-35,
+	-19,	11,	-41,
+	-33,	9,	-36,
+	-9,	-2,	-5,
+	-12,	-3,	-2,
+	-11,	-3,	-1,
+	4,	7,	-8,
+	3,	7,	-10,
+	0,	7,	-9,
+	-5,	7,	-14,
+	-10,	13,	-24,
+	-19,	18,	-39,
+	-33,	16,	-33,
+	-9,	5,	-2,
+	-12,	4,	0,
+	-11,	3,	1,
+	6,	-7,	18,
+	21,	-11,	28,
+	29,	-14,	37,
+	27,	-8,	21,
+	6,	-5,	19,
+	21,	-9,	28,
+	30,	-13,	37,
+	27,	-7,	21,
+	-8,	-1,	-1,
+	1,	1,	-8,
+	-8,	2,	0,
+	1,	4,	-7,
+	-5,	3,	-16,
+	-14,	0,	-11,
+	-14,	7,	-8,
+	-10,	5,	-27,
+	-21,	3,	-20,
+	-21,	10,	-17,
+	-17,	14,	-33,
+	-27,	6,	-28,
+	-27,	13,	-26,
+	30,	-14,	37,
+	29,	-13,	37,
+	16,	-2,	9,
+	16,	-4,	8,
 };
 
 /* List of faces */
-int const object_knife_faces[] =
+short const object_knife_faces[] =
 {
 	10,9,0,1,
 	11,10,1,2,
@@ -1171,7 +1171,7 @@ int const object_knife_faces[] =
 
 /* station.obj */
 /* List of vertices */
-int const object_station_verts[] =
+short const object_station_verts[] =
 {
 	-8,	-4,	-16,
 	-8,	5,	-30,
@@ -1288,7 +1288,7 @@ int const object_station_verts[] =
 };
 
 /* List of faces */
-int const object_station_faces[] =
+short const object_station_faces[] =
 {
 	11,10,8,9,
 	16,17,15,14,
@@ -1328,7 +1328,7 @@ int const object_station_faces[] =
 
 /* toxic_waste.obj */
 /* List of vertices */
-int const object_toxic_waste_verts[] =
+short const object_toxic_waste_verts[] =
 {
 	37,	0,	51,
 	18,	-32,	51,
@@ -1389,7 +1389,7 @@ int const object_toxic_waste_verts[] =
 };
 
 /* List of faces */
-int const object_toxic_waste_faces[] =
+short const object_toxic_waste_faces[] =
 {
 	1,12,13,0,
 	2,14,12,1,
@@ -1421,7 +1421,7 @@ int const object_toxic_waste_faces[] =
 
 /* cube.obj */
 /* List of vertices */
-int const object_cube_verts[] =
+short const object_cube_verts[] =
 {
 	-49,	-49,	50,
 	49,	-49,	50,
@@ -1434,7 +1434,7 @@ int const object_cube_verts[] =
 };
 
 /* List of faces */
-int const object_cube_faces[] =
+short const object_cube_faces[] =
 {
 	3,1,0,2,
 	7,6,4,5,
@@ -1446,7 +1446,7 @@ int const object_cube_faces[] =
 
 /* couch.obj */
 /* List of vertices */
-int const object_couch_verts[] =
+short const object_couch_verts[] =
 {
 	-39,	-1,	0,
 	0,	-1,	0,
@@ -1509,7 +1509,7 @@ int const object_couch_verts[] =
 };
 
 /* List of faces */
-int const object_couch_faces[] =
+short const object_couch_faces[] =
 {
 	0,1,3,2,
 	1,5,7,3,
@@ -1538,5 +1538,291 @@ int const object_couch_faces[] =
 	23,26,27,29,
 	54,18,25,24,
 	56,55,57,28,
+};
+
+/* anotherworld.obj */
+/* List of vertices */
+short const object_anotherworld_verts[] =
+{
+	-31,	45,	-7,
+	-31,	0,	38,
+	-31,	0,	-52,
+	-31,	-45,	-7,
+	-19,	45,	-7,
+	-19,	0,	38,
+	-19,	0,	-52,
+	-19,	-45,	-7,
+	-31,	36,	-7,
+	-31,	0,	-43,
+	-31,	-36,	-7,
+	-31,	0,	29,
+	-19,	36,	-7,
+	-19,	0,	29,
+	-19,	-36,	-7,
+	-19,	0,	-43,
+	-27,	-3,	1,
+	-27,	3,	1,
+	-28,	-5,	22,
+	-28,	5,	22,
+	-23,	-3,	1,
+	-23,	3,	1,
+	-22,	-5,	22,
+	-22,	5,	22,
+	-27,	-8,	-10,
+	-27,	-8,	-3,
+	-28,	-29,	-12,
+	-28,	-29,	-1,
+	-23,	-8,	-10,
+	-23,	-8,	-3,
+	-22,	-29,	-12,
+	-22,	-29,	-1,
+	-27,	8,	-3,
+	-27,	8,	-10,
+	-28,	30,	-1,
+	-28,	30,	-12,
+	-23,	8,	-3,
+	-23,	8,	-10,
+	-22,	30,	-1,
+	-22,	30,	-12,
+	-27,	3,	-15,
+	-27,	-3,	-15,
+	-28,	5,	-37,
+	-28,	-5,	-37,
+	-23,	3,	-15,
+	-23,	-3,	-15,
+	-22,	5,	-37,
+	-22,	-5,	-37,
+	-27,	0,	-1,
+	-27,	-5,	-10,
+	-27,	6,	-10,
+	-23,	0,	-1,
+	-23,	-5,	-10,
+	-23,	6,	-10,
+	3,	31,	52,
+	31,	31,	52,
+	3,	-28,	52,
+	31,	-28,	52,
+	3,	31,	23,
+	31,	31,	23,
+	3,	-28,	23,
+	31,	-28,	23,
+	7,	9,	22,
+	17,	9,	22,
+	7,	-6,	22,
+	17,	-6,	22,
+	7,	9,	12,
+	17,	9,	12,
+	7,	-6,	12,
+	17,	-6,	12,
+	21,	6,	22,
+	25,	6,	22,
+	21,	-4,	22,
+	25,	-4,	22,
+	21,	6,	20,
+	25,	6,	21,
+	21,	-4,	20,
+	25,	-4,	21,
+};
+
+/* List of faces */
+short const object_anotherworld_faces[] =
+{
+	0,1,5,4,
+	1,3,7,5,
+	3,2,6,7,
+	2,0,4,6,
+	4,5,13,12,
+	5,7,14,13,
+	7,6,15,14,
+	6,4,12,15,
+	12,8,9,15,
+	13,11,8,12,
+	14,10,11,13,
+	15,9,10,14,
+	20,21,23,22,
+	17,19,23,21,
+	18,16,20,22,
+	28,29,31,30,
+	25,27,31,29,
+	26,24,28,30,
+	36,37,39,38,
+	33,35,39,37,
+	34,32,36,38,
+	44,45,47,46,
+	41,43,47,45,
+	42,40,44,46,
+	48,49,52,51,
+	49,50,53,52,
+	50,48,51,53,
+	58,59,61,60,
+	54,55,59,58,
+	55,57,61,59,
+	57,56,60,61,
+	62,64,65,63,
+	66,67,69,68,
+	62,63,67,66,
+	65,64,68,69,
+	70,72,73,71,
+	74,75,77,76,
+	70,71,75,74,
+	73,72,76,77,
+};
+
+/* pyramid.obj */
+/* List of vertices */
+short const object_pyramid_verts[] =
+{
+	-47,	41,	0,
+	47,	41,	0,
+	-47,	-41,	0,
+	47,	-41,	0,
+	-8,	7,	-54,
+	8,	7,	-54,
+	-8,	-7,	-54,
+	8,	-7,	-54,
+	34,	30,	-18,
+	25,	-22,	-31,
+	-30,	-26,	-23,
+	-21,	19,	-35,
+	31,	28,	-21,
+	22,	-20,	-34,
+	-28,	-24,	-27,
+	-19,	17,	-39,
+	-27,	-23,	9,
+	27,	-23,	9,
+	-27,	24,	9,
+	27,	24,	9,
+	-4,	-3,	40,
+	4,	-3,	40,
+	-4,	4,	40,
+	4,	4,	40,
+	19,	-16,	19,
+	14,	13,	26,
+	-17,	16,	22,
+	-12,	-10,	29,
+	18,	-15,	21,
+	13,	12,	28,
+	-16,	14,	24,
+	-11,	-9,	31,
+};
+
+/* List of faces */
+short const object_pyramid_faces[] =
+{
+	0,2,3,1,
+	4,5,7,6,
+	5,4,15,12,
+	13,7,5,12,
+	6,7,13,14,
+	15,4,6,14,
+	1,3,9,8,
+	9,3,2,10,
+	10,2,0,11,
+	11,0,1,8,
+	16,18,19,17,
+	20,21,23,22,
+	21,20,31,28,
+	29,23,21,28,
+	22,23,29,30,
+	31,20,22,30,
+	17,19,25,24,
+	25,19,18,26,
+	26,18,16,27,
+	27,16,17,24,
+};
+
+/* dvix.obj */
+/* List of vertices */
+short const object_dvix_verts[] =
+{
+	-30,	49,	36,
+	28,	49,	36,
+	-30,	-49,	36,
+	28,	-49,	36,
+	-30,	49,	23,
+	29,	49,	23,
+	-30,	-49,	23,
+	29,	-49,	23,
+	30,	43,	32,
+	30,	4,	32,
+	30,	4,	26,
+	30,	43,	26,
+	27,	43,	32,
+	27,	4,	32,
+	27,	4,	26,
+	27,	43,	26,
+	30,	-12,	30,
+	30,	-19,	30,
+	30,	-19,	27,
+	30,	-12,	27,
+	28,	-12,	30,
+	28,	-19,	30,
+	28,	-19,	27,
+	28,	-12,	27,
+	30,	-25,	30,
+	30,	-32,	30,
+	30,	-33,	27,
+	30,	-25,	27,
+	28,	-25,	30,
+	28,	-32,	30,
+	28,	-33,	27,
+	28,	-25,	27,
+	0,	-3,	22,
+	6,	-3,	22,
+	0,	-13,	22,
+	6,	-13,	22,
+	0,	-3,	-36,
+	6,	-3,	-36,
+	0,	-13,	-36,
+	6,	-13,	-36,
+	6,	-3,	-3,
+	6,	-3,	-10,
+	0,	-3,	-10,
+	0,	-3,	-3,
+	6,	-13,	-3,
+	6,	-13,	-10,
+	0,	-13,	-3,
+	0,	-13,	-10,
+	6,	-26,	-10,
+	6,	-26,	-3,
+	0,	-26,	-3,
+	0,	-26,	-10,
+	6,	12,	-3,
+	6,	12,	-10,
+	0,	12,	-10,
+	0,	12,	-3,
+};
+
+/* List of faces */
+short const object_dvix_faces[] =
+{
+	0,2,3,1,
+	4,5,7,6,
+	0,1,5,4,
+	3,2,6,7,
+	9,8,12,13,
+	10,9,13,14,
+	11,10,14,15,
+	8,11,15,12,
+	17,16,20,21,
+	18,17,21,22,
+	19,18,22,23,
+	16,19,23,20,
+	25,24,28,29,
+	26,25,29,30,
+	27,26,30,31,
+	24,27,31,28,
+	32,34,35,33,
+	36,37,39,38,
+	53,54,55,52,
+	51,48,49,50,
+	37,36,42,41,
+	32,33,40,43,
+	38,39,45,47,
+	35,34,46,44,
+	44,46,50,49,
+	47,45,48,51,
+	41,42,54,53,
+	43,40,52,55,
 };
 

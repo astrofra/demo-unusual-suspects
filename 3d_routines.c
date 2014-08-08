@@ -19,15 +19,15 @@ extern struct RastPort theRP_1bpl;
 extern struct GfxBase *GfxBase;
 
 struct  obj_3d o;
-int     *verts_tr = NULL;
+short     *verts_tr = NULL;
 
 #define BB_3D_DRAW_OUTLINE    8
 
 /********* 3D Code *********/
 
-void DrawAALine(int x1, int y1, int x2, int y2)
+void DrawAALine(short x1, short y1, short x2, short y2)
 {
-  int xo = 0, yo = 0;
+  short xo = 0, yo = 0;
   if (2 * abs(x1 - x2) > abs(y1 - y2))
   {
     xo = 1;
@@ -51,7 +51,7 @@ void DrawAALine(int x1, int y1, int x2, int y2)
 }
 
 void Prepare3DVertexList(void)
-{  verts_tr = (int *)malloc(sizeof(int) * MAX_VERTICE_COUNT * 3); }
+{  verts_tr = (short *)malloc(sizeof(short) * MAX_VERTICE_COUNT * 3); }
 
 void Delete3DVertexList(void)
 {  
@@ -62,17 +62,17 @@ void Delete3DVertexList(void)
   }
 }
 
-int Draw3DMesh(int rx, int ry, int y_offset, int m_scale_x)
+short Draw3DMesh(short rx, short ry, short y_offset, short m_scale_x)
 {
 
-  int i,tx,ty,
+  short i,tx,ty,
   x1,x2,x3,x4, 
   y1,y2,y3,y4,
   hidden = 0;
 
-  int XC,YC;
+  short XC,YC;
 
-  int cs, ss, cc, sc;
+  short cs, ss, cc, sc;
 
   XC = 160;
   YC = 128 + y_offset;

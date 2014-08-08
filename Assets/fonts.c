@@ -10,7 +10,7 @@ const char future_font_glyph_array[] =
 	'\0'
 };
 
-const int future_font_x_pos_array[] = 
+const short future_font_x_pos_array[] = 
 {
 	0, 2, 6, 18, 29, 33, 39, 45, 48, 54, 56, 62, 70, 76, 84, 92, 100, 108, 116, 124, 
 	132, 140, 142, 145, 150, 157, 162, 172, 180, 188, 196, 204, 212, 220, 228, 236, 242, 248, 256, 264, 
