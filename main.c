@@ -38,7 +38,7 @@
 #include "Assets/faces_all_palettes.h"
 #include "Assets/vert_copper_palettes.h"
 #include "Assets/fonts.h"
-#include "Assets/audio_sync.h"
+// #include "Assets/audio_sync.h"
 
 #include "3d_routines.h"
 #include "bitmap_routines.h"
@@ -216,37 +216,38 @@ short  DispatchFX(void)
 */
 int  ModuleGetSyncValue(SHORT channel)
 {
-  int audio_clock, sync_value;
-  audio_clock = TimeGetGClock();
-  audio_clock *= AUDIO_SYNC_FREQ;
-  audio_clock >>= 8;
+  // int audio_clock, sync_value;
+  // audio_clock = TimeGetGClock();
+  // audio_clock *= AUDIO_SYNC_FREQ;
+  // audio_clock >>= 8;
 
-  while (audio_clock > AUDIO_SYNC_REC_COUNT)
-    audio_clock -= AUDIO_SYNC_REC_COUNT;
+  // while (audio_clock > AUDIO_SYNC_REC_COUNT)
+  //   audio_clock -= AUDIO_SYNC_REC_COUNT;
 
-  sync_value = audio_sync[audio_clock];
+  // sync_value = audio_sync[audio_clock];
 
-  switch(channel)
-  {
-    case 0:
-      sync_value = sync_value & 3;
-      break;
-    case 1:
-      sync_value = (sync_value >> 2) & 3;
-      break;
-    case 2:
-      sync_value = (sync_value >> 4) & 3;
-      break;
-    case 3:
-      sync_value = (sync_value >> 6) & 3;
-      break;
-    default:
-      sync_value = 0;
-      break;
-  }
-  // SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
+  // switch(channel)
+  // {
+  //   case 0:
+  //     sync_value = sync_value & 3;
+  //     break;
+  //   case 1:
+  //     sync_value = (sync_value >> 2) & 3;
+  //     break;
+  //   case 2:
+  //     sync_value = (sync_value >> 4) & 3;
+  //     break;
+  //   case 3:
+  //     sync_value = (sync_value >> 6) & 3;
+  //     break;
+  //   default:
+  //     sync_value = 0;
+  //     break;
+  // }
+  // // SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
 
-  return sync_value;
+  // return sync_value;
+  return 0;
 }
 
 /*Switch on the low-pass filter */
@@ -869,55 +870,6 @@ void disp_swap(void)
 
 void dots_doit(UWORD *pal)
 {
-  WORD x[20], y[20];
-  WORD i, j, h, c;
-
-  LoadRGB4(mainVP, pal, 16);
-  for (i = 0; i < 20; i ++)
-  {
-    x[i] = rand() % 320;
-    y[i] = rand() % 256;
-  }
-
-  for (j = 0; j < 1500; j ++)
-  {
-    for (i = 0; i < 15; i ++)
-    {
-      h = rand() % 6;
-      switch (h)
-      {
-        case 0:
-          x[i] ++;
-          break;
-
-        case 1:
-        case 4:
-          x[i] --;
-          break;
-
-        case 2:
-        case 5:
-          y[i] ++;
-          break;
-
-        case 3:
-          y[i] --;
-          break;
-      }
-      if (x[i] > 319) x[i] -= 320;
-      if (x[i] < 0) x[i] += 320;
-      if (y[i] > 255) y[i] -= 256;
-      if (y[i] < 0) y[i] += 256;
-
-      c = ReadPixel(&theRP_3bpl, x[i], y[i]);
-      c += 1; /* ((rand() % 2) << 1) - 1; */
-      if (c > 7) c = 2;
-      SetAPen(&theRP_3bpl, c);
-      WritePixel(&theRP_3bpl, x[i], y[i]);
-    }
-    DispatchFX();
-    sys_check_abort();
-  }
 }
 
 /**************** WRITER *******************/
@@ -930,83 +882,6 @@ void writer_doit(UBYTE *wrText)
 
 void scroll_doit(void)
 {
-  PLANEPTR font, pic;
-  UBYTE *currChar;
-  static struct BitMap fontMap;
-  static UWORD offs[] =
-  { 192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 128, 192, 192, 192, 192, 192,
-    192, 192, 192, 192, 192, 192, 64, 192,
-    288, 144, 256, 192, 192, 192, 192, 192,
-    32, 192, 192, 192, 224, 96, 192, 192,
-    256, 96, 0, 144, 32, 144, 64, 144,
-    96, 144, 128, 144, 160, 144, 192, 144,
-    224, 144, 256, 144, 96, 192, 0, 192,
-    192, 192, 192, 192, 192, 192, 160, 192,
-    192, 192, 0, 0, 32, 0, 64, 0,
-    96, 0, 128, 0, 160, 0, 192, 0,
-    224, 0, 256, 0, 0, 48, 32, 48,
-    64, 48, 96, 48, 128, 48, 160, 48,
-    192, 48, 224, 48, 256, 48, 0, 96,
-    32, 96, 64, 96, 96, 96, 224, 192,
-    128, 96, 160, 96, 192, 96, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192,
-    192, 192, 0, 0, 32, 0, 64, 0,
-    96, 0, 128, 0, 160, 0, 192, 0,
-    224, 0, 256, 0, 0, 48, 32, 48,
-    64, 48, 96, 48, 128, 48, 160, 48,
-    192, 48, 224, 48, 256, 48, 0, 96,
-    32, 96, 64, 96, 96, 96, 224, 192,
-    128, 96, 160, 96, 192, 96, 192, 192,
-    192, 192, 192, 192, 192, 192, 192, 192 };
-  static UBYTE scrText[] = "welcome to the little scrollthingy... "
-  // "first the serious stuff :       "
-  // "q: what's another name for the 'intel inside' sticker they put on pentiums?          "
-  // "a: the warning label.         "
-  // "now we'll greet some people:       tcc, chaos pm, lcg, exceed, inventors of coca cola, "
-  // "the staff at this great party, kyrcman's microwave oven (and the man ;), " 
-  "motorola inc. (wod else ;) and the snubbe...   stay tuned for more pentium fun...                      ";
-
-  font = load_getchipmem((UBYTE *)"assets/scrollfont.bin", 80 * 256);
-  InitBitMap(&fontMap, 2, 320, 256);
-  fontMap.Planes[0] = font;
-  fontMap.Planes[1] = font + 40 * 256;
-  pic = load_getmem((UBYTE *)"assets/gradient.bin", 40 * 256 * 4); // load_getmem((UBYTE *)"assets/panther.bin", 34 * 167 * 4);
-  // disp_whack(pic, &theBitMap, 320, 256, 0, 0, 4);
-  currChar = scrText;
-
-  disp_fade_in(gradientPaletteRGB4, 16); //pal5);
-  fVBLDelay(100);
-  
-  while (*currChar)
-  {
-    BltBitMap(&fontMap, offs[(*currChar) << 1], offs[((*currChar) << 1) + 1],
-    &theBitMap_3bpl, 320, 208, 32, 48, 0xc0, 0xff, NULL);
-    currChar ++;
-
-    WaitTOF();
-    ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
-    WaitTOF();
-    ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
-    WaitTOF();
-    ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
-    WaitTOF();
-    ScrollRaster(&theRP_2bpl, 8, 0, 0, 208, 383, 255);
-
-    DispatchFX();
-    sys_check_abort();
-  }
-
-  disp_fade_out(gradientPaletteRGB4, 16); //pal5);  
-  // FreeMem(font, 80 * 256);
-  // FreeMem(pic, 40 * 256 * 4);
 }
 
 /*

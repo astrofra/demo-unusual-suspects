@@ -6,7 +6,7 @@
 
 OBJ = main.o init.o 3d_routines.o bitmap_routines.o copper_routines.o font_routines.o \
 		Assets/cosine_table.o Assets/3d_objects.o \
-		demo_strings.o Assets/fonts.o Assets/audio_sync.o\
+		demo_strings.o Assets/fonts.o \
 		Assets/misc_palettes.o Assets/faces_palettes.o Assets/faces_all_palettes.o Assets/vert_copper_palettes.o
 
 thanks-andy: $(OBJ) includes.gst
@@ -16,7 +16,7 @@ includes.gst: includes.prl
 main.o: main.c common.h protos.h 3d_routines.h copper_routines.h bitmap_routines.h \
 	Assets/cosine_table.h Assets/3d_objects.h \
 	Assets/misc_palettes.h Assets/faces_palettes.h Assets/vert_copper_palettes.h \
-	Assets/faces_all_palettes.h Assets/fonts.h Assets/audio_sync.h demo_strings.h includes.gst
+	Assets/faces_all_palettes.h Assets/fonts.h demo_strings.h includes.gst
 init.o: init.c common.h protos.h includes.gst
 3d_routines.o: 3d_routines.c common.h protos.h includes.gst
 bitmap_routines.o: bitmap_routines.c common.h protos.h includes.gst
@@ -29,6 +29,5 @@ faces_palettes.o: Assets/faces_palettes.c
 faces_all_palettes.o: Assets/faces_all_palettes.c
 vert_copper_palettes.o: Assets/vert_copper_palettes.c
 fonts.o: Assets/fonts.c
-audio_sync.o: Assets/audio_sync.c	
 demo_strings.o: demo_strings.c
 
