@@ -24,5 +24,5 @@ const char *credits_1 = "Erk - Fra - Gelmir - P0lym0rph - Ptoing\0";
 const char *credits_2 = "A demo coded in C, No ASM, No AGA,\nOS3.0 still running in the background.\0";
 const char *credits_3 = "By the way, this was 120 colors on screen,\n              ECS mode, no HAM.\0";
 const char *credits_4 = "                  Hugs to Cyg, DBug, Sam,\nthe Barking Mad Hedgehogs and #Amycoders!\0";
-const char *credits_5 = "Mandarine - Mankind / Released at Evoke 2014\0";
+const char *credits_5 = "Mandarine - Mankind / Evoke 2014\0";
 

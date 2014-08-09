@@ -58,6 +58,7 @@ void disp_swap(void);
 
 void SequenceDemoCredits(void);
 void SequenceDemoEndCredits(void);
+void SequenceDemoClosingCredits(void);
 void SequenceDemoTitle(void);
 void SequenceEndImage(void);
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
@@ -454,6 +455,7 @@ int main(void)
   fVBLDelay(25);
 
   /*  Intro credit */
+// SequenceDemoClosingCredits(); 
 // SequenceDemoEndCredits();  
   SequenceDemoCredits();
 
@@ -704,9 +706,8 @@ int main(void)
   SequenceEndImage();
   fVBLDelay(250);
 
-  // writer_doit((UBYTE *) "A multitasking#"
-  //                       "syncing töntro#"
-  //                       "Coded in pure C!!!#");
+  full_clear(NULL);
+  SequenceDemoClosingCredits();
   
   /* Close opened resources */
   ForceDemoClose();
@@ -1049,8 +1050,8 @@ void SequenceDemoCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 119, (UBYTE *)credits_1);
-  fVBLDelay(200);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 50, 119, (UBYTE *)credits_1);
+  fVBLDelay(180);
   disp_fade_out(background1PaletteRGB4, 32);
 
   full_clear(NULL);
@@ -1070,7 +1071,7 @@ void SequenceDemoCredits(void)
   }
 
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 50, 110, (UBYTE *)credits_2);
-  fVBLDelay(125);
+  fVBLDelay(145);
 
   disp_fade_out(background1PaletteRGB4, 32); 
 }
@@ -1119,6 +1120,33 @@ void SequenceDemoEndCredits(void)
   fVBLDelay(60);
   disp_fade_out(background1PaletteRGB4, 32);
 
+  fVBLDelay(20);
+}
+
+/*
+  SequenceDemoClosingCredits
+*/
+void SequenceDemoClosingCredits(void)
+{
+  short i, j, f;
+
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1, f = 0; i < 19; i += j)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 50, 120, (UBYTE *)credits_5);
+  fVBLDelay(100);
+  disp_fade_out(background1PaletteRGB4, 32);
   fVBLDelay(20);
 }
 
