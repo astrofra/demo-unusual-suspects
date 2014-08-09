@@ -6,9 +6,9 @@ const char *desc_char_1 = "Eggdrop Leonardh\n\2Home planet :\1 Ghoti XII\n\2Resi
 const char *desc_char_2 = "Golem Mosenthal\n\2Home planet :\1 Foxxcon IV\n\2Occupation :\n\1 - Process data\n - Kill humans\nCharged with violation of all three\nLaws of Robotics.\0";
 const char *desc_char_3 = "Bjorn Thorson\n\2Blood type :\1 A-Blue\n\2Occupation :\1 Forest\nassets manager\nSuspected of massive\nmisappropriation of bamboo.\0";
 const char *desc_char_4 = "Claude Bayou\n\2Address :\1 Louisiana, Earth\n\2Occupation :\n\1 - Eat flies\n - Cook Cajun cuisine\nWanted for fly genocide.\0";
-const char *desc_char_5 = "Sandra Nyan\nHome planet :\1 undefined\n\2Occupation :\n\1 - Go outside\n - Go inside\n            - Repeat step #1\nFound guilty of acute selfishness.\0";
-const char *desc_char_6 = "Neuron X. Boll\n\2Home planet :\1 Optikol VII\n\2Occupation :\n\1Motion prediction for the\nDivX Church.\nAccused of media disbelief.\0";
-const char *desc_char_7 = "Prime Minister Maya\nSpace Soviet Union Gov.\n\2Occupation :\n\1 - President of SSU\n - Prime Minister of SSU\n             - General of SSU Army\0";
+const char *desc_char_5 = "Sandra Nyan\nHome planet :\1 undefined\n\2Occupation :\n\1 - Go outside\n - Go inside\n             - Repeat step #1\nFound guilty of acute selfishness.\0";
+const char *desc_char_6 = "Neuron X. Boll\n\2Home planet :\1 Optikol VII\n\2Occupation :\n\1Motion prediction for the\nDivX Church.\nAccused of media disbelief\nand intraframe manipulation.\0";
+const char *desc_char_7 = "Prime Minister Maya\nSpace Soviet Union Gov.\n\2Occupation :\n\1 - President of SSU\n - Prime Minister of SSU\n              - General of SSU Army\0";
 const char *desc_char_8 = "Paul Levion\n\2Address :\1 Brusells, Earth\n\2Occupation :\1 Space aviation\npionneer and national hero.\nSuspected of war crimes,\nbombing, abduction, gassing.\nDenies all culpability.\0";
 const char *desc_char_9 = "Felex Jagger\n\2Home planet :\1 Galligay\n\2Occupation :\1 Mentalist\nKnown for having\nhypnotized a large\nnumber of robots from planet\nFoxxcon IV.\0";
 const char *desc_char_10 = "U-Head\n\2Home planet :\1 unknown\n\2Blood type :\1 unknown \n\2Occupation :\1\nIndefinite hiatus\nFound guilty for not being\nin active development.\0";
@@ -20,8 +20,9 @@ const char *desc_char_15 = "Rebecka D. Vulvor\n\2Home planet : \1Ovum IV\n\2Occu
 const char *desc_char_16 = "Lester K. Chaykin\n\2Home planet :\1 Earth\n\2Occupation :\n\1 - Physicist\n - Adventurer\nCharged with the destruction of the\nLarge Hadron Collider, Geneva.\0";
 
 const char *credits_0 = "Mandarine - Mankind\0";
-const char *credits_1 = "Erk - Fra - P0lym0rph - Ptoing\0";
+const char *credits_1 = "Erk - Fra - Gelmir - P0lym0rph - Ptoing\0";
 const char *credits_2 = "A demo coded in C, No ASM, No AGA,\nOS3.0 still running in the background.\0";
-const char *credits_3 = "By the way, this was 120 colors on screen, ECS mode, no HAM!\0";
-const char *credits_4 = "Hugs to Cyg, DBug, Sam, the Barking Mad Hedgehogs and #Amycoders!\0";
+const char *credits_3 = "By the way, this was 120 colors on screen,\n              ECS mode, no HAM.\0";
+const char *credits_4 = "                  Hugs to Cyg, DBug, Sam,\nthe Barking Mad Hedgehogs and #Amycoders!\0";
+const char *credits_5 = "Mandarine - Mankind / Released at Evoke 2014\0";
 

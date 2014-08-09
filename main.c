@@ -59,6 +59,7 @@ void disp_swap(void);
 void SequenceDemoCredits(void);
 void SequenceDemoEndCredits(void);
 void SequenceDemoTitle(void);
+void SequenceEndImage(void);
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
 void SequenceDisplaySuspectProfile(short suspect);
 void dots_doit(UWORD *pal);
@@ -453,6 +454,7 @@ int main(void)
   fVBLDelay(25);
 
   /*  Intro credit */
+// SequenceDemoEndCredits();  
   SequenceDemoCredits();
 
   /*  space station */
@@ -505,7 +507,7 @@ int main(void)
 
   /*  Bjorn Thorson */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 280, 160, 0);
+  PREPARE_3D_MESH(o, object_bamboo_verts, object_bamboo_faces, 280, 180, 0);
   Sequence3DRotation(5, 4, 10);
 
   reset_disp_swap();
@@ -595,7 +597,7 @@ int main(void)
 
   /* Sweety Cheung */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 190, 0);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 200, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -615,7 +617,7 @@ int main(void)
 
   /* Eva #2F4 */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 220, 0);
   Sequence3DRotation(5, 4, 5);
 
   reset_disp_swap();
@@ -694,7 +696,13 @@ int main(void)
 
   SequenceDemoEndCredits();
 
+  full_clear(NULL);
   SequenceDemoTitle();
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/pig.bin", 40960, 320, 256, 4);
+  fVBLDelay(50);
+
+  SequenceEndImage();
+  fVBLDelay(250);
 
   // writer_doit((UBYTE *) "A multitasking#"
   //                       "syncing töntro#"
@@ -1075,7 +1083,7 @@ void SequenceDemoEndCredits(void)
   short i, j, f;
 
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
-  for(i = 1, j = 1, f = 0; i < 19; i += j)
+  for(i = 1, j = 1, f = 0; i < 25; i += j)
   {
     WaitTOF();
     SetAPen(&theRP, 20);
@@ -1088,7 +1096,7 @@ void SequenceDemoEndCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 35, 118, (UBYTE *)credits_3);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 44, 110, (UBYTE *)credits_3);
   fVBLDelay(70);
   disp_fade_out(background1PaletteRGB4, 32);
 
@@ -1107,7 +1115,7 @@ void SequenceDemoEndCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 16, 118, (UBYTE *)credits_4);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 24, 110, (UBYTE *)credits_4);
   fVBLDelay(60);
   disp_fade_out(background1PaletteRGB4, 32);
 
@@ -1139,6 +1147,33 @@ void SequenceDemoTitle(void)
 
   disp_fade_in(demo_title_PaletteRGB4, 32);
   LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
+  FREE_BITMAP(bitmap_tmp);
+}
+
+/*
+  voidSequenceEndImage
+*/
+void SequenceEndImage(void)
+{
+  short i, j;
+
+  WaitTOF();
+  LoadRGB4(mainVP, whitePaletteRGB4, 32);
+
+  SetAPen(&theRP, 15);
+
+  for(i = 1, j = 1; i < 30; i += j, j+=2)
+  {
+    WaitTOF();
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+  }
+
+  WaitTOF();
+  WaitTOF();
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
+
+  disp_fade_in(pigPaletteRGB4, 16);
+  LoadRGB4(mainVP, pigPaletteRGB4, 16);
   FREE_BITMAP(bitmap_tmp);
 }
 

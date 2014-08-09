@@ -26,3 +26,4 @@ extern const char *credits_1;
 extern const char *credits_2;
 extern const char *credits_3;
 extern const char *credits_4;
+extern const char *credits_5;

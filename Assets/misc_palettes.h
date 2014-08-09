@@ -35,3 +35,5 @@ extern UWORD face_all_topPaletteRGB4[32];
 extern UWORD background1PaletteRGB4[16];
 
 extern UWORD background_copperPaletteRGB4[16];
+
+extern UWORD pigPaletteRGB4[16];
