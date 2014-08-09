@@ -529,7 +529,7 @@ int main(void)
 
   /*  Sandra Nyan */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cat_litter_verts, object_cat_litter_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_cat_litter_verts, object_cat_litter_faces, 256, 160, 0);
   Sequence3DRotation(5, 4, 3);  
 
   reset_disp_swap();
@@ -539,7 +539,7 @@ int main(void)
 
   /* Neuron X. Boll */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_dvix_verts, object_dvix_faces, 280, 256, 0);
+  PREPARE_3D_MESH(o, object_dvix_verts, object_dvix_faces, 280, 220, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -579,7 +579,7 @@ int main(void)
 
   /* Lester K. Chaykin */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 200, 0);
+  PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 180, 0);
   Sequence3DRotation(5, 3, 7);
 
   reset_disp_swap();
@@ -599,7 +599,7 @@ int main(void)
 
   /* Sweety Cheung */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 200, 0);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 210, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -629,7 +629,7 @@ int main(void)
 
   /* Feather Magnum */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_underpant_verts, object_underpant_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_underpant_verts, object_underpant_faces, 256, 128, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -639,7 +639,7 @@ int main(void)
 
   /* Rebecka D. Vulvor */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_embryo_verts, object_embryo_faces, 350, 128, 0);
+  PREPARE_3D_MESH(o, object_embryo_verts, object_embryo_faces, 350, 140, 0);
   Sequence3DRotation(5, 4, 7);
     
   reset_disp_swap();
