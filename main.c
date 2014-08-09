@@ -573,7 +573,7 @@ int main(void)
 
   /* Lester K. Chaykin */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_anotherworld_verts, object_anotherworld_faces, 256, 200, 0);
   Sequence3DRotation(5, 3, 7);
 
   reset_disp_swap();
@@ -593,7 +593,7 @@ int main(void)
 
   /* Sweety Cheung */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 180, 0);
+  PREPARE_3D_MESH(o, object_gothic_verts, object_gothic_faces, 350, 190, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -603,7 +603,7 @@ int main(void)
 
   /* Eckon RC2 */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 200, 0);
+  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 190, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
@@ -614,7 +614,7 @@ int main(void)
   /* Eva #2F4 */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_toxic_waste_verts, object_toxic_waste_faces, 256, 256, 0);
-  Sequence3DRotation(5, 4, 3);
+  Sequence3DRotation(5, 4, 5);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -634,7 +634,7 @@ int main(void)
   /* Rebecka D. Vulvor */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_embryo_verts, object_embryo_faces, 350, 128, 0);
-  Sequence3DRotation(5, 4, 3);
+  Sequence3DRotation(5, 4, 7);
     
   reset_disp_swap();
   disp_clear(NULL);
@@ -1078,8 +1078,8 @@ void SequenceDemoEndCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 100, 118, (UBYTE *)credits_3);
-  fVBLDelay(50);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 35, 118, (UBYTE *)credits_3);
+  fVBLDelay(70);
   disp_fade_out(background1PaletteRGB4, 32);
 
   full_clear(NULL);
@@ -1097,9 +1097,11 @@ void SequenceDemoEndCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 118, (UBYTE *)credits_4);
-  fVBLDelay(50);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 35, 118, (UBYTE *)credits_4);
+  fVBLDelay(60);
   disp_fade_out(background1PaletteRGB4, 32);
+
+  fVBLDelay(20);
 }
 
 /*
