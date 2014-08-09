@@ -57,6 +57,7 @@ void reset_disp_swap(void);
 void disp_swap(void);
 
 void SequenceDemoCredits(void);
+void SequenceDemoEndCredits(void);
 void SequenceDemoTitle(void);
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
 void SequenceDisplaySuspectProfile(short suspect);
@@ -211,21 +212,39 @@ short  DispatchFX(void)
 /*
       Audio sync.
 */
-int  ModuleGetSyncValue(void)
+int  ModuleGetSyncValue(SHORT channel)
 {
   int audio_clock, sync_value;
-  // audio_clock = TimeGetGClock();
-  // audio_clock *= AUDIO_SYNC_FREQ;
-  // audio_clock >>= 8;
+  audio_clock = TimeGetGClock();
+  audio_clock *= AUDIO_SYNC_FREQ;
+  audio_clock >>= 8;
 
-  // while (audio_clock > AUDIO_SYNC_REC_COUNT)
-  //   audio_clock -= AUDIO_SYNC_REC_COUNT;
+  while (audio_clock > AUDIO_SYNC_REC_COUNT)
+    audio_clock -= AUDIO_SYNC_REC_COUNT;
 
-  // sync_value = audio_sync[audio_clock];
+  sync_value = audio_sync[audio_clock];
 
+  switch(channel)
+  {
+    case 0:
+      sync_value = sync_value & 3;
+      break;
+    case 1:
+      sync_value = (sync_value >> 2) & 3;
+      break;
+    case 2:
+      sync_value = (sync_value >> 4) & 3;
+      break;
+    case 3:
+      sync_value = (sync_value >> 6) & 3;
+      break;
+    default:
+      sync_value = 0;
+      break;
+  }
   // SetRGB4(&mainScreen->ViewPort, 0, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2, ((sync_value >> 6) & 3) * 2);
 
-  return 0;
+  return sync_value;
 }
 
 /*Switch on the low-pass filter */
@@ -313,7 +332,7 @@ short fVBLDelay(short _sec)
     WaitTOF();
     DispatchFX();
     sys_check_abort();
-    ModuleGetSyncValue();
+    // ModuleGetSyncValue();
   }
 
   return(0);
@@ -665,6 +684,15 @@ int main(void)
   full_clear(NULL);
 
   DeleteCopperList();
+
+  full_clear(NULL);
+  reset_disp_swap();
+
+  /*  Demo ending */
+
+  SequenceDemoEndCredits();
+
+  SequenceDemoTitle();
 
   // writer_doit((UBYTE *) "A multitasking#"
   //                       "syncing töntro#"
@@ -1032,6 +1060,48 @@ void SequenceDemoCredits(void)
   disp_fade_out(background1PaletteRGB4, 32); 
 }
 
+void SequenceDemoEndCredits(void)
+{
+  short i, j, f;
+
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1, f = 0; i < 20; i += j)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 100, 118, (UBYTE *)credits_3);
+  fVBLDelay(50);
+  disp_fade_out(background1PaletteRGB4, 32);
+
+  full_clear(NULL);
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1; i < 30; i += j, j++)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 118, (UBYTE *)credits_4);
+  fVBLDelay(50);
+  disp_fade_out(background1PaletteRGB4, 32);
+}
+
 /*
   SequenceDemoTitle
 */
@@ -1127,7 +1197,7 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
     // init_clear_bb();
     Draw3DMesh((abs_frame_idx >> rot_x_shift)&(COSINE_TABLE_LEN - 1), (abs_frame_idx >> rot_y_shift)&(COSINE_TABLE_LEN - 1), frameOffset, m_scale_x);
     sys_check_abort();
-    ModuleGetSyncValue();
+    // ModuleGetSyncValue();
   }
 
   WaitTOF();
@@ -1190,7 +1260,7 @@ void SequenceDisplaySuspectProfile(short suspect_index)
     BltBitMap(bitmap_video_noise, 0, (i << 2) + ((8 - i) << 1), &theBitMap, 43, 56 + ((8 - i) << 2), 71, 86 - ((8 - i) << 3), 0xC0, 0xFF, NULL);
     if (i == 0)   RectFill(&theRP, 42, frameOffset + 55 + 40, 42 + 72, 55 + 87 - 40);
 
-    ModuleGetSyncValue();
+    // ModuleGetSyncValue();
   }
 
   WaitTOF();
@@ -1220,7 +1290,7 @@ void SequenceDisplaySuspectProfile(short suspect_index)
   for(i = 0; i < 250; i++)
   {
     WaitTOF();
-    ModuleGetSyncValue();
+    // ModuleGetSyncValue();
   }
 
   WaitTOF();
