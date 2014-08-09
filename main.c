@@ -1201,8 +1201,8 @@ void SequenceEndImage(void)
   RectFill(&theRP, 0, 0, 319, 255);
   BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 200, 0, 20);
 
-  disp_fade_in(pigPaletteRGB4, 16);
-  LoadRGB4(mainVP, pigPaletteRGB4, 16);
+  disp_fade_in(pigPaletteRGB4, 32);
+  LoadRGB4(mainVP, pigPaletteRGB4, 32);
   FREE_BITMAP(bitmap_tmp);
 }
 
