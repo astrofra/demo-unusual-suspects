@@ -700,7 +700,7 @@ int main(void)
 
   full_clear(NULL);
   SequenceDemoTitle();
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/pig.bin", 40960, 320, 256, 4);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/pig.bin", 32000, 320, 200, 4);
   fVBLDelay(50);
 
   SequenceEndImage();
@@ -1197,8 +1197,9 @@ void SequenceEndImage(void)
   }
 
   WaitTOF();
-  WaitTOF();
-  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 256, 0, 0);
+  SetAPen(&theRP, 0);
+  RectFill(&theRP, 0, 0, 319, 255);
+  BLIT_BITMAP_S(bitmap_tmp, &theBitMap, 320, 200, 0, 20);
 
   disp_fade_in(pigPaletteRGB4, 16);
   LoadRGB4(mainVP, pigPaletteRGB4, 16);
