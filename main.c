@@ -450,6 +450,8 @@ int main(void)
   Init32ColorsScreen();
   full_clear(NULL);
 
+  fVBLDelay(25);
+
   /*  Intro credit */
   SequenceDemoCredits();
 
@@ -679,13 +681,13 @@ int main(void)
 
   FreeMem(pic, 86400);
 
-  fVBLDelay(250);
+  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
+  fVBLDelay(100);
 
   full_clear(NULL);
 
   DeleteCopperList();
 
-  full_clear(NULL);
   reset_disp_swap();
 
   /*  Demo ending */
@@ -998,12 +1000,15 @@ void scroll_doit(void)
   // FreeMem(pic, 40 * 256 * 4);
 }
 
+/*
+  SequenceDemoCredits
+*/
 void SequenceDemoCredits(void)
 {
   short i, j, f;
 
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
-  for(i = 1, j = 1, f = 0; i < 20; i += j)
+  for(i = 1, j = 1, f = 0; i < 19; i += j)
   {
     WaitTOF();
     SetAPen(&theRP, 20);
@@ -1016,11 +1021,12 @@ void SequenceDemoCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 100, 118, (UBYTE *)credits_0);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 100, 119, (UBYTE *)credits_0);
   fVBLDelay(100);
   disp_fade_out(background1PaletteRGB4, 32);
 
   full_clear(NULL);
+  fVBLDelay(25);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   for(i = 1, j = 1; i < 30; i += j, j++)
   {
@@ -1035,11 +1041,12 @@ void SequenceDemoCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 118, (UBYTE *)credits_1);
-  fVBLDelay(150);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 119, (UBYTE *)credits_1);
+  fVBLDelay(200);
   disp_fade_out(background1PaletteRGB4, 32);
 
   full_clear(NULL);
+  fVBLDelay(25);
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   for(i = 1, j = 1; i < 30; i += j, j++)
   {
@@ -1054,18 +1061,21 @@ void SequenceDemoCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 110, 110, (UBYTE *)credits_2);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 50, 110, (UBYTE *)credits_2);
   fVBLDelay(125);
 
   disp_fade_out(background1PaletteRGB4, 32); 
 }
 
+/*
+  SequenceDemoEndCredits
+*/
 void SequenceDemoEndCredits(void)
 {
   short i, j, f;
 
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
-  for(i = 1, j = 1, f = 0; i < 20; i += j)
+  for(i = 1, j = 1, f = 0; i < 19; i += j)
   {
     WaitTOF();
     SetAPen(&theRP, 20);
@@ -1097,7 +1107,7 @@ void SequenceDemoEndCredits(void)
       j++;
   }
 
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 35, 118, (UBYTE *)credits_4);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 16, 118, (UBYTE *)credits_4);
   fVBLDelay(60);
   disp_fade_out(background1PaletteRGB4, 32);
 

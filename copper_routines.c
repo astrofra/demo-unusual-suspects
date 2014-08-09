@@ -115,6 +115,8 @@ void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
     }
   }
 
+  CWAIT(cl, 255, 0);
+  CMOVE(cl, custom.color[0], 0x000);
   CEND(cl);
 
   Forbid();       /*  Forbid task switching while changing the Copper list.  */

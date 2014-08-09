@@ -21,7 +21,7 @@ const char *desc_char_16 = "Lester K. Chaykin\n\2Home planet :\1 Earth\n\2Occupa
 
 const char *credits_0 = "Mandarine - Mankind\0";
 const char *credits_1 = "Erk - Fra - P0lym0rph - Ptoing\0";
-const char *credits_2 = "A demo coded in C,\n  No ASM, No AGA\0";
+const char *credits_2 = "A demo coded in C, No ASM, No AGA,\nOS3.0 still running in the background.\0";
 const char *credits_3 = "By the way, this was 120 colors on screen, ECS mode, no HAM!\0";
-const char *credits_4 = "Hugs to Cyg, DBug, Sam and #Amycoders!\0";
+const char *credits_4 = "Hugs to Cyg, DBug, Sam, the Barking Mad Hedgehogs and #Amycoders!\0";
 
