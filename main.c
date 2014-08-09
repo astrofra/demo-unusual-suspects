@@ -529,7 +529,7 @@ int main(void)
 
   /*  Sandra Nyan */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_cat_litter_verts, object_cat_litter_faces, 256, 256, 0);
   Sequence3DRotation(5, 4, 3);  
 
   reset_disp_swap();
@@ -629,7 +629,7 @@ int main(void)
 
   /* Feather Magnum */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cube_verts, object_cube_faces, 256, 256, 0);
+  PREPARE_3D_MESH(o, object_underpant_verts, object_underpant_faces, 256, 256, 0);
   Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();

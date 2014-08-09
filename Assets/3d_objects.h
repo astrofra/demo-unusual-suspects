@@ -32,3 +32,7 @@ extern const short object_pyramid_verts[96];
 extern const short object_pyramid_faces[80];
 extern const short object_dvix_verts[168];
 extern const short object_dvix_faces[112];
+extern const short object_underpant_verts[117];
+extern const short object_underpant_faces[112];
+extern const short object_cat_litter_verts[144];
+extern const short object_cat_litter_faces[140];
