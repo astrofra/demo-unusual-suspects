@@ -56,6 +56,7 @@ void init_clear_bb(void);
 void reset_disp_swap(void);
 void disp_swap(void);
 
+void SequenceDemoCredits(void);
 void SequenceDemoTitle(void);
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
 void SequenceDisplaySuspectProfile(short suspect);
@@ -418,7 +419,7 @@ int main(void)
   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
-  mod = load_getmem((UBYTE *)"assets/module.bin", 83488);
+  mod = load_getchipmem((UBYTE *)"assets/module.bin", 83488);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
@@ -431,32 +432,15 @@ int main(void)
   full_clear(NULL);
 
   /*  Intro credit */
-  LoadRGB4(mainVP, blackPaletteRGB4, 32);
-  disp_fade_in(background1PaletteRGB4, 32);
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_0);
-  fVBLDelay(50);
-  disp_fade_out(background1PaletteRGB4, 32);
-
-  full_clear(NULL);
-  LoadRGB4(mainVP, blackPaletteRGB4, 32);
-  disp_fade_in(background1PaletteRGB4, 32);
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_1);
-  fVBLDelay(50);
-  disp_fade_out(background1PaletteRGB4, 32);
-
-  full_clear(NULL);
-  LoadRGB4(mainVP, blackPaletteRGB4, 32);
-  disp_fade_in(background1PaletteRGB4, 32);
-  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_2);
-  fVBLDelay(50);
-  disp_fade_out(background1PaletteRGB4, 32);
+  SequenceDemoCredits();
 
   /*  space station */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 275, 0);
   Sequence3DRotation(10, 5, 7); 
 
-  full_clear(NULL);  
+  full_clear(NULL);
+  reset_disp_swap();
 
   SequenceDemoTitle();
 
@@ -754,6 +738,7 @@ static void disp_fade_out(UWORD *fadeFrom, SHORT pal_len)
       col[p][1] -= incr[p][1];
       col[p][2] -= incr[p][2];
     }
+
     WaitTOF();
     disp_fade_setpalette(pal_len);
 
@@ -950,7 +935,7 @@ void scroll_doit(void)
   // "the staff at this great party, kyrcman's microwave oven (and the man ;), " 
   "motorola inc. (wod else ;) and the snubbe...   stay tuned for more pentium fun...                      ";
 
-  font = load_getmem((UBYTE *)"assets/scrollfont.bin", 80 * 256);
+  font = load_getchipmem((UBYTE *)"assets/scrollfont.bin", 80 * 256);
   InitBitMap(&fontMap, 2, 320, 256);
   fontMap.Planes[0] = font;
   fontMap.Planes[1] = font + 40 * 256;
@@ -983,6 +968,68 @@ void scroll_doit(void)
   disp_fade_out(gradientPaletteRGB4, 16); //pal5);  
   // FreeMem(font, 80 * 256);
   // FreeMem(pic, 40 * 256 * 4);
+}
+
+void SequenceDemoCredits(void)
+{
+  short i, j, f;
+
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1, f = 0; i < 20; i += j)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 100, 118, (UBYTE *)credits_0);
+  fVBLDelay(100);
+  disp_fade_out(background1PaletteRGB4, 32);
+
+  full_clear(NULL);
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1; i < 30; i += j, j++)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 70, 118, (UBYTE *)credits_1);
+  fVBLDelay(150);
+  disp_fade_out(background1PaletteRGB4, 32);
+
+  full_clear(NULL);
+  LoadRGB4(mainVP, background1PaletteRGB4, 32);
+  for(i = 1, j = 1; i < 30; i += j, j++)
+  {
+    WaitTOF();
+    SetAPen(&theRP, 20);
+    RectFill(&theRP, 0, 128 - i - 1, 319, 128 + i + 1);
+    SetAPen(&theRP, 21);
+    RectFill(&theRP, 0, 128 - i, 319, 128 + i);
+    if (i == 1) WaitTOF();
+    f = !f;
+    if (f)
+      j++;
+  }
+
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 110, 110, (UBYTE *)credits_2);
+  fVBLDelay(125);
+
+  disp_fade_out(background1PaletteRGB4, 32); 
 }
 
 /*

@@ -15,7 +15,7 @@ extern struct GfxBase *GfxBase;
   Image loading 
 */
 
-PLANEPTR load_getmem(UBYTE *name, ULONG size)
+PLANEPTR load_getchipmem(UBYTE *name, ULONG size)
 {
   BPTR fileHandle;
   PLANEPTR mem;
@@ -24,6 +24,23 @@ PLANEPTR load_getmem(UBYTE *name, ULONG size)
     return (NULL);
 
   if (!(mem = AllocMem(size, MEMF_CHIP)))
+    return (NULL);
+
+  Read(fileHandle, mem, size);
+  Close(fileHandle);
+
+  return (mem);
+}
+
+PLANEPTR load_getmem(UBYTE *name, ULONG size)
+{
+  BPTR fileHandle;
+  PLANEPTR mem;
+
+  if (!(fileHandle = Open(name, MODE_OLDFILE)))
+    return (NULL);
+
+  if (!(mem = AllocMem(size, 0L)))
     return (NULL);
 
   Read(fileHandle, mem, size);
