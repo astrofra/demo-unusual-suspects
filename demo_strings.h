@@ -20,3 +20,7 @@ extern const char *desc_char_15;
 extern const char *desc_char_16;
 
 #define DESC_CHAR_STR(N) (desc_char_ ## N)
+
+extern const char *credits_0;
+extern const char *credits_1;
+extern const char *credits_2;

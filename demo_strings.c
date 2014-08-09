@@ -18,3 +18,7 @@ const char *desc_char_13 = "Eva #2F4\n\2Home planet :\1 Arborea\n\2Occupation :\
 const char *desc_char_14 = "Feather Magnum\n\2Address :\n\1Never left his bedroom.\n\2Occupation :\n\1Stalking underage girls on\nvarious social networks.\0";
 const char *desc_char_15 = "Rebecka D. Vulvor\n\2Home planet : \1Ovum IV\n\2Occupation : \1\nCurator of the Planetary\nEmbryo Museum.\0";
 const char *desc_char_16 = "Lester K. Chaykin\n\2Home planet :\1 Earth\n\2Occupation :\n\1 - Physicist\n - Adventurer\nCharged with the destruction of the\nLarge Hadron Collider, Geneva.\0";
+
+const char *credits_0 = "Mandarine - Mankind\0";
+const char *credits_1 = "Erk - Fra - P0lym0rph - Ptoing\0";
+const char *credits_2 = "A demo coded in C,\nNo ASM, No AGA :)\0";

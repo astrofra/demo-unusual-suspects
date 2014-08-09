@@ -416,6 +416,7 @@ int main(void)
     Load common assets
   */
   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
+  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
   mod = load_getmem((UBYTE *)"assets/module.bin", 83488);
   theMod = PTSetupMod((APTR)mod);
@@ -429,6 +430,27 @@ int main(void)
   Init32ColorsScreen();
   full_clear(NULL);
 
+  /*  Intro credit */
+  LoadRGB4(mainVP, blackPaletteRGB4, 32);
+  disp_fade_in(background1PaletteRGB4, 32);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_0);
+  fVBLDelay(50);
+  disp_fade_out(background1PaletteRGB4, 32);
+
+  full_clear(NULL);
+  LoadRGB4(mainVP, blackPaletteRGB4, 32);
+  disp_fade_in(background1PaletteRGB4, 32);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_1);
+  fVBLDelay(50);
+  disp_fade_out(background1PaletteRGB4, 32);
+
+  full_clear(NULL);
+  LoadRGB4(mainVP, blackPaletteRGB4, 32);
+  disp_fade_in(background1PaletteRGB4, 32);
+  font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 32, 100, (UBYTE *)credits_2);
+  fVBLDelay(50);
+  disp_fade_out(background1PaletteRGB4, 32);
+
   /*  space station */
   LoadRGB4(mainVP, meshDisplayRGB4, 8);
   PREPARE_3D_MESH(o, object_station_verts, object_station_faces, 512, 275, 0);
@@ -439,7 +461,6 @@ int main(void)
   SequenceDemoTitle();
 
   bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
-  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
   bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
   bitmap_video_noise = load_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
   bitmap_next_face = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
