@@ -478,9 +478,9 @@ int main(void)
   full_clear(NULL);
 
   /*  Nasuhl Sardik */
-  LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 350, 160, 0);
-  Sequence3DRotation(5, 4, 3);
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_knife_verts, object_knife_faces, 350, 160, 0);
+  // Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -528,9 +528,9 @@ int main(void)
   fVBLDelay(10);
 
   /*  Sandra Nyan */
-  LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_cat_litter_verts, object_cat_litter_faces, 256, 160, 0);
-  Sequence3DRotation(5, 4, 3);  
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_cat_litter_verts, object_cat_litter_faces, 256, 160, 0);
+  // Sequence3DRotation(5, 4, 3);  
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -608,9 +608,9 @@ int main(void)
   fVBLDelay(10);
 
   /* Eckon RC2 */
-  LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 190, 0);
-  Sequence3DRotation(5, 4, 3);
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_pyramid_verts, object_pyramid_faces, 256, 190, 0);
+  // Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);
@@ -628,9 +628,9 @@ int main(void)
   fVBLDelay(10);              
 
   /* Feather Magnum */
-  LoadRGB4(mainVP, meshDisplayRGB4, 8);
-  PREPARE_3D_MESH(o, object_underpant_verts, object_underpant_faces, 256, 128, 0);
-  Sequence3DRotation(5, 4, 3);
+  // LoadRGB4(mainVP, meshDisplayRGB4, 8);
+  // PREPARE_3D_MESH(o, object_underpant_verts, object_underpant_faces, 256, 128, 0);
+  // Sequence3DRotation(5, 4, 3);
 
   reset_disp_swap();
   disp_clear(NULL);

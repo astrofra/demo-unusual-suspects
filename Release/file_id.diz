@@ -20,3 +20,6 @@ A demo for the Amiga 'Classic' computer range
 (A600 OS3.0 up to A4000 OS3.1), coded in C, 
 os-friendly (multitasking and such...).
 Need 1 meg of CHIPRAM & 2 megs of FASTRAM.
+
+Source can be found here :
+https://github.com/astrofra/demo-unusual-suspects
