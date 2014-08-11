@@ -91,7 +91,7 @@ void CreateVerticalCopperList(short y_offset, /*UWORD base_color, */ UWORD *pale
   RethinkDisplay();
 }
 
-void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
+void CreateHigheSTColorCopperList(short scanline_offset, short y_offset)
 {
   struct UCopList *cl;
   struct TagItem  uCopTags[] =
@@ -99,13 +99,13 @@ void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
                 { VTAG_USERCLIP_SET, NULL },
                 { VTAG_END_CM, NULL }
           };
-  int v, c, color_index = 0;
+  short v, c, color_index = 0;
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
   scanline_offset *= 16;
 
-  for (v = 0; v < 256 - y_offset; v++)
+  for (v = 0; v < 256 - y_offset && scanline_offset < 5744; v++)
   {
     CWAIT(cl, v + y_offset + 1, 0);
     for (c = 0; c < 16; c++)
@@ -115,7 +115,7 @@ void CreateHigheSTColorCopperList(int scanline_offset, int y_offset)
     }
   }
 
-  CWAIT(cl, 255, 0);
+  CWAIT(cl, v + 1, 0);
   CMOVE(cl, custom.color[0], 0x000);
   CEND(cl);
 

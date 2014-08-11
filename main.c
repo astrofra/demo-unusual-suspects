@@ -441,7 +441,7 @@ int main(void)
   bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
   bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
-  mod = load_getchipmem((UBYTE *)"assets/module.bin", 83488);
+  mod = load_getchipmem((UBYTE *)"assets/module.bin", 157299);
   theMod = PTSetupMod((APTR)mod);
   PTPlay(theMod);
 
