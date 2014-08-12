@@ -53,26 +53,29 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
 {
   BPTR fileHandle;
   struct BitMap *new_bitmap;
-  int i;
+  PLANEPTR new_plane_ptr;
+  UWORD i;
 
   if (!(fileHandle = Open(name, MODE_OLDFILE)))
     return (NULL);
 
-  new_bitmap = AllocBitMap(width, height, depth, BMF_STANDARD, NULL);
-
-  // printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, &Planes = %p, byte_size = %i, \n",
+  new_bitmap = (struct BitMap *)AllocMem((LONG)sizeof(struct BitMap), MEMF_CLEAR);
+  InitBitMap(new_bitmap, depth, width, height);
+  // printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, byte_size = %i, \n",
   //       (*new_bitmap).BytesPerRow,
   //       (*new_bitmap).Rows,
   //       (*new_bitmap).Depth,
   //       (int)(*new_bitmap).pad,
-  //       (*new_bitmap).Planes,
   //       byte_size);
+
+  for (i = 0; i < depth; i++)
+    (*new_bitmap).Planes[i] = (PLANEPTR)AllocMem(width * height / 8, MEMF_CHIP);
 
   for (i = 0; i < depth; i++)
     Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
   Close(fileHandle);
 
-  return (new_bitmap);
+  return new_bitmap;
 }
 
 void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD width, UWORD height, UWORD src_y, UWORD x, UWORD y, UWORD depth)
