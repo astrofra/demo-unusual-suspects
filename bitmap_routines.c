@@ -69,7 +69,7 @@ struct BitMap *load_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UWORD h
   //       byte_size);
 
   for (i = 0; i < depth; i++)
-    (*new_bitmap).Planes[i] = (PLANEPTR)AllocMem(width * height / 8, MEMF_CHIP);
+    (*new_bitmap).Planes[i] = (PLANEPTR)AllocMem(RASSIZE(width, height), MEMF_CHIP);
 
   for (i = 0; i < depth; i++)
     Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
