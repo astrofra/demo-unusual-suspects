@@ -40,6 +40,7 @@
 #include "Assets/fonts.h"
 // #include "Assets/audio_sync.h"
 
+#include "timer_routines.h"
 #include "3d_routines.h"
 #include "bitmap_routines.h"
 #include "copper_routines.h"
@@ -63,11 +64,6 @@ void SequenceDemoTitle(void);
 void SequenceEndImage(void);
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift);
 void SequenceDisplaySuspectProfile(short suspect);
-void dots_doit(UWORD *pal);
-void writer_doit(UBYTE *wrText);
-void scroll_doit(void);
-void mandel(PLANEPTR scrMem);
-#pragma regcall(mandel(a0))
 
 extern struct BitMap theBitMap;
 extern struct BitMap theBitMap_4bpl;
@@ -134,84 +130,6 @@ short   drawn_min_x = 512, drawn_min_y = 512,
       drawn_max_x = -1, drawn_max_y = -1;
 
 /*
-  Delta time & g_clock
-*/
-struct IORequest TimerIoR;
-struct Device *TimerBase=NULL;
-ULONG CLK_P_SEC;
-struct EClockVal gClock;
-int dt_time = 0;
-ULONG start_clock = 0;
-ULONG prev_g_clock = 0;
-
-int InitTimerDevice(void)
-{
-  if (OpenDevice(TIMERNAME, UNIT_ECLOCK, &TimerIoR , TR_GETSYSTIME) != 0)
-  {
-    printf("Unable to open Timer.device");
-    TimerBase = 0;
-    return 0;
-  }
-
-  TimerBase = TimerIoR.io_Device;
-
-  return 1;
-}
-
-/*
-  Sets the start of the global clock.
-*/
-void TimeInitGClock(void)
-{
-  CLK_P_SEC = ReadEClock(&gClock);
-  start_clock = gClock.ev_lo;
-  prev_g_clock = start_clock;
-}
-
-/*
-  Computes a fixed point 'dt time'.
-*/
-int GetDeltaTime(void)
-{
-  CLK_P_SEC = ReadEClock(&gClock);
-
-  dt_time = (int)(gClock.ev_lo - prev_g_clock);
-  dt_time = ((dt_time << 10) / CLK_P_SEC);
-
-  if (dt_time < 1)
-    dt_time = 1;
-
-  prev_g_clock = gClock.ev_lo;
-
-  return dt_time;
-}
-
-/*
-  Returns a fixed point global clock.
-*/
-ULONG TimeGetGClock(void)
-{  
-  CLK_P_SEC = ReadEClock(&gClock) >> 4;
-  // printf("%i %i\n", gClock.ev_hi, gClock.ev_lo);
-  return ((gClock.ev_lo - start_clock) << 4) / CLK_P_SEC;
-}
-
-/*
-  Dispatch system
-*/
-short (*dispatch_func_ptr)(short);
-
-short  DispatchFX(void)
-{
-  if (dispatch_func_ptr != dispatch_func_ptr)
-  {
-
-  }
-
-  return(0);
-}
-
-/*
       Audio sync.
 */
 int  ModuleGetSyncValue(SHORT channel)
@@ -250,18 +168,6 @@ int  ModuleGetSyncValue(SHORT channel)
   return 0;
 }
 
-/*Switch on the low-pass filter */
-void filter_on(void)
-{
-   *((char *)0x0bfe001)&=0xFD;
-}
-
-/*Switch off the low-pass filter*/
-void filter_off(void)
-{
-   *((char *)0x0bfe001)|=0x02;
-}
-
 /*Write a message to the CLI*/
 void WriteMsg(char *errMsg)
 {
@@ -294,12 +200,12 @@ void  ForceDemoClose(void)
   FreeMem(keyMatrix,KEY_MATRIX_SIZE);
   
   /* Close opened resources */
-  FREE_BITMAP(bitmap_background);
-  FREE_BITMAP(bitmap_tmp);
-  FREE_BITMAP(bitmap_font);
-  FREE_BITMAP(bitmap_font_dark);
-  FREE_BITMAP(bitmap_video_noise);
-  FREE_BITMAP(bitmap_next_face);
+  free_allocated_bitmap(bitmap_background);
+  free_allocated_bitmap(bitmap_tmp);
+  free_allocated_bitmap(bitmap_font);
+  free_allocated_bitmap(bitmap_font_dark);
+  free_allocated_bitmap(bitmap_video_noise);
+  free_allocated_bitmap(bitmap_next_face);
 
   init_close_video();
   init_close_libs();
@@ -308,8 +214,7 @@ void  ForceDemoClose(void)
   exit(0);
 }
 
-/*  Test is mouse button was pressed */
-//  TODO : make the test os friendly!
+/*  Test if ESC key was pressed */
 void sys_check_abort(void)
 {
   KeyIO->io_Command=KBD_READMATRIX;
@@ -318,7 +223,7 @@ void sys_check_abort(void)
   DoIO((struct IORequest *)KeyIO);
 
 //   printf("%i", (int)(keyMatrix[0x45/8] & (0x20)));
-  if (keyMatrix[0x45/8] & (0x20))
+  if (keyMatrix[0x45 >> 3] & (0x20))
     ForceDemoClose();
 
   // ModuleGetNormalizedPosition();
@@ -333,7 +238,6 @@ short fVBLDelay(short _sec)
   {
     GetDeltaTime();
     WaitTOF();
-    DispatchFX();
     sys_check_abort();
     // ModuleGetSyncValue();
   }
@@ -401,6 +305,8 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
 /* Main program entry point */
 int main(void)
 {
+  short _i;
+
   bitmap_background = NULL;
   bitmap_tmp = NULL;
   bitmap_font = NULL;
@@ -409,8 +315,6 @@ int main(void)
   bitmap_next_face = NULL;
 
   WriteMsg("Amiga C demo^Mandarine/Mankind 2014.\n");
-
-  dispatch_func_ptr = NULL;
 
   InitKeyboard();
   InitTimerDevice();
@@ -438,8 +342,8 @@ int main(void)
   /*
     Load common assets
   */
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
-  bitmap_font = load_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
+  bitmap_tmp = load_file_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
+  bitmap_font = load_file_as_bitmap((UBYTE *)"assets/future_font.bin", 5700, 595, 15, 5);
 
   mod = load_getchipmem((UBYTE *)"assets/module.bin", 157299);
   theMod = PTSetupMod((APTR)mod);
@@ -448,7 +352,6 @@ int main(void)
   /*
     Set the start of the global demo clock
   */
-  TimeInitGClock();
 
   Init32ColorsScreen();
   full_clear(NULL);
@@ -470,10 +373,10 @@ int main(void)
 
   SequenceDemoTitle();
 
-  bitmap_background = load_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
-  bitmap_font_dark = load_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
-  bitmap_video_noise = load_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
-  bitmap_next_face = load_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
+  bitmap_background = load_file_as_bitmap((UBYTE *)"assets/background1.bin", 40 * 5 * 256, 320, 256, 5);
+  bitmap_font_dark = load_file_as_bitmap((UBYTE *)"assets/future_font-dark.bin", 5700, 595, 15, 5);
+  bitmap_video_noise = load_file_as_bitmap((UBYTE *)"assets/video-noise.bin", 5120, 71, 128, 4);
+  bitmap_next_face = load_file_as_bitmap((UBYTE *)"assets/face_01.bin", 3440, 80, 86, 4);
 
   fVBLDelay(350);
   full_clear(NULL);
@@ -686,7 +589,7 @@ int main(void)
 
   FreeMem(pic, 86400);
 
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
+  bitmap_tmp = load_file_as_bitmap((UBYTE *)"assets/demo-title.bin", 28000, 320, 140, 5);
   fVBLDelay(100);
 
   full_clear(NULL);
@@ -701,7 +604,7 @@ int main(void)
 
   full_clear(NULL);
   SequenceDemoTitle();
-  bitmap_tmp = load_as_bitmap((UBYTE *)"assets/pig.bin", 32000, 320, 200, 4);
+  bitmap_tmp = load_file_as_bitmap((UBYTE *)"assets/pig.bin", 32000, 320, 200, 4);
   fVBLDelay(50);
 
   SequenceEndImage();
@@ -1050,7 +953,7 @@ void SequenceDemoTitle(void)
 
   disp_fade_in(demo_title_PaletteRGB4, 32);
   LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
-  FREE_BITMAP(bitmap_tmp);
+  free_allocated_bitmap(bitmap_tmp);
 }
 
 /*
@@ -1078,7 +981,7 @@ void SequenceEndImage(void)
 
   disp_fade_in(pigPaletteRGB4, 32);
   LoadRGB4(mainVP, pigPaletteRGB4, 32);
-  FREE_BITMAP(bitmap_tmp);
+  free_allocated_bitmap(bitmap_tmp);
 }
 
 /*
@@ -1233,10 +1136,10 @@ void SequenceDisplaySuspectProfile(short suspect_index)
   /*  Write the profile description */
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
-  FREE_BITMAP(bitmap_tmp);
+  free_allocated_bitmap(bitmap_tmp);
 
   if (c_face != NULL)
-    bitmap_next_face = load_as_bitmap(c_face, 3440, 80, 86, 4);
+    bitmap_next_face = load_file_as_bitmap(c_face, 3440, 80, 86, 4);
 
   for(i = 0; i < 250; i++)
   {

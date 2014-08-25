@@ -66,9 +66,9 @@ struct ViewPort *mainVP;
 BOOL init_open_libs(void)
 {
   /* Check for at least release 3.0 */
-  if (SysBase->LibNode.lib_Version < 36)
+  if (SysBase->LibNode.lib_Version < 33)
   {
-    init_conerr((UBYTE *)"This program requires Amiga Kickstart Release 2.0+\n");
+    init_conerr((UBYTE *)"This program requires Amiga Kickstart Release 1.2+\n");
     return (FALSE);
   }
 
@@ -90,12 +90,10 @@ BOOL init_open_libs(void)
   //   init_conerr((UBYTE *)"Unable to open diskfont.library version 33\n");
   //   return (FALSE);
   // }
-
-  if (!AssignPath("Libs","Libs"))
-  {
-    init_conerr((UBYTE *)"Failed to Assign the local Libs drawer. Please copy ptreplay.library into your Libs: drawer.\n");
-    // return (FALSE);
-  }
+  
+  if (SysBase->LibNode.lib_Version >= 36)
+    if (!AssignPath("Libs","Libs"))
+      init_conerr((UBYTE *)"Failed to Assign the local Libs drawer. Please copy ptreplay.library into your Libs: drawer.\n");
 
   if (!(PTReplayBase = OpenLibrary((UBYTE *)"ptreplay.library", 0)))
   {
