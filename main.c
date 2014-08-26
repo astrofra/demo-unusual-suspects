@@ -1136,10 +1136,10 @@ void SequenceDisplaySuspectProfile(short suspect_index)
   /*  Write the profile description */
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
-  free_allocated_bitmap(bitmap_tmp);
+  // free_allocated_bitmap(bitmap_tmp);
 
   if (c_face != NULL)
-    bitmap_next_face = load_file_as_bitmap(c_face, 3440, 80, 86, 4);
+    load_file_into_existing_bitmap(bitmap_next_face, c_face, 3440, 4);
 
   for(i = 0; i < 250; i++)
   {

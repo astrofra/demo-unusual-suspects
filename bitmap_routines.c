@@ -79,12 +79,17 @@ struct BitMap *load_file_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UW
 
 void free_allocated_bitmap(struct BitMap *allocated_bitmap)
 {
-  // USHORT i;
+  USHORT i;
 
-  // for (i = 0; i < (*allocated_bitmap).Depth; i++)
-  //   FreeMem((*allocated_bitmap).Planes[i], (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
+  if (allocated_bitmap)
+  {
+    for (i = 0; i < (*allocated_bitmap).Depth; i++)
+      FreeMem((*allocated_bitmap).Planes[i], (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
 
-  // FreeMem(allocated_bitmap, sizeof(struct BitMap));
+    FreeMem(allocated_bitmap, sizeof(struct BitMap));
+
+    allocated_bitmap = NULL;
+  }
 }
 
 struct BitMap *load_array_as_bitmap(UWORD *bitmap_array, UWORD array_size, UWORD width, UWORD height, UWORD depth)
@@ -106,16 +111,19 @@ struct BitMap *load_array_as_bitmap(UWORD *bitmap_array, UWORD array_size, UWORD
   return new_bitmap;
 }
 
-void load_file_into_existing_bitmap(struct BitMap *new_bitmap, BYTE *name, ULONG byte_size, UWORD depth)
+void load_file_into_existing_bitmap(struct BitMap *dest_bitmap, BYTE *name, ULONG byte_size, UWORD depth)
 {
   BPTR fileHandle;
   USHORT i;
 
-  if (fileHandle = Open(name, MODE_OLDFILE))
+  if (dest_bitmap)
   {
-    for (i = 0; i < depth; i++)
-      Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
-    Close(fileHandle);
+    if (fileHandle = Open(name, MODE_OLDFILE))
+    {
+      for (i = 0; i < depth; i++)
+        Read(fileHandle, (*dest_bitmap).Planes[i], byte_size / depth);
+      Close(fileHandle);
+    }
   }
 }
 
