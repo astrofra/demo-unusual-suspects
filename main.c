@@ -178,6 +178,10 @@ void WriteMsg(char *errMsg)
 void  ForceDemoClose(void)
 {
   /*  Free the audio module */
+  // printf("\n");
+  // printf("----------------\n");
+  // printf("ForceDemoClose()\n");
+  // printf("----------------\n");
 
   if (mod != NULL)
   {

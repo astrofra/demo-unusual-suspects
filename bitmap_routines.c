@@ -23,6 +23,7 @@ PLANEPTR load_getchipmem(UBYTE *name, ULONG size)
   {
     if (mem = AllocMem(size, MEMF_CHIP))
     {
+      // printf("load_getchipmem() address = %x, size = %i\n", size, mem);
       Read(fileHandle, mem, size);
       Close(fileHandle);
       return (mem);
@@ -40,6 +41,7 @@ PLANEPTR load_getmem(UBYTE *name, ULONG size)
   {
     if (mem = AllocMem(size, 0L))
     {
+      // printf("load_getmem() address = %x, size = %i\n", size, mem);
       Read(fileHandle, mem, size);
       Close(fileHandle);
       return (mem);
@@ -54,12 +56,14 @@ struct BitMap *load_file_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UW
   struct BitMap *new_bitmap;
   PLANEPTR new_plane_ptr;
   USHORT i;
+  ULONG block_len;
 
   if (!(fileHandle = Open(name, MODE_OLDFILE)))
     return (NULL);
 
   new_bitmap = (struct BitMap *)AllocMem((LONG)sizeof(struct BitMap), MEMF_CLEAR);
   InitBitMap(new_bitmap, depth, width, height);
+  // printf("load_file_as_bitmap() width = %i, height = %i, new_bitmap = %x\n", width, height, new_bitmap);
   // printf("new_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d, byte_size = %i, \n",
   //       (*new_bitmap).BytesPerRow,
   //       (*new_bitmap).Rows,
@@ -68,7 +72,11 @@ struct BitMap *load_file_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UW
   //       byte_size);
 
   for (i = 0; i < depth; i++)
-    (*new_bitmap).Planes[i] = (PLANEPTR)AllocMem(RASSIZE(width, height), MEMF_CHIP);
+  {
+    block_len = RASSIZE(width, height);
+    // printf("AllocMem() plane[%i], block_len = %i\n", i, block_len);
+    (*new_bitmap).Planes[i] = (PLANEPTR)AllocMem(block_len, MEMF_CHIP);
+  }
 
   for (i = 0; i < depth; i++)
     Read(fileHandle, (*new_bitmap).Planes[i], byte_size / depth);
@@ -80,13 +88,27 @@ struct BitMap *load_file_as_bitmap(UBYTE *name, ULONG byte_size, UWORD width, UW
 void free_allocated_bitmap(struct BitMap *allocated_bitmap)
 {
   USHORT i;
+  ULONG block_len;
 
   if (allocated_bitmap)
   {
-    for (i = 0; i < (*allocated_bitmap).Depth; i++)
-      FreeMem((*allocated_bitmap).Planes[i], RASSIZE((*allocated_bitmap).BytesPerRow / 8, (*allocated_bitmap).Rows)); // (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
+    // printf("free_allocated_bitmap() allocated_bitmap = %x\n", allocated_bitmap);
+    // printf("allocated_bitmap, BytesPerRow = %d, Rows = %d, Depth = %d, pad = %d\n",
+    //       (*allocated_bitmap).BytesPerRow,
+    //       (*allocated_bitmap).Rows,
+    //       (*allocated_bitmap).Depth,
+    //       (int)(*allocated_bitmap).pad);
 
-    FreeMem(allocated_bitmap, (LONG)sizeof(struct BitMap));
+    block_len = RASSIZE((*allocated_bitmap).BytesPerRow * 8, (*allocated_bitmap).Rows);
+    for (i = 0; i < (*allocated_bitmap).Depth; i++)
+    {
+      // printf("FreeMem() plane[%i], block_len = %i\n", i, block_len);
+      FreeMem((*allocated_bitmap).Planes[i], block_len); // (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
+    }
+
+    block_len = (LONG)sizeof(struct BitMap);
+    // printf("FreeMem() struct BitMap, block_len = %i\n", block_len);
+    FreeMem(allocated_bitmap, block_len);
   }
 }
 
