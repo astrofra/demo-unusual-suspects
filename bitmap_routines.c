@@ -84,18 +84,15 @@ void free_allocated_bitmap(struct BitMap *allocated_bitmap)
   if (allocated_bitmap)
   {
     for (i = 0; i < (*allocated_bitmap).Depth; i++)
-      FreeMem((*allocated_bitmap).Planes[i], (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
+      FreeMem((*allocated_bitmap).Planes[i], RASSIZE((*allocated_bitmap).BytesPerRow / 8, (*allocated_bitmap).Rows)); // (*allocated_bitmap).BytesPerRow * (*allocated_bitmap).Rows);
 
-    FreeMem(allocated_bitmap, sizeof(struct BitMap));
-
-    allocated_bitmap = NULL;
+    FreeMem(allocated_bitmap, (LONG)sizeof(struct BitMap));
   }
 }
 
 struct BitMap *load_array_as_bitmap(UWORD *bitmap_array, UWORD array_size, UWORD width, UWORD height, UWORD depth)
 {
   struct BitMap *new_bitmap;
-  PLANEPTR new_plane_ptr;
   USHORT i;
   UBYTE *read_ptr;
 

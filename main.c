@@ -200,12 +200,12 @@ void  ForceDemoClose(void)
   FreeMem(keyMatrix,KEY_MATRIX_SIZE);
   
   /* Close opened resources */
-  free_allocated_bitmap(bitmap_background);
-  free_allocated_bitmap(bitmap_tmp);
-  free_allocated_bitmap(bitmap_font);
-  free_allocated_bitmap(bitmap_font_dark);
-  free_allocated_bitmap(bitmap_video_noise);
-  free_allocated_bitmap(bitmap_next_face);
+  FREE_BITMAP(bitmap_background);
+  FREE_BITMAP(bitmap_tmp);
+  FREE_BITMAP(bitmap_font);
+  FREE_BITMAP(bitmap_font_dark);
+  FREE_BITMAP(bitmap_video_noise);
+  FREE_BITMAP(bitmap_next_face);
 
   init_close_video();
   init_close_libs();
@@ -305,8 +305,6 @@ UWORD ColorMakeDarker(UWORD color_in, int dt)
 /* Main program entry point */
 int main(void)
 {
-  short _i;
-
   bitmap_background = NULL;
   bitmap_tmp = NULL;
   bitmap_font = NULL;
@@ -953,7 +951,7 @@ void SequenceDemoTitle(void)
 
   disp_fade_in(demo_title_PaletteRGB4, 32);
   LoadRGB4(mainVP, demo_title_PaletteRGB4, 32);
-  free_allocated_bitmap(bitmap_tmp);
+  FREE_BITMAP(bitmap_tmp);
 }
 
 /*
@@ -981,7 +979,7 @@ void SequenceEndImage(void)
 
   disp_fade_in(pigPaletteRGB4, 32);
   LoadRGB4(mainVP, pigPaletteRGB4, 32);
-  free_allocated_bitmap(bitmap_tmp);
+  FREE_BITMAP(bitmap_tmp);
 }
 
 /*
@@ -1136,7 +1134,7 @@ void SequenceDisplaySuspectProfile(short suspect_index)
   /*  Write the profile description */
   font_writer_blit(bitmap_font, bitmap_font_dark, &theBitMap, (const char *)&future_font_glyph_array, (const short *)&future_font_x_pos_array, 124, 63, c_desc_str);
 
-  // free_allocated_bitmap(bitmap_tmp);
+  // FREE_BITMAP(bitmap_tmp);
 
   if (c_face != NULL)
     load_file_into_existing_bitmap(bitmap_next_face, c_face, 3440, 4);

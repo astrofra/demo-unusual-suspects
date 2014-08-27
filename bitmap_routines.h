@@ -22,4 +22,5 @@ void disp_interleaved_st_format(PLANEPTR data, struct BitMap *dest_BitMap, UWORD
             WIDTH, HEIGHT,      \
             0xC0, 0xFF, NULL);
 
-#define FREE_BITMAP(BITMAP_TMP) ;
+#define FREE_BITMAP(BITMAP_TMP) free_allocated_bitmap(BITMAP_TMP); \
+								BITMAP_TMP = NULL;
