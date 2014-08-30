@@ -361,8 +361,6 @@ int main(void)
   fVBLDelay(25);
 
   /*  Intro credit */
-// SequenceDemoClosingCredits(); 
-// SequenceDemoEndCredits();  
   SequenceDemoCredits();
 
   /*  space station */
@@ -992,12 +990,12 @@ void SequenceEndImage(void)
 void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift)
 {
   short abs_frame_idx = 0, i = 1, j = 1,
-      m_scale_x;
+      m_scale_x = 0;
 
   short swap_flag = 0; 
 
   ULONG seq_start_clock, elapsed_clock = 0;
-  duration_sec <<= 8;
+  duration_sec *= 50;
 
   WaitTOF();
   full_clear(&theRP);
@@ -1010,44 +1008,46 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
   {
     elapsed_clock = TimeGetGClock() - seq_start_clock;
 
-    if (elapsed_clock < (1 << 7))
-      m_scale_x = (24 * QMAX(((1 << 7) - elapsed_clock), 0)) >> 8;
-    else
-    {
-      if (elapsed_clock > duration_sec - (1 << 7))
-        m_scale_x = (24 * QMAX(elapsed_clock - (duration_sec - (1 << 7)), 0)) >> 8;
-      else
-        m_scale_x = 0;
-    }
+    // if (elapsed_clock < (1 << 7))
+    //   m_scale_x = (24 * QMAX(((1 << 7) - elapsed_clock), 0)) >> 8;
+    // else
+    // {
+    //   if (elapsed_clock > duration_sec - (1 << 7))
+    //     m_scale_x = (24 * QMAX(elapsed_clock - (duration_sec - (1 << 7)), 0)) >> 8;
+    //   else
+    //     m_scale_x = 0;
+    // }
 
-    abs_frame_idx += dt_time;
+    // printf("duration_sec = %i, elapsed_clock = %i\n", duration_sec, elapsed_clock);
+
+    abs_frame_idx += (dt_time << 4);
     GetDeltaTime();
     WaitTOF();           
     disp_swap();
     disp_clear(&theRP_2bpl);
 
-    if (i < 50)
-    {
-      SetAPen(&theRP_3bpl, 4);
-      RectFill(&theRP_3bpl , 0, (128 + 25) - i + frameOffset, 319, (128 + 25) + i + frameOffset);
+    // if (i < 50)
+    // {
+    //   SetAPen(&theRP_3bpl, 4);
+    //   RectFill(&theRP_3bpl , 0, (128 + 25) - i + frameOffset, 319, (128 + 25) + i + frameOffset);
 
-      if (swap_flag)
-        i += j++;
+    //   if (swap_flag)
+    //     i += j++;
 
-      swap_flag = !swap_flag;
-    }
-    else
-    {
-      if (elapsed_clock > duration_sec - (1 << 7))
-      {
-        SetAPen(&theRP_3bpl, 0);
-        RectFill(&theRP_3bpl , 0, (128 + 25) - 50 + frameOffset, 319, (128 + 25) + 50 + frameOffset);
+    //   swap_flag = !swap_flag;
+    // }
+    // else
+    // {
+    //   if (elapsed_clock > duration_sec - (1 << 7))
+    //   {
+    //     SetAPen(&theRP_3bpl, 0);
+    //     RectFill(&theRP_3bpl , 0, (128 + 25) - 50 + frameOffset, 319, (128 + 25) + 50 + frameOffset);
 
-        SetAPen(&theRP_3bpl, 4);
-        RectFill(&theRP_3bpl , 0, (128 + 25) - (50 - (m_scale_x << 2)) + frameOffset, 319, (128 + 25) + (50 - (m_scale_x << 2)) + frameOffset);
-        // printf("m_scale_x = %i\n", m_scale_x);
-      }
-    }
+    //     SetAPen(&theRP_3bpl, 4);
+    //     RectFill(&theRP_3bpl , 0, (128 + 25) - (50 - (m_scale_x << 2)) + frameOffset, 319, (128 + 25) + (50 - (m_scale_x << 2)) + frameOffset);
+    //     // printf("m_scale_x = %i\n", m_scale_x);
+    //   }
+    // }
 
     // disp_clear_bb_only(&theRP_2bpl);
     // init_clear_bb();

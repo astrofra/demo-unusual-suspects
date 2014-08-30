@@ -162,8 +162,16 @@ BOOL Init16ColorsScreen(void)
   current_screen_depth = 4;
 
   /* Close screen */
-  if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+  if (tmp_mainScreen)
+  {
+    CloseScreen(tmp_mainScreen);
+    tmp_mainScreen = NULL;
+  }
+  if (tmp_theRaster)
+  {
+    FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+    tmp_theRaster = NULL;
+  }
 
   return (TRUE);
 }
@@ -229,8 +237,16 @@ BOOL Init32ColorsScreen(void)
   current_screen_depth = 5;
 
   /* Close screen */
-  if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+  if (tmp_mainScreen)
+  {
+    CloseScreen(tmp_mainScreen);
+    tmp_mainScreen = NULL;
+  }
+  if (tmp_theRaster)
+  {
+    FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+    tmp_theRaster = NULL;
+  }
 
   return (TRUE);
 }
@@ -299,15 +315,22 @@ BOOL InitEHBScreen(void)
   current_screen_depth = 6;
 
   /* Close previous screen */
-  if (tmp_mainScreen) CloseScreen(tmp_mainScreen);
-  if (tmp_theRaster) FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+  if (tmp_mainScreen)
+  {
+    CloseScreen(tmp_mainScreen);
+    tmp_mainScreen = NULL;
+  }
+  if (tmp_theRaster)
+  {
+    FreeRaster(tmp_theRaster, prev_screen_depth * 384, SCR_HEIGHT);
+    tmp_theRaster = NULL;
+  }
 
   return (TRUE);
 }
 
 void init_close_video(void)
 {
-  /* Close screen */
   if (mainScreen) CloseScreen(mainScreen);
   if (theRaster) FreeRaster(theRaster, current_screen_depth * 384, SCR_HEIGHT);
 }
