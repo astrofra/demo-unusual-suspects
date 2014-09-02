@@ -42,6 +42,8 @@ void DeleteCopperList(void)
                 { VTAG_END_CM, NULL }
           };
 
+  printf("DeleteCopperList()\n");
+
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
   CWAIT(cl, 0, 0);
@@ -67,6 +69,8 @@ void CreateVerticalCopperList(short y_offset, /*UWORD base_color, */ UWORD *pale
                 { VTAG_USERCLIP_SET, NULL },
                 { VTAG_END_CM, NULL }
           };
+
+  printf("CreateVerticalCopperList()\n");
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 
@@ -100,6 +104,8 @@ void CreateHigheSTColorCopperList(short scanline_offset, short y_offset)
                 { VTAG_END_CM, NULL }
           };
   short v, c, color_index = 0;
+
+  printf("CreateHigheSTColorCopperList()\n");
 
   cl = (struct UCopList *) AllocMem(sizeof(struct UCopList), MEMF_PUBLIC|MEMF_CLEAR);
 

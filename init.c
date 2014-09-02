@@ -65,6 +65,8 @@ struct ViewPort *mainVP;
 /* Open all needed global resources */
 BOOL init_open_libs(void)
 {
+  printf("init_open_libs()\n");
+
   /* Check for at least release 3.0 */
   if (SysBase->LibNode.lib_Version < 33)
   {
@@ -113,6 +115,8 @@ BOOL Init16ColorsScreen(void)
 
   struct Screen *tmp_mainScreen = NULL;
   PLANEPTR tmp_theRaster = NULL;
+
+  printf("Init16ColorsScreen()\n");
 
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
@@ -183,6 +187,8 @@ BOOL Init32ColorsScreen(void)
 
   struct Screen *tmp_mainScreen = NULL;
   PLANEPTR tmp_theRaster = NULL;
+
+  printf("Init32ColorsScreen()\n");
 
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
@@ -262,6 +268,8 @@ BOOL InitEHBScreen(void)
   if (mainScreen) tmp_mainScreen = mainScreen;
   if (theRaster) tmp_theRaster = theRaster;
 
+  printf("InitEHBScreen()\n");
+
   InitBitMap(&theBitMap, 6, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_5bpl, 5, 384, SCR_HEIGHT);
   InitBitMap(&theBitMap_4bpl, 4, 384, SCR_HEIGHT);
@@ -331,6 +339,8 @@ BOOL InitEHBScreen(void)
 
 void init_close_video(void)
 {
+  printf("init_close_video()\n");
+
   if (mainScreen) CloseScreen(mainScreen);
   if (theRaster) FreeRaster(theRaster, current_screen_depth * 384, SCR_HEIGHT);
 }
@@ -338,6 +348,8 @@ void init_close_video(void)
 /* Close all global resources opened */
 void init_close_libs(void)
 {
+  printf("init_close_libs()\n");
+
   /* Close opened libraries */
   if (PTReplayBase) CloseLibrary(PTReplayBase);
   // if (DiskfontBase) CloseLibrary(DiskfontBase);
@@ -351,6 +363,8 @@ void init_close_libs(void)
 static void init_conerr(UBYTE *str)
 {
   BPTR fileHandle;		/* Console window filehandle */
+
+  printf("init_conerr()\n");
 
   /* Open small console window */
   if (!(fileHandle = Open((UBYTE *)"CON:50/50/500/100/Picnic Editor error",

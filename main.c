@@ -355,7 +355,7 @@ int main(void)
     Set the start of the global demo clock
   */
 
-  Init32ColorsScreen();
+  // Init32ColorsScreen();
   full_clear(NULL);
 
   fVBLDelay(25);
@@ -794,6 +794,8 @@ void SequenceDemoCredits(void)
 {
   short i, j, f;
 
+  printf("SequenceDemoCredits()\n");
+
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   for(i = 1, j = 1, f = 0; i < 19; i += j)
   {
@@ -861,6 +863,8 @@ void SequenceDemoEndCredits(void)
 {
   short i, j, f;
 
+  printf("SequenceDemoEndCredits()\n");
+
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   for(i = 1, j = 1, f = 0; i < 25; i += j)
   {
@@ -908,6 +912,8 @@ void SequenceDemoClosingCredits(void)
 {
   short i, j, f;
 
+  printf("SequenceDemoClosingCredits()\n");
+
   LoadRGB4(mainVP, background1PaletteRGB4, 32);
   for(i = 1, j = 1, f = 0; i < 19; i += j)
   {
@@ -934,6 +940,8 @@ void SequenceDemoClosingCredits(void)
 void SequenceDemoTitle(void)
 {
   short i, j;
+
+  printf("SequenceDemoTitle()\n");
 
   WaitTOF();
   LoadRGB4(mainVP, whitePaletteRGB4, 32);
@@ -962,6 +970,8 @@ void SequenceDemoTitle(void)
 void SequenceEndImage(void)
 {
   short i, j;
+
+  printf("SequenceEndImage()\n");
 
   WaitTOF();
   LoadRGB4(mainVP, whitePaletteRGB4, 32);
@@ -996,6 +1006,8 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
 
   ULONG seq_start_clock, elapsed_clock = 0;
   duration_sec *= 50;
+
+  printf("Sequence3DRotation()\n");
 
   WaitTOF();
   full_clear(&theRP);
@@ -1068,6 +1080,8 @@ void SequenceDisplaySuspectProfile(short suspect_index)
   UBYTE *c_desc_str;
   UBYTE *c_face;
   UWORD *c_pal;
+
+  printf("SequenceDisplaySuspectProfile()\n");
 
   switch(suspect_index)
   {

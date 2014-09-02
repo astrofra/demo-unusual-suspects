@@ -51,10 +51,12 @@ void DrawAALine(short x1, short y1, short x2, short y2)
 }
 
 void Prepare3DVertexList(void)
-{  verts_tr = (short *)AllocMem(sizeof(short) * MAX_VERTICE_COUNT * 3, 0L); } // (short *)malloc(sizeof(short) * MAX_VERTICE_COUNT * 3); }
+{  printf("Prepare3DVertexList()\n");
+  verts_tr = (short *)AllocMem(sizeof(short) * MAX_VERTICE_COUNT * 3, 0L); } // (short *)malloc(sizeof(short) * MAX_VERTICE_COUNT * 3); }
 
 void Delete3DVertexList(void)
 {  
+  printf("Delete3DVertexList()\n");
   if (verts_tr != NULL)
   {
     FreeMem(verts_tr, sizeof(short) * MAX_VERTICE_COUNT * 3); // free(verts_tr);

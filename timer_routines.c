@@ -36,6 +36,7 @@ ULONG timer_secs, timer_mics;
 
 int InitTimerDevice(void)
 {
+  printf("InitTimerDevice()\n");
   // if (OpenDevice(TIMERNAME, UNIT_ECLOCK, &TimerIoR , TR_GETSYSTIME) != 0)
   // {
   //   printf("Unable to open Timer.device");
@@ -58,6 +59,8 @@ int InitTimerDevice(void)
 void TimeInitGClock(void)
 {
   ULONG tmp_clock;
+  printf("TimeInitGClock()\n");
+
   // CLK_P_SEC = ReadEClock(&gClock);
   // start_clock = gClock.ev_lo;
   // prev_g_clock = start_clock;
