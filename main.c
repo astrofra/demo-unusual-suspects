@@ -1020,15 +1020,15 @@ void Sequence3DRotation(short duration_sec, short rot_x_shift, short rot_y_shift
   {
     elapsed_clock = TimeGetGClock() - seq_start_clock;
 
-    // if (elapsed_clock < (1 << 7))
-    //   m_scale_x = (24 * QMAX(((1 << 7) - elapsed_clock), 0)) >> 8;
-    // else
-    // {
-    //   if (elapsed_clock > duration_sec - (1 << 7))
-    //     m_scale_x = (24 * QMAX(elapsed_clock - (duration_sec - (1 << 7)), 0)) >> 8;
-    //   else
-    //     m_scale_x = 0;
-    // }
+    if (elapsed_clock < 25)
+      m_scale_x = QMAX(25 - elapsed_clock, 0) >> 1;
+    else
+    {
+      if (elapsed_clock > duration_sec - 25)
+        m_scale_x = QMAX(elapsed_clock - (duration_sec - 25), 0) >> 1;
+      else
+        m_scale_x = 0;
+    }
 
     // printf("duration_sec = %i, elapsed_clock = %i\n", duration_sec, elapsed_clock);
 
