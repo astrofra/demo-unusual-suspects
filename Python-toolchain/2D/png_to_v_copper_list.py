@@ -21,9 +21,9 @@ def main():
 	fh = open(filename_out + '.h', 'w')
 	fh.write('/* Vertical copper list palettes (headers) */\n')
 	fh.write('\n')
-	fc.write('#include <exec/types.h>\n')
-	fc.write('#include <intuition/intuition.h>\n')	
-	fc.write('\n')
+	fh.write('#include <exec/types.h>\n')
+	fh.write('#include <intuition/intuition.h>\n')	
+	fh.write('\n')
 
 	for _filename in filename_in:
 		print('Loading bitmap : ' + _filename)
